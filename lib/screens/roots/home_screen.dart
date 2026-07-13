@@ -4,8 +4,10 @@ import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:skysoft_bus/service/map_service.dart';
+import 'package:skysoft_bus/screens/homes/look_up_route_screen.dart';
+import 'package:skysoft_bus/screens/homes/search_road_screen.dart';
 
+import '../../service/map_service.dart';
 import '../../utils/global.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -22,6 +24,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final mapController = MapController();
   final popupController = PopupController();
   late final AnimatedMapController animatedMapController;
+  final _focusNode = FocusNode();
+  bool snapDrag = false;
 
   void getCurrentLocation() async {
     var permission = await Geolocator.checkPermission();
@@ -61,6 +65,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     getAddress();
   }
 
+  void pushToLookUp() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => LookUpRouteScreen()));
+  }
+
+  void pushToSearchRoad() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => SearchRoadScreen()));
+  }
+
   void getAddress() async {
     MapService service = MapService();
     final response = await service.getAddress(
@@ -88,6 +104,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void dispose() {
     mapController.dispose();
     popupController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -95,201 +112,198 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-          child: Stack(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.2,
-                    child: Image(
-                      image: AssetImage('assets/images/anh_nen.png'),
-                      width: double.infinity,
-                      fit: BoxFit.fitWidth,
-                    ),
-                  ),
-                  SizedBox(
-                    height: 300,
-                    child: Stack(
-                      children: [
-                        FlutterMap(
-                          mapController: mapController,
-                          options: MapOptions(
-                            initialCenter: const LatLng(21.0285, 105.8542),
-                            initialZoom: 13,
-                          ),
-                          children: [
-                            TileLayer(
-                              urlTemplate:
-                                  '$skymapUrl/web_tile.jsp?c={x}&r={y}&z={z}',
-                              userAgentPackageName: 'com.skysoft.sks_web',
-                            ),
-                            PopupMarkerLayer(
-                              options: PopupMarkerLayerOptions(
-                                markers: markers,
-                                popupController: popupController,
-                                markerTapBehavior:
-                                    MarkerTapBehavior.togglePopup(),
-                                popupDisplayOptions: PopupDisplayOptions(
-                                  builder: (context, marker) {
-                                    return Card(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(12),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Text(
-                                              "Vị trí hiện tại",
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Text(address),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Positioned(
-                          right: 16,
-                          bottom: 10,
-                          child: CircleAvatar(
-                            backgroundColor: Colors.white,
-                            child: IconButton(
-                              icon: Icon(Icons.my_location),
-                              onPressed: getCurrentLocation,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 16,
-                          right: 16,
-                          bottom: 10,
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.location_on,
-                                size: 20,
-                                color: Colors.teal,
-                              ),
-                              SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  address,
-                                  maxLines: 1,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  nearbyRoutes(),
-                  SizedBox(height: 10),
-                  Row(
-                    children: [
-                      buttonWidget("Tra cứu", Icons.map, onTap: () {}),
-                      buttonWidget(
-                        "Tìm đường",
-                        Icons.route_outlined,
-                        onTap: () {},
-                      ),
-                      buttonWidget(
-                        "Trạm xung\nquanh",
-                        Icons.location_on_outlined,
-                        onTap: () {},
-                      ),
-                      buttonWidget("Góp ý", Icons.thumb_up, onTap: () {}),
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          "Tính năng khác",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          "Xem tất cả",
-                          style: TextStyle(color: Colors.blue.shade500),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 5),
-                  otherFeatures(),
-                ],
+      body: GestureDetector(
+        onTap: () {
+          _focusNode.unfocus();
+        },
+        child: Stack(
+          children: [
+            FlutterMap(
+              mapController: mapController,
+              options: MapOptions(
+                initialCenter: LatLng(21.0285, 105.8542),
+                initialZoom: 13,
               ),
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.2 - 25,
-                left: 15,
-                right: 15,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(10),
+              children: [
+                TileLayer(
+                  urlTemplate: '$skymapUrl/web_tile.jsp?c={x}&r={y}&z={z}',
+                  userAgentPackageName: 'com.skysoft.sks_web',
+                ),
+                PopupMarkerLayer(
+                  options: PopupMarkerLayerOptions(
+                    markers: markers,
+                    popupController: popupController,
+                    markerTapBehavior: MarkerTapBehavior.togglePopup(),
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              top: 50,
+              left: 15,
+              child: Image.asset(
+                "assets/images/skysoft_logo_ok_h80.png",
+                height: 35,
+              ),
+            ),
+            Positioned(
+              top: 110,
+              left: 15,
+              right: 15,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [
+                    BoxShadow(blurRadius: 10, color: Colors.black12),
+                  ],
+                ),
+                child: TextFormField(
+                  focusNode: _focusNode,
+                  decoration: InputDecoration(
+                    hintText: "Tìm kiếm tuyến xe...",
+                    prefixIcon: Icon(Icons.search),
+                    contentPadding: EdgeInsets.symmetric(vertical: 12),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              right: 16,
+              bottom: 160,
+              child: FloatingActionButton.small(
+                backgroundColor: Colors.white,
+                onPressed: getCurrentLocation,
+                child: const Icon(Icons.my_location, color: Colors.blue),
+              ),
+            ),
+            DraggableScrollableSheet(
+              initialChildSize: 0.18,
+              minChildSize: 0.18,
+              maxChildSize: 0.90,
+              snap: true,
+              snapSizes: [0.18, 0.90],
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
                     boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
+                      BoxShadow(color: Colors.black26, blurRadius: 15),
                     ],
                   ),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Tìm kiếm tuyến, trạm xe buýt...',
-                      prefixIcon: Icon(Icons.search),
-                      contentPadding: EdgeInsets.symmetric(vertical: 12),
-                      border: InputBorder.none,
-                    ),
+                  child: ListView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 50,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade400,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        "Vị trí hiện tại:",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 5),
+                      Text(
+                        address,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 20),
+                      nearbyRoutes(),
+                      SizedBox(height: 20),
+                      quickAccessFeature(),
+                      SizedBox(height: 20),
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              "Tính năng khác",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {},
+                            child: const Text("Xem tất cả"),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      otherFeatures(),
+                    ],
                   ),
-                ),
-              ),
-              Positioned(
-                top: 10,
-                left: 10,
-                child: SafeArea(
-                  child: Image(
-                    image: AssetImage("assets/images/skysoft_logo_ok_h80.png"),
-                    height: 45,
-                  ),
-                ),
-              ),
-            ],
-          ),
+                );
+              },
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget quickAccessFeature() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          quickItem(
+            "Tra cứu",
+            Icons.search_rounded,
+            Color(0xFFE8F2FF),
+            Colors.blue,
+            onTap: pushToLookUp,
+          ),
+          quickItem(
+            "Tìm đường",
+            Icons.route_rounded,
+            Color(0xFFE8FFF6),
+            Colors.green,
+            onTap: pushToSearchRoad,
+          ),
+          quickItem(
+            "Trạm gần",
+            Icons.location_on_rounded,
+            Color(0xFFFFF4E5),
+            Colors.orange,
+            onTap: () {},
+          ),
+          quickItem(
+            "Góp ý",
+            Icons.thumb_up_alt_rounded,
+            Color(0xFFF3E8FF),
+            Colors.purple,
+            onTap: () {},
+          ),
+        ],
       ),
     );
   }
 
   Widget otherFeatures() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
       child: Row(
         children: [
           buttonFeature(
@@ -317,34 +331,32 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget buttonWidget(
+  Widget quickItem(
     String title,
-    IconData icon, {
+    IconData icon,
+    Color bgColor,
+    Color iconColor, {
     required Function() onTap,
   }) {
-    return Expanded(
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          InkWell(
-            onTap: onTap,
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade200,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: Colors.white, size: 35),
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(16),
             ),
+            child: Icon(icon, color: iconColor, size: 26),
           ),
-          SizedBox(height: 10),
-          SizedBox(
-            height: 30,
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              style: const TextStyle(fontSize: 11, height: 1.2),
-            ),
+          SizedBox(height: 6),
+          Text(
+            title,
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -372,7 +384,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 11, height: 1.2),
+            style: TextStyle(fontSize: 11, height: 1.2),
           ),
         ),
       ],
@@ -404,8 +416,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 5),
           child: Text(
             "Tuyến xe gần bạn nhất",
             style: TextStyle(
@@ -419,23 +431,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           height: 120,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             itemCount: nearbyRoutes.length,
             itemBuilder: (context, index) {
               final item = nearbyRoutes[index];
               return Container(
-                margin: const EdgeInsets.only(right: 12),
+                margin: EdgeInsets.only(right: 12),
                 width: 200,
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.grey.shade300),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black,
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
+                      color: Colors.grey,
+                      blurRadius: 2,
+                      offset: Offset(0, 2),
                     ),
                   ],
                 ),
@@ -447,7 +459,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                             horizontal: 8,
                             vertical: 4,
                           ),
@@ -457,7 +469,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                           child: Text(
                             item['route'],
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.teal,
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
@@ -466,7 +478,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                         Text(
                           item['time'],
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.redAccent,
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
@@ -474,20 +486,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(
                       "Hướng: ${item['destination']}",
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.black87,
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.black87),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(
                       "Cách đây: ${item['distance']}",
-                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                      style: TextStyle(fontSize: 11, color: Colors.grey),
                     ),
                   ],
                 ),

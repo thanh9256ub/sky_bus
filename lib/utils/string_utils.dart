@@ -189,6 +189,10 @@ String createRepeatChars(String char, int n) {
   return val;
 }
 
+bool isValidPhoneNumber(String phone) {
+  return RegExp(r'^0\d{9}$').hasMatch(phone);
+}
+
 extension RemoveAccentsOnString on String {
   String get removeAccents => splitMapJoin(
     '',

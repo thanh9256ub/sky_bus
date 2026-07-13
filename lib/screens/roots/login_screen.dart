@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:skysoft_bus/screens/roots/confirm_phone_login.dart';
 import 'package:skysoft_bus/utils/global.dart';
+import 'package:skysoft_bus/utils/string_utils.dart';
 import 'package:toastification/toastification.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,16 +19,18 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
   String? phone;
-  void pushToConfirm() async {
-    if (phone != null && phone!.isNotEmpty) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => ConfirmPhoneLogin(phone: phone!),
-        ),
-      );
-    } else {
-      showToast("Vui lòng nhập số điện thoại", ToastificationType.error);
+  void pushToConfirm() {
+    if (phone == null || phone!.trim().isEmpty) {
+      showToast("Không để trống số điện thoại", ToastificationType.error);
+      return;
     }
+    if (!isValidPhoneNumber(phone!)) {
+      showToast("Sai định dạng số điện thoại", ToastificationType.error);
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => ConfirmPhoneLogin(phone: phone!)),
+    );
   }
 
   @override
@@ -41,85 +44,83 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(backgroundColor: Colors.white),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Image.asset(
-                    "assets/images/skysoft_logo_ok_h80.png",
-                    height: 60,
+      backgroundColor: Colors.white,
+      appBar: AppBar(backgroundColor: Colors.white),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Image.asset(
+                  "assets/images/skysoft_logo_ok_h80.png",
+                  height: 60,
+                ),
+              ),
+              SizedBox(height: 30),
+              selectType(),
+              SizedBox(height: 30),
+              TextFormField(
+                controller: usernameController,
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.phone),
+                  hintText: "Nhập số điện thoại",
+                  filled: true,
+                  fillColor: Color(0xFFF5F7FA),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
                   ),
                 ),
-                SizedBox(height: 30),
-                selectType(),
-                SizedBox(height: 30),
-                TextField(
-                  controller: usernameController,
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.phone),
-                    hintText: "Nhập số điện thoại",
-                    filled: true,
-                    fillColor: Color(0xFFF5F7FA),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  keyboardType: TextInputType.numberWithOptions(),
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  onChanged: (value) {
-                    setState(() {
-                      phone = value;
-                    });
-                  },
-                ),
-                SizedBox(height: 20),
-                isLogin
-                    ? TextField(
-                        controller: passwordController,
-                        obscureText: !passwordVisible,
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          hintText: "Nhập mật khẩu",
-                          filled: true,
-                          fillColor: const Color(0xFFF5F7FA),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
+                keyboardType: TextInputType.numberWithOptions(),
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                onChanged: (value) {
+                  setState(() {
+                    phone = value;
+                  });
+                },
+              ),
+              SizedBox(height: 20),
+              isLogin
+                  ? TextFormField(
+                      controller: passwordController,
+                      obscureText: !passwordVisible,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        hintText: "Nhập mật khẩu",
+                        filled: true,
+                        fillColor: const Color(0xFFF5F7FA),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
                         ),
-                      )
-                    : SizedBox(),
-                SizedBox(height: 30),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: !isLogin ? pushToConfirm : () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF1976D2),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
                       ),
+                    )
+                  : SizedBox(),
+              SizedBox(height: 30),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: !isLogin ? pushToConfirm : () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF1976D2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Text(
-                      isLogin ? "ĐĂNG NHẬP" : "ĐĂNG KÝ",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                  ),
+                  child: Text(
+                    isLogin ? "ĐĂNG NHẬP" : "ĐĂNG KÝ",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

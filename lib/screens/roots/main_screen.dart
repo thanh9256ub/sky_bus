@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:skysoft_bus/screens/roots/home_screen_v2.dart';
+import 'package:skysoft_bus/screens/roots/bus_card_screen.dart';
+import 'package:skysoft_bus/screens/roots/home_screen.dart';
 import 'package:skysoft_bus/screens/roots/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -13,7 +14,11 @@ class _MainScreenState extends State<MainScreen> {
   bool hasLocation = false;
   String address = "";
   int _selectedIndex = 0;
-  final List<Widget> _widgetOptions = <Widget>[HomeScreenV2(), ProfileScreen()];
+  final List<Widget> _widgetOptions = <Widget>[
+    HomeScreen(),
+    BusCardScreen(),
+    ProfileScreen(),
+  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -41,6 +46,10 @@ class _MainScreenState extends State<MainScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.explore),
               label: 'Trang chủ',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.local_activity),
+              label: 'Mua vé',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.account_circle_outlined),

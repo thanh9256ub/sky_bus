@@ -60,7 +60,7 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
             SizedBox(height: 20),
-            Text(widget.phone, style: TextStyle(fontSize: 14)),
+            Text(widget.phone, style: TextStyle(fontSize: 16)),
             SizedBox(height: 50),
             Center(
               child: Pinput(

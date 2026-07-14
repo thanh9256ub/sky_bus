@@ -14,7 +14,15 @@ class _LookUpRouteScreenState extends State<LookUpRouteScreen> {
     return Scaffold(
       backgroundColor: Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: Text("Tra cứu tuyến", style: TextStyle(color: Colors.white)),
+        title: Text(
+          "Tra cứu tuyến",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 19,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.3,
+          ),
+        ),
         backgroundColor: secondaryColor,
         centerTitle: true,
         elevation: 0,
@@ -37,15 +45,15 @@ class _LookUpRouteScreenState extends State<LookUpRouteScreen> {
                 boxShadow: [BoxShadow(blurRadius: 10, color: Colors.black12)],
               ),
               child: TextFormField(
-                onTapOutside: (event) {
-                  FocusManager.instance.primaryFocus?.unfocus();
-                },
                 decoration: InputDecoration(
                   hintText: "Tìm kiếm tuyến xe...",
                   prefixIcon: Icon(Icons.search),
                   contentPadding: EdgeInsets.symmetric(vertical: 12),
                   border: InputBorder.none,
                 ),
+                onTapOutside: (event) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
               ),
             ),
             SizedBox(height: 10),
@@ -112,19 +120,15 @@ class _LookUpRouteScreenState extends State<LookUpRouteScreen> {
                                     ),
                                   ],
                                 ),
-
-                                const SizedBox(height: 8),
-
-                                const Text(
+                                SizedBox(height: 8),
+                                Text(
                                   "Cát Linh - Hà Đông",
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-
-                                const SizedBox(height: 10),
-
+                                SizedBox(height: 10),
                                 Row(
                                   children: [
                                     Icon(
@@ -132,7 +136,7 @@ class _LookUpRouteScreenState extends State<LookUpRouteScreen> {
                                       size: 16,
                                       color: Colors.grey.shade600,
                                     ),
-                                    const SizedBox(width: 4),
+                                    SizedBox(width: 4),
                                     Text(
                                       "05:00 - 23:30",
                                       style: TextStyle(
@@ -140,29 +144,17 @@ class _LookUpRouteScreenState extends State<LookUpRouteScreen> {
                                         fontSize: 13,
                                       ),
                                     ),
-
-                                    const SizedBox(width: 16),
-
+                                    SizedBox(width: 16),
                                     Icon(
                                       Icons.payments_outlined,
                                       size: 16,
                                       color: Colors.green.shade700,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      "30.000đ",
-                                      style: TextStyle(
-                                        color: Colors.green.shade700,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 13,
-                                      ),
                                     ),
                                   ],
                                 ),
                               ],
                             ),
                           ),
-
                           Icon(
                             Icons.chevron_right_rounded,
                             color: Colors.grey.shade400,

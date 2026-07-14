@@ -2,20 +2,28 @@ import 'package:flutter/material.dart';
 
 import '../../utils/global.dart';
 
-class BusCardScreen extends StatefulWidget {
-  const BusCardScreen({super.key});
+class BuyBusTicketScreen extends StatefulWidget {
+  const BuyBusTicketScreen({super.key});
 
   @override
-  State<BusCardScreen> createState() => _BusCardScreenState();
+  State<BuyBusTicketScreen> createState() => _BuyBusTicketScreenState();
 }
 
-class _BusCardScreenState extends State<BusCardScreen> {
+class _BuyBusTicketScreenState extends State<BuyBusTicketScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: Text("Chọn tuyến để mua", style: TextStyle(color: Colors.white)),
+        title: Text(
+          "Mua vé xe buýt",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 19,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.3,
+          ),
+        ),
         backgroundColor: secondaryColor,
         centerTitle: true,
         elevation: 0,
@@ -32,15 +40,15 @@ class _BusCardScreenState extends State<BusCardScreen> {
                 boxShadow: [BoxShadow(blurRadius: 10, color: Colors.black12)],
               ),
               child: TextFormField(
-                onTapOutside: (event) {
-                  FocusManager.instance.primaryFocus?.unfocus();
-                },
                 decoration: InputDecoration(
                   hintText: "Tìm kiếm tuyến xe...",
                   prefixIcon: Icon(Icons.search),
                   contentPadding: EdgeInsets.symmetric(vertical: 12),
                   border: InputBorder.none,
                 ),
+                onTapOutside: (event) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
               ),
             ),
             SizedBox(height: 10),
@@ -116,43 +124,6 @@ class _BusCardScreenState extends State<BusCardScreen> {
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                   ),
-                                ),
-
-                                const SizedBox(height: 10),
-
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.access_time_rounded,
-                                      size: 16,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      "05:00 - 23:30",
-                                      style: TextStyle(
-                                        color: Colors.grey.shade700,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-
-                                    const SizedBox(width: 16),
-
-                                    Icon(
-                                      Icons.payments_outlined,
-                                      size: 16,
-                                      color: Colors.green.shade700,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      "30.000đ",
-                                      style: TextStyle(
-                                        color: Colors.green.shade700,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
                                 ),
                               ],
                             ),

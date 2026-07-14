@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:skysoft_bus/screens/roots/bus_card_screen.dart';
+import 'package:skysoft_bus/screens/roots/buy_bus_ticket_screen.dart';
 import 'package:skysoft_bus/screens/roots/home_screen.dart';
 import 'package:skysoft_bus/screens/roots/profile_screen.dart';
 
@@ -16,7 +16,7 @@ class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   final List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
-    BusCardScreen(),
+    BuyBusTicketScreen(),
     ProfileScreen(),
   ];
 

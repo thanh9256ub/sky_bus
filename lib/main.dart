@@ -17,6 +17,7 @@ class MyApp extends StatelessWidget {
         title: 'Skysoft Bus',
         theme: ThemeData(
           colorScheme: .fromSeed(seedColor: Colors.orange[800]!),
+          splashFactory: NoSplash.splashFactory,
         ),
         debugShowCheckedModeBanner: false,
         home: MainScreen(),

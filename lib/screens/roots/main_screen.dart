@@ -32,30 +32,34 @@ class _MainScreenState extends State<MainScreen> {
       backgroundColor: Colors.white,
       body: IndexedStack(index: _selectedIndex, children: _widgetOptions),
       bottomNavigationBar: SafeArea(
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.teal,
-          unselectedItemColor: Colors.grey,
-          selectedFontSize: 11,
-          elevation: 10,
-          unselectedFontSize: 11,
-          backgroundColor: Colors.white,
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.explore),
-              label: 'Trang chủ',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.local_activity),
-              label: 'Mua vé',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle_outlined),
-              label: 'Tài khoản',
-            ),
-          ],
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(top: BorderSide(color: Colors.grey.shade400)),
+          ),
+          child: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            selectedItemColor: Colors.teal,
+            selectedFontSize: 11,
+            unselectedFontSize: 11,
+            backgroundColor: Colors.white,
+            currentIndex: _selectedIndex,
+            onTap: _onItemTapped,
+            items: [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.explore),
+                label: 'Trang chủ',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.local_activity),
+                label: 'Mua vé',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.account_circle_outlined),
+                label: 'Tài khoản',
+              ),
+            ],
+          ),
         ),
       ),
     );

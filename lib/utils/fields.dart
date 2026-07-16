@@ -237,3 +237,29 @@ const String F_SUPER_CHECK = "superCheck";
 // place
 const String F_PLACE_GROUP = "placeGroup";
 const String F_PLACE_GROUPS = "placeGroups";
+
+//bus line
+const String F_KEY = "key";
+const String F_COUNT = "count";
+const String F_MTICKET_COUNT = "mTicketCount";
+const String F_COUNT_FREE = "countFree";
+const String F_COUNT_PROMOTION = "countPromotion";
+const String F_COUNT_PROMOTION_PREPAID = "countPromotionPrepaid";
+const String F_COUNT_PREPAID = "countPrepaid";
+const String F_PRICE = "price";
+const String F_PROMOTION_PRICE = "promotionPrice";
+const String F_M_TICKET_PRICE = "mTicketPrice";
+const String F_CHECKED = "checked";
+const String F_INVALID = "invalid";
+const String F_CHECKER_ID = "checkerID";
+const String F_SHIPPING_FEE = "shippingFee";
+const String F_LINE_NAME = "lineName";
+const String F_FROM_PLACE_ID = "fromPlaceID";
+const String F_TO_PLACE_ID = "toPlaceID";
+const String F_LINE_COLOR = "lineColor";
+const String F_LINE_NO = "lineNo";
+const String F_MATRIX_PRICES = "matrixPrices";
+const String F_TRAVEL_LINES = "travelLines";
+const String F_LINE_TYPE = "lineType";
+const String F_INCLUDE_MATRIX = "includeMatrix";
+const String F_SCHEDULES = "schedules";

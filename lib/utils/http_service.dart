@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'http_client_factory_web.dart';
+// import 'http_client_factory_web.dart';
 
 final HttpService httpService = HttpService();
 
@@ -12,7 +12,7 @@ class HttpService {
   // On web this is a BrowserClient with withCredentials = true so the
   // browser attaches cross-origin cookies; on other platforms it's the
   // default client and cookies are handled manually below.
-  final http.Client _client = createHttpClient();
+  final http.Client _client = http.Client();
 
   Map<String, String> headers = {"content-type": "application/json"};
   Map<String, String> cookies = {};

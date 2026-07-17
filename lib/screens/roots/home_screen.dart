@@ -92,6 +92,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
+  void _moveToBusLocation() {
+    if (selectedBusLine != null) {
+      setState(() {
+        animatedMapController.animateTo(
+          dest: selectedBusLine!.startPoint,
+          zoom: 16,
+          duration: const Duration(milliseconds: 1000),
+          curve: Curves.easeInOutCubic,
+        );
+      });
+    } else {
+      showToast("Vui lòng chọn tuyến xe", ToastificationType.error);
+    }
+  }
+
   List<Marker> buildCheckpointMarkers(BusLine line) {
     return line.placeMarks.map((place) {
       return Marker(
@@ -353,17 +368,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
               ],
             ),
-
-            Positioned(
-              right: 60,
-              bottom: 10,
-              child: FloatingActionButton.small(
-                heroTag: "gps_button",
-                backgroundColor: Colors.white,
-                onPressed: getCurrentLocation,
-                child: Icon(Icons.my_location, color: Colors.blue),
-              ),
-            ),
             Positioned(
               right: 10,
               bottom: 10,
@@ -386,10 +390,40 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ),
             Positioned(
+              right: 10,
+              top: 10,
+              child: FloatingActionButton.small(
+                heroTag: "gps_button",
+                backgroundColor: Colors.white,
+                onPressed: getCurrentLocation,
+                child: Icon(Icons.my_location, color: Colors.blue),
+              ),
+            ),
+            Positioned(
+              right: 60,
+              top: 10,
+              child: FloatingActionButton.small(
+                heroTag: "bus_button",
+                backgroundColor: Colors.white,
+                onPressed: _moveToBusLocation,
+                child: Icon(
+                  Icons.directions_bus_filled_outlined,
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Center(
+                  child: Icon(Icons.add, color: Colors.red, size: 18),
+                ),
+              ),
+            ),
+            Positioned(
               left: 10,
               bottom: 15,
               child: SizedBox(
-                width: 250,
+                width: 300,
                 child: Row(
                   children: [
                     Icon(Icons.location_on, color: Colors.blue),

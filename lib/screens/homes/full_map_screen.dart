@@ -59,9 +59,7 @@ class _FullMapScreenState extends State<FullMapScreen>
     if (lastKnown != null && mounted) updateLocation(lastKnown);
 
     await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.medium,
-          ),
+          locationSettings: LocationSettings(accuracy: LocationAccuracy.medium),
         )
         .then((pos) {
           if (mounted) updateLocation(pos);
@@ -84,17 +82,31 @@ class _FullMapScreenState extends State<FullMapScreen>
         ),
       ];
     });
-    if (mapController.camera.nonRotatedSize.width > 0) {
-      animatedMapController.animateTo(
-        dest: currentLocation,
-        zoom: 16,
-        duration: Duration(milliseconds: 1200),
-        curve: Curves.easeInOutCubic,
-      );
-    } else {
-      mapController.move(currentLocation, 16);
-    }
     getAddress();
+  }
+
+  void moveToCurrentLocation() {
+    animatedMapController.animateTo(
+      dest: currentLocation,
+      zoom: 16,
+      duration: Duration(milliseconds: 1200),
+      curve: Curves.easeInOutCubic,
+    );
+  }
+
+  void moveToBusLocation() {
+    if (widget.selectedBusLine != null) {
+      setState(() {
+        animatedMapController.animateTo(
+          dest: widget.selectedBusLine!.startPoint,
+          zoom: 16,
+          duration: Duration(milliseconds: 1000),
+          curve: Curves.easeInOutCubic,
+        );
+      });
+    } else {
+      showToast("Vui lòng chọn tuyến xe", ToastificationType.error);
+    }
   }
 
   @override
@@ -162,13 +174,20 @@ class _FullMapScreenState extends State<FullMapScreen>
           ),
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12),
               child: FloatingActionButton.small(
                 backgroundColor: Colors.white,
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: const Icon(Icons.close),
+                child: Icon(Icons.close),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Center(
+                child: Icon(Icons.add, color: Colors.red, size: 18),
               ),
             ),
           ),
@@ -178,8 +197,21 @@ class _FullMapScreenState extends State<FullMapScreen>
             child: FloatingActionButton.small(
               heroTag: "gps_button",
               backgroundColor: Colors.white,
-              onPressed: getCurrentLocation,
+              onPressed: moveToCurrentLocation,
               child: Icon(Icons.my_location, color: Colors.blue),
+            ),
+          ),
+          Positioned(
+            right: 70,
+            top: 46,
+            child: FloatingActionButton.small(
+              heroTag: "bus_button",
+              backgroundColor: Colors.white,
+              onPressed: moveToBusLocation,
+              child: Icon(
+                Icons.directions_bus_filled_outlined,
+                color: Colors.blue,
+              ),
             ),
           ),
         ],

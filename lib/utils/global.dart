@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:toastification/toastification.dart';
 
 import '../models/login_model.dart';
@@ -14,7 +15,7 @@ Color primaryColor = Color(0xFFf97316);
 Color secondaryColor = Color(0xFF0ea5e9);
 
 // FlutterSecureStorage secureStorage = const FlutterSecureStorage();
-
+final moneyFormat = NumberFormat("#,##0", "en_US");
 final PageController pageViewController = PageController();
 
 const Color LIGHT_GREY = Color.fromARGB(255, 228, 227, 227);

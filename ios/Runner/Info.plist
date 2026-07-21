@@ -17,15 +17,19 @@
 	<key>CFBundleName</key>
 	<string>skysoft_bus</string>
 	<key>CFBundlePackageType</key>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>We need access to your gallery to save the QR code.</string>
 	<string>APPL</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Ứng dụng cần truy cập thư viện ảnh để lưu tệp.</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>We need your location in the background to send location-based alerts.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>We need your location in the background to send location-based alerts.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
@@ -47,6 +51,7 @@
 					<string>Main</string>
 				</dict>
 			</array>
+			
 		</dict>
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

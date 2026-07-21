@@ -289,16 +289,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ],
           ),
-          Positioned(
-            right: 13,
-            top: MediaQuery.of(context).size.height * 0.02 + 90,
-            child: FloatingActionButton.small(
-              heroTag: "gps_button",
-              backgroundColor: Colors.white,
-              onPressed: getCurrentLocation,
-              child: Icon(Icons.my_location, color: Colors.blue),
-            ),
-          ),
           Positioned.fill(
             child: IgnorePointer(
               child: Center(
@@ -317,58 +307,74 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       left: 16,
       right: 16,
       child: SafeArea(
-        child: Autocomplete<BusLine>(
-          textEditingController: searchController,
-          focusNode: _focusNode,
-          displayStringForOption: (busLine) => busLine.description,
-          optionsBuilder: (textEditingValue) {
-            final query = textEditingValue.text.searchText;
-            if (query.isNotEmpty) {
-              return busLines.where(
-                (e) => e.description.searchText.contains(query),
-              );
-            } else {
-              return busLines;
-            }
-          },
-          fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-            return Container(
-              height: 50,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade400),
-                boxShadow: [BoxShadow(blurRadius: 10, color: Colors.black12)],
-              ),
-              child: TextFormField(
-                controller: controller,
-                focusNode: focusNode,
-                decoration: InputDecoration(
-                  hintText: "Tìm kiếm tuyến xe...",
-                  prefixIcon: Icon(Icons.search),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 12),
-                  fillColor: Colors.white,
-                  suffixIcon: selectedBusLine != null
-                      ? IconButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedBusLine = null;
-                              searchController.text = "";
-                            });
-                          },
-                          icon: Icon(Icons.close),
-                        )
-                      : SizedBox(),
-                ),
-                onFieldSubmitted: (value) => onFieldSubmitted,
-              ),
-            );
-          },
-          onSelected: (busLine) {
-            _focusNode.unfocus();
-            selectLine(busLine);
-          },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Autocomplete<BusLine>(
+              textEditingController: searchController,
+              focusNode: _focusNode,
+              displayStringForOption: (busLine) => busLine.description,
+              optionsBuilder: (textEditingValue) {
+                final query = textEditingValue.text.searchText;
+                if (query.isNotEmpty) {
+                  return busLines.where(
+                    (e) => e.description.searchText.contains(query),
+                  );
+                } else {
+                  return busLines;
+                }
+              },
+              fieldViewBuilder:
+                  (context, controller, focusNode, onFieldSubmitted) {
+                    return Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade400),
+                        boxShadow: [
+                          BoxShadow(blurRadius: 10, color: Colors.black12),
+                        ],
+                      ),
+                      child: TextFormField(
+                        controller: controller,
+                        focusNode: focusNode,
+                        decoration: InputDecoration(
+                          hintText: "Tìm kiếm tuyến xe...",
+                          prefixIcon: Icon(Icons.search),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 12),
+                          fillColor: Colors.white,
+                          suffixIcon: selectedBusLine != null
+                              ? IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      selectedBusLine = null;
+                                      searchController.text = "";
+                                    });
+                                  },
+                                  icon: Icon(Icons.close),
+                                )
+                              : SizedBox(),
+                        ),
+                        onFieldSubmitted: (value) => onFieldSubmitted,
+                      ),
+                    );
+                  },
+              onSelected: (busLine) {
+                _focusNode.unfocus();
+                selectLine(busLine);
+              },
+            ),
+            SizedBox(height: 5),
+            FloatingActionButton.small(
+              heroTag: "gps_button",
+              backgroundColor: Colors.white,
+              onPressed: getCurrentLocation,
+              child: Icon(Icons.my_location, color: Colors.blue),
+            ),
+          ],
         ),
       ),
     );

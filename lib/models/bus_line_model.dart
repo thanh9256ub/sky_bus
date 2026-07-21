@@ -177,6 +177,7 @@ class Matrix {
     response.price = json[F_PRICE];
     response.promotionPrice = json[F_PROMOTION_PRICE] ?? 0;
     response.mTicketPrice = json[F_M_TICKET_PRICE] ?? 0;
+    response.price = json[F_PRICE] ?? 0;
     response.checked = json[F_CHECKED];
     response.invalid = json[F_INVALID];
     response.checkerID = json[F_CHECKER_ID];
@@ -199,6 +200,7 @@ class Matrix {
     response.toPlaceID = json[F_TO_PLACE_ID];
     response.toPlaceName = json[F_TO_PLACE_NAME] ?? "";
     response.mTicketPrice = json[F_M_TICKET_PRICE] ?? 0;
+    response.price = json[F_PRICE] ?? 0;
 
     return response;
   }
@@ -243,6 +245,7 @@ class Matrix {
       F_FROM_PLACE_ID: fromPlaceID,
       F_TO_PLACE_ID: toPlaceID,
       F_M_TICKET_PRICE: mTicketPrice,
+      F_PRICE: price,
     };
 
     return map;

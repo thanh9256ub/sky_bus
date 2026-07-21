@@ -11,7 +11,7 @@ import '../../service/map_service.dart';
 import '../../utils/global.dart';
 import '../../utils/map_helper.dart';
 import '../../utils/string_utils.dart';
-import '../../widgets/ticket_buy_dialog.dart';
+import '../widgets/ticket_buy_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -98,17 +98,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
-  Matrix? getSelectedMatrixPrice() {
-    if (selectedPlaceIds.length != 2) return null;
-    final fromId = selectedPlaceIds[0];
-    final toId = selectedPlaceIds[1];
-    return selectedBusLine!.matrixPrices.firstWhere(
-      (e) =>
-          (e.fromPlaceID == fromId && e.toPlaceID == toId) ||
-          (e.fromPlaceID == toId && e.toPlaceID == fromId),
-    );
-  }
-
   Future<void> showDialogTicket(Matrix? matrix) async {
     if (selectedPlaceIds.length == 2) {
       await showDialog(
@@ -122,10 +111,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         },
       );
     } else {
-      showToast(
-        "Vui lòng chọn điểm đầu và điểm cuối",
-        ToastificationType.error,
-      );
+      showToast("Vui lòng chọn điểm đi và điểm đến", ToastificationType.error);
     }
   }
 
@@ -141,6 +127,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 800),
       curve: Curves.easeInOutCubic,
     );
+  }
+
+  void getAddress() async {
+    MapService service = MapService();
+    final response = await service.getAddress(
+      currentLocation.longitude,
+      currentLocation.latitude,
+    );
+    if (!mounted) return;
+    setState(() {
+      address = response;
+    });
   }
 
   void getListBusLine() async {
@@ -161,16 +159,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         .description;
   }
 
-  void getAddress() async {
-    MapService service = MapService();
-    final response = await service.getAddress(
-      currentLocation.longitude,
-      currentLocation.latitude,
+  Matrix? getSelectedMatrixPrice() {
+    if (selectedPlaceIds.length != 2) return null;
+    final fromId = selectedPlaceIds[0];
+    final toId = selectedPlaceIds[1];
+    return selectedBusLine!.matrixPrices.firstWhere(
+      (e) =>
+          (e.fromPlaceID == fromId && e.toPlaceID == toId) ||
+          (e.fromPlaceID == toId && e.toPlaceID == fromId),
     );
-    if (!mounted) return;
-    setState(() {
-      address = response;
-    });
   }
 
   @override
@@ -203,266 +200,265 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
-          Positioned.fill(child: mapWidget()),
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.07,
-            left: 16,
-            right: 16,
-            child: searchBusLine(),
-          ),
-          if (selectedBusLine != null)
-            DraggableScrollableSheet(
-              controller: sheetController,
-              initialChildSize: 0.25,
-              minChildSize: 0.25,
-              maxChildSize: 0.8,
-              snap: true,
-              snapSizes: [0.25, 0.8],
-              builder: (context, scrollController) {
-                final matrixPrice = getSelectedMatrixPrice();
-                return Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(24),
-                    ),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black12, blurRadius: 12),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        height: 50,
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: secondaryColor,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(12),
-                            topRight: Radius.circular(12),
-                          ),
-                        ),
-                        child: Row(
+          mapWidget(),
+          searchBusLine(),
+          if (selectedBusLine != null) mainContent(),
+        ],
+      ),
+    );
+  }
+
+  Widget mapWidget() {
+    return Positioned.fill(
+      child: Stack(
+        children: [
+          FlutterMap(
+            mapController: mapController,
+            options: MapOptions(
+              initialCenter: currentLocation,
+              initialZoom: 16,
+              minZoom: 10,
+              maxZoom: 16,
+              interactionOptions: InteractionOptions(
+                flags:
+                    InteractiveFlag.drag |
+                    InteractiveFlag.pinchZoom |
+                    InteractiveFlag.flingAnimation,
+              ),
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: '$skymapUrl/web_tile.jsp?c={x}&r={y}&z={z}',
+                userAgentPackageName: 'com.skysoft.sks_web',
+              ),
+              PolylineLayer(
+                polylines: busLines.map((line) {
+                  final isSelected = selectedBusLine?.lineID == line.lineID;
+                  return Polyline(
+                    points: line.wayPoints
+                        .map((e) => LatLng(e.latitude, e.longitude))
+                        .toList(),
+                    strokeWidth: isSelected ? 6 : 3,
+                    color: isSelected ? Colors.red : Color(line.color),
+                  );
+                }).toList(),
+              ),
+              PopupMarkerLayer(
+                options: PopupMarkerLayerOptions(
+                  markers: markers,
+                  popupController: popupController,
+                ),
+              ),
+              MarkerLayer(
+                markers: busLines.expand((line) {
+                  return line.placeMarks.map((place) {
+                    return Marker(
+                      point: LatLng(place.y, place.x),
+                      width: 70,
+                      height: 50,
+                      child: GestureDetector(
+                        onTap: () {
+                          selectLine(line);
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Expanded(
+                            Icon(
+                              Icons.directions_bus,
+                              color: Color(line.color),
+                              size: 26,
+                            ),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 2),
                               child: Text(
-                                "${selectedBusLine!.placeMarks.first.description} - ${selectedBusLine!.placeMarks.last.description}",
+                                place.description,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
+                                  fontSize: 8,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
                                 ),
                               ),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  selectedBusLine = null;
-                                  searchController.text = "";
-                                });
-                              },
-                              icon: Icon(Icons.close, color: Colors.white),
                             ),
                           ],
                         ),
                       ),
-                      buildListItem(scrollController),
-                      Padding(
-                        padding: EdgeInsets.all(10),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 45,
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              showDialogTicket(matrixPrice);
-                            },
-                            label: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.confirmation_number_outlined),
-                                SizedBox(width: 10),
-                                Text(
-                                  "Đặt vé",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                matrixPrice != null
-                                    ? Text(
-                                        " - Giá vé: ${moneyFormat.format(matrixPrice.mTicketPrice)},000đ",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )
-                                    : Text(""),
-                              ],
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              elevation: 3,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                    );
+                  });
+                }).toList(),
+              ),
+            ],
+          ),
+          Positioned(
+            right: 13,
+            top: MediaQuery.of(context).size.height * 0.13,
+            child: FloatingActionButton.small(
+              heroTag: "gps_button",
+              backgroundColor: Colors.white,
+              onPressed: getCurrentLocation,
+              child: Icon(Icons.my_location, color: Colors.blue),
             ),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Center(
+                child: Icon(Icons.add, color: Colors.red, size: 18),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget searchBusLine() {
-    return Autocomplete<BusLine>(
-      textEditingController: searchController,
-      focusNode: _focusNode,
-      displayStringForOption: (busLine) => busLine.description,
-      optionsBuilder: (textEditingValue) {
-        final query = textEditingValue.text.searchText;
-        if (query.isNotEmpty) {
-          return busLines.where(
-            (e) => e.description.searchText.contains(query),
-          );
-        } else {
-          return busLines;
-        }
-      },
-      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-        return Container(
-          height: 50,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade400),
-            boxShadow: [BoxShadow(blurRadius: 10, color: Colors.black12)],
-          ),
-          child: TextFormField(
-            controller: controller,
-            focusNode: focusNode,
-            decoration: InputDecoration(
-              hintText: "Tìm kiếm tuyến xe...",
-              prefixIcon: Icon(Icons.search),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(vertical: 12),
-              fillColor: Colors.white,
+    return Positioned(
+      top: MediaQuery.of(context).size.height * 0.07,
+      left: 16,
+      right: 16,
+      child: Autocomplete<BusLine>(
+        textEditingController: searchController,
+        focusNode: _focusNode,
+        displayStringForOption: (busLine) => busLine.description,
+        optionsBuilder: (textEditingValue) {
+          final query = textEditingValue.text.searchText;
+          if (query.isNotEmpty) {
+            return busLines.where(
+              (e) => e.description.searchText.contains(query),
+            );
+          } else {
+            return busLines;
+          }
+        },
+        fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+          return Container(
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade400),
+              boxShadow: [BoxShadow(blurRadius: 10, color: Colors.black12)],
             ),
-            onFieldSubmitted: (value) => onFieldSubmitted,
-          ),
-        );
-      },
-      onSelected: (busLine) {
-        _focusNode.unfocus();
-        selectLine(busLine);
-      },
+            child: TextFormField(
+              controller: controller,
+              focusNode: focusNode,
+              decoration: InputDecoration(
+                hintText: "Tìm kiếm tuyến xe...",
+                prefixIcon: Icon(Icons.search),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(vertical: 12),
+                fillColor: Colors.white,
+                suffixIcon: selectedBusLine != null
+                    ? IconButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedBusLine = null;
+                            searchController.text = "";
+                          });
+                        },
+                        icon: Icon(Icons.close),
+                      )
+                    : SizedBox(),
+              ),
+              onFieldSubmitted: (value) => onFieldSubmitted,
+            ),
+          );
+        },
+        onSelected: (busLine) {
+          _focusNode.unfocus();
+          selectLine(busLine);
+        },
+      ),
     );
   }
 
-  Widget mapWidget() {
-    return Stack(
-      children: [
-        FlutterMap(
-          mapController: mapController,
-          options: MapOptions(
-            initialCenter: currentLocation,
-            initialZoom: 16,
-            minZoom: 10,
-            maxZoom: 16,
-            interactionOptions: InteractionOptions(
-              flags:
-                  InteractiveFlag.drag |
-                  InteractiveFlag.pinchZoom |
-                  InteractiveFlag.flingAnimation,
-            ),
+  Widget mainContent() {
+    return DraggableScrollableSheet(
+      controller: sheetController,
+      initialChildSize: 0.25,
+      minChildSize: 0.25,
+      maxChildSize: 0.8,
+      snap: true,
+      snapSizes: [0.25, 0.8],
+      builder: (context, scrollController) {
+        final matrixPrice = getSelectedMatrixPrice();
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 12)],
           ),
-          children: [
-            TileLayer(
-              urlTemplate: '$skymapUrl/web_tile.jsp?c={x}&r={y}&z={z}',
-              userAgentPackageName: 'com.skysoft.sks_web',
-            ),
-            PolylineLayer(
-              polylines: busLines.map((line) {
-                final isSelected = selectedBusLine?.lineID == line.lineID;
-                return Polyline(
-                  points: line.wayPoints
-                      .map((e) => LatLng(e.latitude, e.longitude))
-                      .toList(),
-                  strokeWidth: isSelected ? 6 : 3,
-                  color: isSelected ? Colors.red : Color(line.color),
-                );
-              }).toList(),
-            ),
-            PopupMarkerLayer(
-              options: PopupMarkerLayerOptions(
-                markers: markers,
-                popupController: popupController,
+          child: Column(
+            children: [
+              Container(
+                height: 50,
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: secondaryColor,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  "${selectedBusLine!.placeMarks.first.description} - ${selectedBusLine!.placeMarks.last.description}",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ),
-            ),
-            MarkerLayer(
-              markers: busLines.expand((line) {
-                return line.placeMarks.map((place) {
-                  return Marker(
-                    point: LatLng(place.y, place.x),
-                    width: 70,
-                    height: 50,
-                    child: GestureDetector(
-                      onTap: () {
-                        selectLine(line);
-                      },
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.directions_bus,
-                            color: Color(line.color),
-                            size: 26,
+              buildListItem(scrollController),
+              Padding(
+                padding: EdgeInsets.all(10),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 45,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      showDialogTicket(matrixPrice);
+                    },
+                    label: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.confirmation_number_outlined),
+                        SizedBox(width: 10),
+                        Text(
+                          "Đặt vé",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 2),
-                            child: Text(
-                              place.description,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 8,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
+                        matrixPrice != null
+                            ? Text(
+                                " - Giá vé: ${moneyFormat.format(matrixPrice.price)},000đ",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : Text(""),
+                      ],
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                  );
-                });
-              }).toList(),
-            ),
-          ],
-        ),
-        Positioned(
-          right: 13,
-          top: MediaQuery.of(context).size.height * 0.13,
-          child: FloatingActionButton.small(
-            heroTag: "gps_button",
-            backgroundColor: Colors.white,
-            onPressed: getCurrentLocation,
-            child: Icon(Icons.my_location, color: Colors.blue),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
-        Positioned.fill(
-          child: IgnorePointer(
-            child: Center(child: Icon(Icons.add, color: Colors.red, size: 18)),
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 

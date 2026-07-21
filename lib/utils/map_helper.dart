@@ -7,7 +7,28 @@ import 'package:latlong2/latlong.dart';
 class MapHelper {
   static LatLng? currentLocation;
 
+  static Future<bool>? _permissionRequestFuture;
+
   static Future<bool> _checkPermission() async {
+    if (_permissionRequestFuture != null) {
+      return await _permissionRequestFuture!;
+    }
+
+    _permissionRequestFuture = _executePermissionCheck();
+
+    try {
+      return await _permissionRequestFuture!;
+    } finally {
+      _permissionRequestFuture = null;
+    }
+  }
+
+  static Future<bool> _executePermissionCheck() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return false;
+    }
+
     var permission = await Geolocator.checkPermission();
 
     if (permission == LocationPermission.denied) {
@@ -55,8 +76,10 @@ class MapHelper {
     return currentLocation;
   }
 
-  static Stream<LatLng> locationStream() {
-    return Geolocator.getPositionStream(
+  static Stream<LatLng> locationStream() async* {
+    if (!await _checkPermission()) return;
+
+    yield* Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 10,

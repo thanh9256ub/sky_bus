@@ -34,20 +34,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color: Colors.white,
                   child: Column(
                     children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => LoginScreen(),
+                      Visibility(
+                        visible: loginResponse.userName.isEmpty,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => LoginScreen(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            "Đăng nhập",
+                            style: TextStyle(
+                              color: secondaryColor,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
-                          );
-                        },
-                        child: Text(
-                          "Đăng nhập",
-                          style: TextStyle(
-                            color: secondaryColor,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),

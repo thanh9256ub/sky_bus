@@ -20,6 +20,8 @@
 	<string>APPL</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
     <string>Ứng dụng cần truy cập thư viện ảnh để lưu tệp.</string>
+	<key>NFCReaderUsageDescription</key>
+	<string>Ứng dụng sử dụng NFC để đọc thẻ.</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>

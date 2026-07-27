@@ -263,3 +263,29 @@ const String F_TRAVEL_LINES = "travelLines";
 const String F_LINE_TYPE = "lineType";
 const String F_INCLUDE_MATRIX = "includeMatrix";
 const String F_SCHEDULES = "schedules";
+const String F_EXPIRE_DATE = "expireDate";
+
+//ticket
+const String F_CHARGE_ID = "chargeID";
+const String F_RECHARGE_ID = "rechargeID";
+const String F_QUANTITY = "quantity";
+const String F_CARD_NO = "cardNo";
+const String F_PHONE_NO = "phoneNo";
+const String F_PREPAID = "prepaid";
+const String F_AMOUNT = "amount";
+const String F_DISCOUNT_PERCENT = "discountPercent";
+const String F_RECHARGES = "recharges";
+
+//bus card
+const String F_ID_CARD_NO = "IDCardNo";
+const String F_VALID = "valid";
+const String F_EMAIL = "email";
+const String F_AVATAR = "avatar";
+const String F_AVATAR_DATE = "avatarDate";
+const String F_AVATAR_MD5 = "avatarMD5";
+const String F_BALANCE_AMOUNT = "balanceAmount";
+const String F_REQUIRE_PHOTO = "requirePhoto";
+const String F_END_DISCOUNT_DATE = "endDiscountDate";
+const String F_PRIORITY_ID = "priorityID";
+const String F_PRIORITY_DESCRIPTION = "priorityDescription";
+const String F_PREPAID_RECHARGES = "prepaidRecharges";

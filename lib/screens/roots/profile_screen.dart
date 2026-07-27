@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skysoft_bus/screens/roots/login_screen.dart';
+import 'package:toastification/toastification.dart';
 
 import '../../utils/global.dart';
 
@@ -54,7 +55,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       profileFeature(
                         "Thông tin cá nhân",
                         icon: Icons.person,
-                        onTap: () {},
+                        onTap: () {
+                          showToast(
+                            "Vui lòng đăng nhập để xem thông tin",
+                            ToastificationType.error,
+                          );
+                        },
                       ),
                       SizedBox(height: 10),
                       profileFeature(

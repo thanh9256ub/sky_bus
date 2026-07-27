@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:skysoft_bus/screens/roots/check_ticket_screen.dart';
 import 'package:skysoft_bus/screens/roots/home_screen.dart';
 import 'package:skysoft_bus/screens/roots/profile_screen.dart';
 
@@ -13,7 +14,11 @@ class _MainScreenState extends State<MainScreen> {
   bool hasLocation = false;
   String address = "";
   int _selectedIndex = 0;
-  final List<Widget> _widgetOptions = <Widget>[HomeScreen(), ProfileScreen()];
+  final List<Widget> _widgetOptions = <Widget>[
+    HomeScreen(),
+    CheckTicketScreen(),
+    ProfileScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +47,10 @@ class _MainScreenState extends State<MainScreen> {
               BottomNavigationBarItem(
                 icon: Icon(Icons.explore),
                 label: 'Trang chủ',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.confirmation_number_outlined),
+                label: 'Thẻ tháng',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.account_circle_outlined),

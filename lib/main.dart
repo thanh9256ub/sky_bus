@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:skysoft_bus/screens/roots/main_screen.dart';
+import 'package:skysoft_bus/screens/roots/splash_screen.dart';
 import 'package:toastification/toastification.dart';
 
 void main() async {
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
           splashFactory: NoSplash.splashFactory,
         ),
         debugShowCheckedModeBanner: false,
-        home: MainScreen(),
+        home: SplashScreen(),
       ),
     );
   }

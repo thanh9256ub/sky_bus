@@ -293,3 +293,20 @@ extension Format on int {
     return val;
   }
 }
+
+String nfcHexToDecimal(String hex) {
+  if (hex.length % 2 != 0) {
+    return "";
+  }
+
+  List<String> bytes = [];
+  for (int i = 0; i < hex.length; i += 2) {
+    bytes.add(hex.substring(i, i + 2));
+  }
+
+  String reversedHex = bytes.reversed.join();
+
+  int decimal = int.parse(reversedHex, radix: 16);
+
+  return decimal.toString().padLeft(10, '0');
+}

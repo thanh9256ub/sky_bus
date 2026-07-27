@@ -31,9 +31,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final DraggableScrollableController sheetController =
       DraggableScrollableController();
   final _focusNode = FocusNode();
-  bool snapDrag = false;
   bool showBottomSheet = true;
-  String routeSelected = "";
   BusLine? selectedBusLine;
   List<BusLine> busLines = [];
   List<int> selectedPlaceIds = [];
@@ -244,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     .map((e) => LatLng(e.latitude, e.longitude))
                     .toList(),
                 strokeWidth: isSelected ? 6 : 3,
-                color: isSelected ? Colors.red : Color(line.color),
+                color: isSelected ? Colors.green : Color(line.color),
               );
             }).toList(),
           ),
@@ -271,7 +269,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         Icon(
                           Icons.directions_bus,
                           color: Color(line.color),
-                          size: 26,
+                          size: 22,
                         ),
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 2),

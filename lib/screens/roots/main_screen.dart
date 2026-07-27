@@ -15,12 +15,6 @@ class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   final List<Widget> _widgetOptions = <Widget>[HomeScreen(), ProfileScreen()];
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,12 +28,16 @@ class _MainScreenState extends State<MainScreen> {
           ),
           child: BottomNavigationBar(
             type: BottomNavigationBarType.fixed,
-            selectedItemColor: Colors.teal,
+            selectedItemColor: Colors.blue,
             selectedFontSize: 11,
             unselectedFontSize: 11,
             backgroundColor: Colors.white,
             currentIndex: _selectedIndex,
-            onTap: _onItemTapped,
+            onTap: (value) {
+              setState(() {
+                _selectedIndex = value;
+              });
+            },
             items: [
               BottomNavigationBarItem(
                 icon: Icon(Icons.explore),

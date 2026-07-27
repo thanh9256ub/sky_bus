@@ -29,8 +29,9 @@ class PaymentScreen extends StatefulWidget {
 
 class _PaymentScreenState extends State<PaymentScreen> {
   final GlobalKey _globalKey = GlobalKey();
-  final String _qrData = "https://flutter.dev";
-  bool _isSaving = false;
+  String qrData = "https://flutter.dev";
+  bool isSaving = false;
+
   String getPlaceName(int placeId) {
     return widget.selectedLine.placeMarks
         .firstWhere((e) => e.placeID == placeId)
@@ -38,7 +39,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _downloadQrCode() async {
-    setState(() => _isSaving = true);
+    setState(() {
+      isSaving = true;
+    });
     try {
       RenderRepaintBoundary boundary =
           _globalKey.currentContext!.findRenderObject()
@@ -66,7 +69,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
         showToast('Lưu mã QR thất bại: $e', ToastificationType.error);
       }
     } finally {
-      if (mounted) setState(() => _isSaving = false);
+      if (mounted) {
+        setState(() {
+          isSaving = false;
+        });
+      }
     }
   }
 
@@ -195,7 +202,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
               ],
             ),
-
             SizedBox(height: 10),
             RepaintBoundary(
               key: _globalKey,
@@ -208,12 +214,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   border: Border.all(color: Colors.grey),
                   borderRadius: BorderRadius.circular(15),
                 ),
-                child: QrImageView(data: _qrData, version: QrVersions.auto),
+                child: QrImageView(data: qrData, version: QrVersions.auto),
               ),
             ),
             SizedBox(height: 10),
             InkWell(
-              onTap: _isSaving ? null : _downloadQrCode,
+              onTap: isSaving ? null : _downloadQrCode,
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.45,
                 padding: const EdgeInsets.symmetric(
@@ -230,7 +236,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     Icon(Icons.download_rounded, color: Colors.blue),
                     SizedBox(width: 10),
                     Text(
-                      _isSaving ? "Đang lưu..." : "Lưu ảnh QR",
+                      isSaving ? "Đang lưu..." : "Lưu ảnh QR",
                       style: const TextStyle(
                         color: Colors.blue,
                         fontWeight: FontWeight.w600,

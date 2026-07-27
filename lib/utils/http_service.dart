@@ -1,20 +1,19 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-// import 'http_client_factory_web.dart';
 
-final HttpService httpService = HttpService();
+final GeneralApiService httpService = GeneralApiService();
 
-class HttpService {
+class GeneralApiService {
   final JsonDecoder _decoder = const JsonDecoder();
   final JsonEncoder _encoder = const JsonEncoder();
 
-  // On web this is a BrowserClient with withCredentials = true so the
-  // browser attaches cross-origin cookies; on other platforms it's the
-  // default client and cookies are handled manually below.
-  final http.Client _client = http.Client();
-
-  Map<String, String> headers = {"content-type": "application/json"};
+  Map<String, String> headers = {"Content-Type": "application/json"};
+  Map<String, String> urlEncodedHeaders = {
+    "Content-Type": "application/x-www-form-urlencoded",
+  };
+  Map<String, String> formDataHeaders = {"Content-Type": "multipart/form-data"};
   Map<String, String> cookies = {};
 
   void _updateCookie(http.Response response) {
@@ -32,12 +31,22 @@ class HttpService {
       }
 
       headers['cookie'] = _generateCookieHeader();
+      // downloadingHeaders["cookie"] = _generateCookieHeader();
+      urlEncodedHeaders['cookie'] = _generateCookieHeader();
+      formDataHeaders['cookie'] = _generateCookieHeader();
     }
   }
 
   void _setCookie(String? rawCookie) {
     if (rawCookie != null) {
       var keyValue = rawCookie.split('=');
+      if (keyValue[0] == 'tokenID' && keyValue.length == 3) {
+        keyValue.removeWhere((element) => element.isEmpty);
+        keyValue[1] = "${keyValue[1]}=";
+      } else if (keyValue[0] == 'tokenID' && keyValue.length == 4) {
+        keyValue.removeWhere((element) => element.isEmpty);
+        keyValue[1] = "${keyValue[1]}==";
+      }
       if (keyValue.length == 2) {
         var key = keyValue[0].trim();
         var value = keyValue[1];
@@ -46,6 +55,7 @@ class HttpService {
         if (key == 'path' || key == 'expires') return;
 
         cookies[key] = value;
+        // defaultCookies[key] = value;
       }
     }
   }
@@ -61,105 +71,126 @@ class HttpService {
     return cookie;
   }
 
-  Future<dynamic> get(String url) async {
-    try {
-      http.Response response = await _client.get(
-        Uri.parse(url),
-        headers: headers,
-      );
-      // .onError((error, stackTrace) => throw Exception(error));
-
+  Future<dynamic> get(String url) {
+    return http.get(Uri.parse(url), headers: headers).then((
+      http.Response response,
+    ) {
       final String res = utf8.decode(response.bodyBytes);
       final int statusCode = response.statusCode;
 
       _updateCookie(response);
 
       if (statusCode == 200 || statusCode == 400) {
-        try {
-          if (res.isNotEmpty) {
-            return _decoder.convert(res);
-          } else {
-            return _decoder.convert("{}");
-          }
-        } catch (e) {
-          throw Exception("Có lỗi xảy ra khi đọc dữ liệu, hãy thử lại!");
-        }
+        return _decoder.convert(res);
       } else {
         throw Exception("Error while fetching data");
       }
-    } on http.ClientException {
-      throw Exception("Lỗi kết nối mạng!");
-    } on Exception {
-      throw Exception("Error while fetching data");
-    }
+    });
   }
 
-  Future<dynamic> post(String url, {body, encoding}) async {
+  Future<dynamic> post(String url, {body, encoding}) {
     String msg = body == null ? "{}" : _encoder.convert(body);
-    try {
-      http.Response response = await _client.post(
-        Uri.parse(url),
-        body: msg,
-        headers: headers,
-        encoding: encoding,
-      );
-      // .onError((error, stackTrace) => throw Exception(error));
+    //print(headers);
+    return http
+        .post(Uri.parse(url), body: msg, headers: headers, encoding: encoding)
+        .then((http.Response response) {
+          final String res = utf8.decode(response.bodyBytes);
 
-      final String res = utf8.decode(response.bodyBytes);
+          final int statusCode = response.statusCode;
 
-      final int statusCode = response.statusCode;
+          _updateCookie(response);
 
-      _updateCookie(response);
-
-      if (statusCode == 200 || statusCode == 400) {
-        try {
-          if (res.isNotEmpty) {
+          if (statusCode == 200 || statusCode == 400) {
             return _decoder.convert(res);
           } else {
-            return _decoder.convert("{}");
+            if (kDebugMode) {
+              print(statusCode);
+            }
+            throw Exception("Error while fetching data");
           }
-        } catch (e, stack) {
-          if (kDebugMode) {
-            print("stack: $stack");
-          }
-          throw Exception("Có lỗi xảy ra khi đọc dữ liệu, hãy thử lại!");
-        }
-      } else {
-        throw Exception("Error while fetching data");
-      }
-    } on http.ClientException {
-      throw Exception("Lỗi kết nối mạng!");
-      // return Future.error("Lỗi kết nối mạng!");
-    } catch (e) {
-      //return Future.error(e);
-      throw Exception("Error while fetching data");
-    }
+        });
   }
 
-  // Future<dynamic> put(String url, {body, encoding}) async {
-  //   http.Response response = await http
-  //       .put(Uri.parse(url),
-  //           body: _encoder.convert(body), headers: headers, encoding: encoding)
-  //       .onError((error, stackTrace) => throw Exception(error));
+  Future<dynamic> postURLEncoded(String url, {body, encoding}) {
+    String msg = body == null ? "{}" : _encoder.convert(body);
+    // print(msg);
+    //print(urlEncodedHeaders);
+    return http
+        .post(
+          Uri.parse(url),
+          body: msg,
+          headers: urlEncodedHeaders,
+          encoding: encoding,
+        )
+        .then((http.Response response) {
+          final String res = utf8.decode(response.bodyBytes);
 
-  //   final String res = response.body;
-  //   final int statusCode = response.statusCode;
+          final int statusCode = response.statusCode;
 
-  //   _updateCookie(response);
+          _updateCookie(response);
 
-  //   if (statusCode == 200 || statusCode == 400) {
-  //     try {
-  //       if (res.isNotEmpty) {
-  //         return _decoder.convert(res);
-  //       } else {
-  //         return _decoder.convert("{}");
-  //       }
-  //     } catch (e, stack) {
-  //       print("stack: ${stack}");
-  //       throw Exception("Có lỗi xảy ra khi đọc dữ liệu, hãy thử lại!");
-  //     }
-  //   } else {
-  //     throw Exception("Error while fetching data");
-  //   }
-  // }
+          if (statusCode == 200 || statusCode == 400) {
+            return _decoder.convert(res);
+          } else {
+            if (kDebugMode) {
+              print(statusCode);
+            }
+            throw Exception("Error while fetching data");
+          }
+        });
+  }
+
+  Future<dynamic> put(String url, {body, encoding}) {
+    return http
+        .put(
+          Uri.parse(url),
+          body: _encoder.convert(body),
+          headers: headers,
+          encoding: encoding,
+        )
+        .then((http.Response response) {
+          final String res = response.body;
+          final int statusCode = response.statusCode;
+
+          _updateCookie(response);
+
+          if (statusCode < 200 || statusCode > 400) {
+            throw Exception("Error while fetching data");
+          }
+          return _decoder.convert(res);
+        });
+  }
+
+  Future<dynamic> postForm(
+    String url, {
+    Map<String, dynamic>? body,
+    List<http.MultipartFile>? s,
+    encoding,
+  }) async {
+    // print("POST $url with body $body and headers $headers");
+    var request = http.MultipartRequest('POST', Uri.parse(url))
+      ..headers.addAll(formDataHeaders);
+    if (body != null) {
+      for (var key in body.keys) {
+        request.fields[key] = body[key].toString();
+      }
+    }
+    if (s != null) {
+      for (var e in s) {
+        request.files.add(e);
+      }
+    }
+    var streamedResponse = await request.send();
+    var result = await http.Response.fromStream(streamedResponse);
+
+    final String res = utf8.decode(result.bodyBytes);
+    final int statusCode = result.statusCode;
+
+    _updateCookie(result);
+
+    if (statusCode < 200 || statusCode > 400) {
+      throw Exception("Error while fetching data");
+    }
+    return _decoder.convert(res);
+  }
 }

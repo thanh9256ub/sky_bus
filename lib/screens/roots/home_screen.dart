@@ -36,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String routeSelected = "";
   BusLine? selectedBusLine;
   List<BusLine> busLines = [];
-  final List<int> selectedPlaceIds = [];
+  List<int> selectedPlaceIds = [];
 
   void getCurrentLocation() async {
     final location = await MapHelper.getCurrentLocation();
@@ -201,6 +201,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       body: Stack(
         children: [
           mapWidget(),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Center(
+                child: Icon(Icons.add, color: Colors.red, size: 18),
+              ),
+            ),
+          ),
           searchBusLine(),
           if (selectedBusLine != null) mainContent(),
         ],
@@ -210,91 +217,80 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget mapWidget() {
     return Positioned.fill(
-      child: Stack(
-        children: [
-          FlutterMap(
-            mapController: mapController,
-            options: MapOptions(
-              initialCenter: currentLocation,
-              initialZoom: 16,
-              minZoom: 10,
-              maxZoom: 16,
-              interactionOptions: InteractionOptions(
-                flags:
-                    InteractiveFlag.drag |
-                    InteractiveFlag.pinchZoom |
-                    InteractiveFlag.flingAnimation,
-              ),
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: '$skymapUrl/web_tile.jsp?c={x}&r={y}&z={z}',
-                userAgentPackageName: 'com.skysoft.sks_web',
-              ),
-              PolylineLayer(
-                polylines: busLines.map((line) {
-                  final isSelected = selectedBusLine?.lineID == line.lineID;
-                  return Polyline(
-                    points: line.wayPoints
-                        .map((e) => LatLng(e.latitude, e.longitude))
-                        .toList(),
-                    strokeWidth: isSelected ? 6 : 3,
-                    color: isSelected ? Colors.red : Color(line.color),
-                  );
-                }).toList(),
-              ),
-              PopupMarkerLayer(
-                options: PopupMarkerLayerOptions(
-                  markers: markers,
-                  popupController: popupController,
-                ),
-              ),
-              MarkerLayer(
-                markers: busLines.expand((line) {
-                  return line.placeMarks.map((place) {
-                    return Marker(
-                      point: LatLng(place.y, place.x),
-                      width: 70,
-                      height: 50,
-                      child: GestureDetector(
-                        onTap: () {
-                          selectLine(line);
-                        },
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.directions_bus,
-                              color: Color(line.color),
-                              size: 26,
-                            ),
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 2),
-                              child: Text(
-                                place.description,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  });
-                }).toList(),
-              ),
-            ],
+      child: FlutterMap(
+        mapController: mapController,
+        options: MapOptions(
+          initialCenter: currentLocation,
+          initialZoom: 16,
+          minZoom: 10,
+          maxZoom: 16,
+          interactionOptions: InteractionOptions(
+            flags:
+                InteractiveFlag.drag |
+                InteractiveFlag.pinchZoom |
+                InteractiveFlag.flingAnimation,
           ),
-          Positioned.fill(
-            child: IgnorePointer(
-              child: Center(
-                child: Icon(Icons.add, color: Colors.red, size: 18),
-              ),
+        ),
+        children: [
+          TileLayer(
+            urlTemplate: '$skymapUrl/web_tile.jsp?c={x}&r={y}&z={z}',
+            userAgentPackageName: 'com.skysoft.sks_web',
+          ),
+          PolylineLayer(
+            polylines: busLines.map((line) {
+              final isSelected = selectedBusLine?.lineID == line.lineID;
+              return Polyline(
+                points: line.wayPoints
+                    .map((e) => LatLng(e.latitude, e.longitude))
+                    .toList(),
+                strokeWidth: isSelected ? 6 : 3,
+                color: isSelected ? Colors.red : Color(line.color),
+              );
+            }).toList(),
+          ),
+          PopupMarkerLayer(
+            options: PopupMarkerLayerOptions(
+              markers: markers,
+              popupController: popupController,
             ),
+          ),
+          MarkerLayer(
+            markers: busLines.expand((line) {
+              return line.placeMarks.map((place) {
+                return Marker(
+                  point: LatLng(place.y, place.x),
+                  width: 70,
+                  height: 50,
+                  child: GestureDetector(
+                    onTap: () {
+                      selectLine(line);
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.directions_bus,
+                          color: Color(line.color),
+                          size: 26,
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 2),
+                          child: Text(
+                            place.description,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              });
+            }).toList(),
           ),
         ],
       ),
@@ -331,7 +327,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       height: 50,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(25),
                         border: Border.all(color: Colors.grey.shade400),
                         boxShadow: [
                           BoxShadow(blurRadius: 10, color: Colors.black12),
@@ -352,6 +348,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     setState(() {
                                       selectedBusLine = null;
                                       searchController.text = "";
+                                      selectedPlaceIds = [];
                                     });
                                   },
                                   icon: Icon(Icons.close),
@@ -359,6 +356,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               : SizedBox(),
                         ),
                         onFieldSubmitted: (value) => onFieldSubmitted,
+                        onTapOutside: (event) {
+                          FocusManager.instance.primaryFocus!.unfocus();
+                        },
                       ),
                     );
                   },
@@ -457,7 +457,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       foregroundColor: Colors.white,
                       elevation: 3,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(25),
                       ),
                     ),
                   ),

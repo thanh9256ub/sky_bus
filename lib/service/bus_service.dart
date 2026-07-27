@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:developer';
-
 import '../models/bus_line_model.dart';
 import '../utils/fields.dart';
 import '../utils/global.dart';
@@ -28,7 +25,6 @@ class BusService {
     String url = "$baseUrl/rest/bus/listBusLines";
     try {
       final response = await httpService.post(url);
-      log(jsonEncode(response));
       return BusLineResponse.fromJson(response);
     } on Exception catch (e) {
       return BusLineResponse("FAIL", e.toString());

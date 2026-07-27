@@ -64,32 +64,6 @@ class MapHelper {
     return currentLocation;
   }
 
-  static Future<LatLng?> refreshLocation() async {
-    if (!await _checkPermission()) return null;
-
-    final pos = await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
-    );
-
-    currentLocation = LatLng(pos.latitude, pos.longitude);
-
-    return currentLocation;
-  }
-
-  static Stream<LatLng> locationStream() async* {
-    if (!await _checkPermission()) return;
-
-    yield* Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 10,
-      ),
-    ).map((position) {
-      currentLocation = LatLng(position.latitude, position.longitude);
-      return currentLocation!;
-    });
-  }
-
   static void moveToLocation({
     required MapController mapController,
     AnimatedMapController? animatedController,

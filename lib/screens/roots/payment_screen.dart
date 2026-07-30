@@ -104,7 +104,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   size: 18,
                   color: Colors.grey.shade700,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
                   "Thông tin đặt vé",
                   style: TextStyle(
@@ -168,16 +168,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
               color: Colors.white,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 child: Column(
                   children: [
                     buildRow(
                       "Đơn giá",
                       "${moneyFormat.format(widget.matrix.price)},000đ",
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     buildRow("Số lượng", widget.quantity.toString()),
-                    const Divider(height: 24),
+                    Divider(height: 24),
                     buildRow(
                       "Tổng tiền",
                       "${moneyFormat.format(totalPrice)},000đ",
@@ -191,7 +191,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             Row(
               children: [
                 Icon(Icons.qr_code, size: 18, color: Colors.grey.shade700),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
                   "Mã QR thanh toán",
                   style: TextStyle(
@@ -208,7 +208,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               child: Container(
                 width: 220,
                 height: 220,
-                padding: const EdgeInsets.all(5),
+                padding: EdgeInsets.all(5),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   border: Border.all(color: Colors.grey),
@@ -222,10 +222,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               onTap: isSaving ? null : _downloadQrCode,
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.45,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.blue),
                   borderRadius: BorderRadius.circular(30),
@@ -237,7 +234,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     SizedBox(width: 10),
                     Text(
                       isSaving ? "Đang lưu..." : "Lưu ảnh QR",
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.blue,
                         fontWeight: FontWeight.w600,
                       ),

@@ -44,10 +44,10 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      insetPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       backgroundColor: Colors.transparent,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 660),
+        constraints: BoxConstraints(maxWidth: 660),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
           child: Container(
@@ -96,7 +96,7 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
                           SizedBox(width: 8),
                           Text(
                             getPlaceName(widget.palaceIds[1]),
-                            style: const TextStyle(fontWeight: FontWeight.w600),
+                            style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),

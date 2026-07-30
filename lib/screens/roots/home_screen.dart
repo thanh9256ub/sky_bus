@@ -28,8 +28,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final mapController = MapController();
   final popupController = PopupController();
   final searchController = TextEditingController();
-  final DraggableScrollableController sheetController =
-      DraggableScrollableController();
+  final sheetController = DraggableScrollableController();
   final _focusNode = FocusNode();
   bool showBottomSheet = true;
   BusLine? selectedBusLine;
@@ -220,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         options: MapOptions(
           initialCenter: currentLocation,
           initialZoom: 16,
-          minZoom: 10,
+          minZoom: 8,
           maxZoom: 16,
           interactionOptions: InteractionOptions(
             flags:
@@ -506,7 +505,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(color: Colors.grey.shade300),

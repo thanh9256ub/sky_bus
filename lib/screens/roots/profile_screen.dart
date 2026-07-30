@@ -54,7 +54,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 5),
+                      SizedBox(height: 10),
                       profileFeature(
                         "Thông tin cá nhân",
                         icon: Icons.person,
@@ -89,12 +89,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             right: 0,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
+                padding: EdgeInsets.all(4),
+                decoration: BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: const CircleAvatar(
+                child: CircleAvatar(
                   radius: 50,
                   backgroundImage: AssetImage('assets/images/images.jpg'),
                 ),
@@ -120,7 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           border: Border.all(color: Colors.grey.shade200),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(14.0),
+          padding: EdgeInsets.all(14.0),
           child: Row(
             children: [
               Icon(icon, size: 18),

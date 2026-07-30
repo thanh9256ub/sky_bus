@@ -1,4 +1,10 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
+import 'package:skysoft_bus/screens/roots/add_card_screen.dart';
+import 'package:skysoft_bus/screens/widgets/extend_card_dialog.dart';
+import 'package:skysoft_bus/utils/global.dart';
 
 class CheckTicketScreen extends StatefulWidget {
   const CheckTicketScreen({super.key});
@@ -46,14 +52,60 @@ class _CheckTicketScreenState extends State<CheckTicketScreen> {
       timestamp: '20/11/2025 08:44:30',
       code: 'dmsks_echeck',
     ),
+    TicketHistory(
+      dateRange: '16/03/2026 -> 31/05/2026',
+      route: '06: Thái Nguyên - Định Hóa',
+      station: 'Tòa án Tỉnh -> Định Hóa',
+      timestamp: '16/03/2026 11:43:27',
+      code: 'dmsks_echeck1',
+    ),
+    TicketHistory(
+      dateRange: '02/02/2026 -> 28/02/2026',
+      route: '06: Thái Nguyên - Định Hóa',
+      station: 'Tòa án Tỉnh -> Định Hóa',
+      timestamp: '02/02/2026 09:09:01',
+      code: 'dmsks_echeck',
+    ),
+    TicketHistory(
+      dateRange: '20/11/2025 -> 31/12/2025',
+      route: '06: Thái Nguyên - Định Hóa',
+      station: 'Tòa án Tỉnh -> Định Hóa',
+      timestamp: '20/11/2025 08:44:30',
+      code: 'dmsks_echeck',
+    ),
   ];
+
+  void initNFC() async {
+    NFCAvailability availability = await FlutterNfcKit.nfcAvailability;
+    if (availability == NFCAvailability.available) {
+      FlutterNfcKit.tagStream.listen((tag) {
+        log(tag.id);
+        // if (tag.type == NFCTagType.mifare_classic) {
+        //   lookupNfcCard(nfcHexToDecimal(tag.id));
+        // }
+      });
+    }
+  }
+
+  void showEtdCardDialog() async {
+    await showDialog(
+      context: context,
+      builder: (context) => ExtendCardDialog(),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initNFC();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF2F80ED),
+        backgroundColor: secondaryColor,
         elevation: 0,
         centerTitle: true,
         title: const Text(
@@ -62,7 +114,11 @@ class _CheckTicketScreenState extends State<CheckTicketScreen> {
         ),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (context) => AddCardScreen()));
+            },
             icon: Icon(Icons.add, color: Colors.white),
           ),
         ],
@@ -72,7 +128,7 @@ class _CheckTicketScreenState extends State<CheckTicketScreen> {
           _buildCardInfoSection(),
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               itemCount: history.length,
               separatorBuilder: (context, index) {
                 return SizedBox(height: 10);
@@ -88,126 +144,95 @@ class _CheckTicketScreenState extends State<CheckTicketScreen> {
 
   Widget _buildCardInfoSection() {
     return Container(
-      height: 210,
-      padding: EdgeInsets.fromLTRB(16, 16, 16, 20),
       margin: EdgeInsets.all(10),
+      padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.green.shade400,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(20),
+        color: secondaryColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withValues(alpha: 0.25),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Stack(
+            children: [
+              Container(
+                width: 100,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Icon(Icons.wifi),
+                ),
+              ),
+              Positioned(
+                bottom: 4,
+                right: 4,
+                child: InkWell(
+                  onTap: () {},
+                  child: Container(
+                    padding: EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF2F80ED),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.camera_alt,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Mã số thẻ',
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
-                ),
-                Row(
-                  children: [
-                    Text(
-                      '0528ec88000104e0',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                    SizedBox(width: 6),
-                    Icon(Icons.edit, size: 14, color: Colors.white70),
-                  ],
+                SizedBox(height: 8),
+                _infoRow(
+                  "Tên",
+                  "Chu Hoàng Tuấn",
+                  GestureDetector(
+                    onTap: () {},
+                    child: Icon(Icons.edit, size: 16, color: Colors.white),
+                  ),
                 ),
                 SizedBox(height: 10),
-                Text(
-                  'Tên',
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                _infoRow("Mã thẻ", "0528ec88000104e0", SizedBox()),
+                SizedBox(height: 10),
+                _infoRow(
+                  "Điện thoại",
+                  "******5959",
+                  GestureDetector(
+                    onTap: () {},
+                    child: Icon(Icons.call, size: 16, color: Colors.white),
+                  ),
                 ),
+                SizedBox(height: 12),
                 Text(
-                  'CHU HOÀNG TUẤN',
+                  "Thẻ miễn phí chính sách",
                   style: TextStyle(
                     color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'Điện thoại',
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
-                ),
-                Row(
-                  children: [
-                    Text(
-                      '******5959',
-                      style: TextStyle(color: Colors.white, fontSize: 14),
-                    ),
-                    SizedBox(width: 6),
-                    Icon(Icons.phone, size: 14, color: Colors.white70),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Thẻ miễn phí chính sách',
-                  style: TextStyle(
-                    color: Colors.orangeAccent,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    fontSize: 13,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Stack(
-              children: [
-                Container(
-                  width: double.infinity,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.wifi, size: 32, color: Colors.black87),
-                      SizedBox(height: 4),
-                      Text(
-                        'NFC',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  bottom: 5,
-                  right: 5,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black26,
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      onPressed: () {},
-                      icon: Icon(
-                        Icons.camera_alt,
-                        size: 16,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          Icon(Icons.circle, color: Colors.green.shade300),
         ],
       ),
     );
@@ -278,37 +303,62 @@ class _CheckTicketScreenState extends State<CheckTicketScreen> {
     );
   }
 
-  // ---- Bottom action buttons ----
   Widget _buildBottomActions() {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       color: Colors.white,
       child: Row(
         children: [
-          Expanded(child: _actionButton('Khóa thẻ', Icons.lock_outline)),
+          _actionButton('Khóa thẻ', Icons.lock_outline, onPressed: () {}),
           SizedBox(width: 8),
-          Expanded(child: _actionButton('Chỉnh sửa', Icons.edit_outlined)),
+          _actionButton('Chỉnh sửa', Icons.edit_outlined, onPressed: () {}),
           SizedBox(width: 8),
-          Expanded(child: _actionButton('Gia hạn thẻ', Icons.autorenew)),
+          _actionButton(
+            'Gia hạn thẻ',
+            Icons.autorenew,
+            onPressed: showEtdCardDialog,
+          ),
         ],
       ),
     );
   }
 
-  Widget _actionButton(String label, IconData icon) {
-    return ElevatedButton.icon(
-      onPressed: () {},
-      icon: Icon(icon, size: 16, color: Colors.white),
-      label: Text(
-        label,
-        style: TextStyle(fontSize: 12, color: Colors.white),
-        overflow: TextOverflow.ellipsis,
+  Widget _actionButton(
+    String label,
+    IconData icon, {
+    required Function() onPressed,
+  }) {
+    return Expanded(
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: secondaryColor,
+          padding: EdgeInsets.symmetric(vertical: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        label: Text(
+          label,
+          style: TextStyle(fontSize: 12, color: Colors.white),
+          overflow: TextOverflow.ellipsis,
+        ),
+        onPressed: onPressed,
+        icon: Icon(icon, size: 16, color: Colors.white),
       ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFF2F80ED),
-        padding: EdgeInsets.symmetric(vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
+    );
+  }
+
+  Widget _infoRow(String title, String value, Widget widget) {
+    return Row(
+      children: [
+        Text("$title:", style: TextStyle(color: Colors.white, fontSize: 13)),
+        SizedBox(width: 10),
+        Text(
+          value,
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          overflow: TextOverflow.ellipsis,
+        ),
+        SizedBox(width: 10),
+        widget,
+      ],
     );
   }
 }

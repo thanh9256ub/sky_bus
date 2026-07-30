@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:skysoft_bus/screens/roots/confirm_phone_login.dart';
-import 'package:skysoft_bus/service/admin_service.dart';
 import 'package:skysoft_bus/utils/fields.dart';
 import 'package:skysoft_bus/utils/global.dart';
 import 'package:skysoft_bus/utils/string_utils.dart';
@@ -41,17 +40,17 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void doLogin() async {
-    bool isValid = _key.currentState!.validate();
-    if (!isValid) return;
-    AdminService service = AdminService();
-    setState(() {
-      isLoginProcess = true;
-    });
+  // void doLogin() async {
+  //   bool isValid = _key.currentState!.validate();
+  //   if (!isValid) return;
+  //   AdminService service = AdminService();
+  //   setState(() {
+  //     isLoginProcess = true;
+  //   });
 
-    LoginResponse response = await service.login(loginRequest);
-    processLoginResult(response);
-  }
+  //   LoginResponse response = await service.login(loginRequest);
+  //   processLoginResult(response);
+  // }
 
   Future<void> processLoginResult(LoginResponse value) async {
     if (value.errorMessage.isEmpty) {
@@ -115,11 +114,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderSide: BorderSide.none,
                     ),
                   ),
+                  keyboardType: TextInputType.numberWithOptions(),
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   onTapOutside: (event) {
                     FocusManager.instance.primaryFocus?.unfocus();
                   },
-                  keyboardType: TextInputType.numberWithOptions(),
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   onChanged: (value) {
                     setState(() {
                       phone = value;
@@ -146,21 +145,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                       )
                     : SizedBox(),
-                SizedBox(height: 30),
+                SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
-                  height: 56,
+                  height: 45,
                   child: ElevatedButton(
-                    onPressed: isLogin ? doLogin : pushToConfirm,
+                    onPressed: isLogin ? () {} : pushToConfirm,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF1976D2),
+                      backgroundColor: secondaryColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                     child: Text(
                       isLogin ? "ĐĂNG NHẬP" : "ĐĂNG KÝ",
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -178,9 +177,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget selectType() {
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
+        color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -197,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 42,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isLogin ? const Color(0xFF1976D2) : Colors.transparent,
+                  color: isLogin ? secondaryColor : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -220,9 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 42,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: !isLogin
-                      ? const Color(0xFF1976D2)
-                      : Colors.transparent,
+                  color: !isLogin ? secondaryColor : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(

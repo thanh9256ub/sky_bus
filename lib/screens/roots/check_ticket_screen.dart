@@ -349,14 +349,18 @@ class _CheckTicketScreenState extends State<CheckTicketScreen> {
   Widget _infoRow(String title, String value, Widget widget) {
     return Row(
       children: [
-        Text("$title:", style: TextStyle(color: Colors.white, fontSize: 13)),
-        SizedBox(width: 10),
+        Text("$title:", style: TextStyle(color: Colors.white, fontSize: 12)),
+        SizedBox(width: 5),
         Text(
           value,
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
+          ),
           overflow: TextOverflow.ellipsis,
         ),
-        SizedBox(width: 10),
+        SizedBox(width: 5),
         widget,
       ],
     );

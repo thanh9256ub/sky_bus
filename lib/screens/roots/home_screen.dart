@@ -265,7 +265,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             if (!hasGesture) return;
             moveDebounce?.cancel();
             moveDebounce = Timer(
-              Duration(milliseconds: 800),
+              Duration(milliseconds: 1500),
               () => searchNearBus(),
             );
           },

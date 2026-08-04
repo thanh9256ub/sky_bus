@@ -2,11 +2,13 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
+import 'package:skysoft_bus/models/action_result.dart';
 import 'package:skysoft_bus/utils/global.dart';
 
+import '../../service/admin_service.dart';
+
 class ConfirmPhoneLogin extends StatefulWidget {
-  final String phone;
-  const ConfirmPhoneLogin({super.key, required this.phone});
+  const ConfirmPhoneLogin({super.key});
 
   @override
   State<ConfirmPhoneLogin> createState() => _ConfirmPhoneLoginState();
@@ -14,6 +16,10 @@ class ConfirmPhoneLogin extends StatefulWidget {
 
 class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
   PinTheme defaultPinTheme = PinTheme();
+  AdminService service = AdminService();
+  void signUp() async {
+    ActionResult response = await service.signup(signUpRequest);
+  }
 
   @override
   void initState() {
@@ -50,10 +56,11 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
             SizedBox(height: 20),
-            Text(widget.phone, style: TextStyle(fontSize: 16)),
+            Text(signUpRequest.mobileNo, style: TextStyle(fontSize: 16)),
             SizedBox(height: 30),
             Center(
               child: Pinput(
+                length: 6,
                 defaultPinTheme: defaultPinTheme,
                 onCompleted: (pin) => log(pin),
               ),

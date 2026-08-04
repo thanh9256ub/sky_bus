@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:skysoft_bus/screens/roots/confirm_phone_login.dart';
-import 'package:skysoft_bus/utils/fields.dart';
 import 'package:skysoft_bus/utils/global.dart';
-import 'package:skysoft_bus/utils/string_utils.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../models/login_model.dart';
@@ -20,44 +18,20 @@ class _LoginScreenState extends State<LoginScreen> {
   bool passwordVisible = false;
   bool isLogin = true;
   bool isLoginProcess = true;
-  final usernameController = TextEditingController();
-  final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
-  String? phone;
   final _key = GlobalKey<FormState>();
 
   void pushToConfirm() {
-    if (phone == null || phone!.trim().isEmpty) {
-      showToast("Không để trống số điện thoại", ToastificationType.error);
-      return;
-    }
-    if (!isValidPhoneNumber(phone!)) {
-      showToast("Sai định dạng số điện thoại", ToastificationType.error);
-      return;
-    }
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => ConfirmPhoneLogin(phone: phone!)),
-    );
+    if (!_key.currentState!.validate()) return;
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => ConfirmPhoneLogin()));
   }
-
-  // void doLogin() async {
-  //   bool isValid = _key.currentState!.validate();
-  //   if (!isValid) return;
-  //   AdminService service = AdminService();
-  //   setState(() {
-  //     isLoginProcess = true;
-  //   });
-
-  //   LoginResponse response = await service.login(loginRequest);
-  //   processLoginResult(response);
-  // }
 
   Future<void> processLoginResult(LoginResponse value) async {
     if (value.errorMessage.isEmpty) {
       loginResponse = value;
 
-      await saveData(F_USER_NAME, loginRequest.userName);
-      await saveData(F_PASSWORD, loginRequest.password);
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -74,9 +48,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void dispose() {
     isLoginProcess = false;
-    usernameController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -88,87 +59,60 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Form(
-            key: _key,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Image.asset(
-                    "assets/images/skysoft_logo_ok_h80.png",
-                    height: 60,
-                  ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Image.asset(
+                  "assets/images/skysoft_logo_ok_h80.png",
+                  height: 60,
                 ),
-                SizedBox(height: 30),
-                selectType(),
-                SizedBox(height: 30),
-                TextFormField(
-                  controller: usernameController,
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.phone),
-                    hintText: "Nhập số điện thoại",
-                    filled: true,
-                    fillColor: Color(0xFFF5F7FA),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  keyboardType: TextInputType.numberWithOptions(),
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  onTapOutside: (event) {
-                    FocusManager.instance.primaryFocus?.unfocus();
-                  },
-                  onChanged: (value) {
-                    setState(() {
-                      phone = value;
-                    });
-                  },
-                ),
-                SizedBox(height: 20),
-                isLogin
-                    ? TextFormField(
-                        controller: passwordController,
-                        obscureText: !passwordVisible,
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          hintText: "Nhập mật khẩu",
-                          filled: true,
-                          fillColor: const Color(0xFFF5F7FA),
-                          border: OutlineInputBorder(
+              ),
+              SizedBox(height: 30),
+              selectType(),
+              SizedBox(height: 30),
+              formLogin(),
+              SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 45,
+                child: isLogin
+                    ? ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: secondaryColor,
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
                           ),
                         ),
-                        onTapOutside: (event) {
-                          FocusManager.instance.primaryFocus?.unfocus();
-                        },
+                        child: Text(
+                          "ĐĂNG NHẬP",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                       )
-                    : SizedBox(),
-                SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 45,
-                  child: ElevatedButton(
-                    onPressed: isLogin ? () {} : pushToConfirm,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: secondaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                    : ElevatedButton(
+                        onPressed: pushToConfirm,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: secondaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Text(
+                          "ĐĂNG KÝ",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      isLogin ? "ĐĂNG NHẬP" : "ĐĂNG KÝ",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -234,6 +178,148 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget formLogin() {
+    return Form(
+      key: _key,
+      child: isLogin
+          ? Column(
+              children: [
+                TextFormField(
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.call),
+                    hintText: "Nhập số điện thoại",
+                    filled: true,
+                    fillColor: const Color(0xFFF5F7FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  onTapOutside: (_) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Vui lòng nhập số điện thoại';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    setState(() {
+                      signUpRequest.mobileNo = value;
+                    });
+                  },
+                ),
+                SizedBox(height: 20),
+                TextFormField(
+                  obscureText: !passwordVisible,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    hintText: "Nhập mật khẩu",
+                    filled: true,
+                    fillColor: const Color(0xFFF5F7FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  onTapOutside: (event) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                  },
+                ),
+              ],
+            )
+          : Column(
+              children: [
+                TextFormField(
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.person),
+                    hintText: "Nhập họ và tên",
+                    filled: true,
+                    fillColor: const Color(0xFFF5F7FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  onTapOutside: (_) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Vui lòng nhập họ và tên';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    setState(() {
+                      signUpRequest.fullName = value;
+                    });
+                  },
+                ),
+                SizedBox(height: 20),
+                TextFormField(
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.call),
+                    hintText: "Nhập số điện thoại",
+                    filled: true,
+                    fillColor: const Color(0xFFF5F7FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  onTapOutside: (_) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Vui lòng nhập số điện thoại';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    setState(() {
+                      signUpRequest.mobileNo = value;
+                    });
+                  },
+                ),
+                SizedBox(height: 20),
+                TextFormField(
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.email),
+                    hintText: "Nhập email",
+                    filled: true,
+                    fillColor: const Color(0xFFF5F7FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  onTapOutside: (_) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Vui lòng nhập email';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    setState(() {
+                      signUpRequest.email = value;
+                    });
+                  },
+                ),
+              ],
+            ),
     );
   }
 }

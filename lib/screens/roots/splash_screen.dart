@@ -1,13 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../models/login_model.dart';
-import '../../service/admin_service.dart';
 import '../../utils/fields.dart';
 import '../../utils/global.dart';
 import '../../utils/string_utils.dart';
@@ -21,45 +17,42 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  static final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
-
   @override
   void initState() {
     super.initState();
-    initPlatformState();
     startApp();
   }
 
-  void initPlatformState() async {
-    var deviceData = <String, dynamic>{};
-    final appInfo = await PackageInfo.fromPlatform();
+  // void initPlatformState() async {
+  //   var deviceData = <String, dynamic>{};
+  //   final appInfo = await PackageInfo.fromPlatform();
 
-    try {
-      if (Platform.isAndroid) {
-        deviceData = readAndroidBuildData(await deviceInfoPlugin.androidInfo);
-        loginRequest.appOs = "Android";
-        loginRequest.deviceName = deviceData['device'];
-        loginRequest.deviceID = deviceData['id'];
-        loginRequest.deviceModel = deviceData['model'];
-        loginRequest.deviceBrand = deviceData['brand'];
-      } else if (Platform.isIOS) {
-        deviceData = readIosDeviceInfo(await deviceInfoPlugin.iosInfo);
-        loginRequest.appOs = "iOS";
-        loginRequest.deviceName = deviceData['utsname.nodename'];
-        loginRequest.osVersion = deviceData['systemVersion'];
-        loginRequest.deviceID = deviceData['identifierForVendor'];
-        loginRequest.deviceModel = deviceData['model'];
-        loginRequest.deviceBrand = "Apple";
-      }
-    } on PlatformException {
-      deviceData = <String, dynamic>{
-        'Error': 'Failed to get platform version.',
-      };
-      loginRequest.deviceID = '';
-    }
+  //   try {
+  //     if (Platform.isAndroid) {
+  //       deviceData = readAndroidBuildData(await deviceInfoPlugin.androidInfo);
+  //       signUpRequest.appOs = "Android";
+  //       signUpRequest.deviceName = deviceData['device'];
+  //       signUpRequest.deviceID = deviceData['id'];
+  //       signUpRequest.deviceModel = deviceData['model'];
+  //       signUpRequest.deviceBrand = deviceData['brand'];
+  //     } else if (Platform.isIOS) {
+  //       deviceData = readIosDeviceInfo(await deviceInfoPlugin.iosInfo);
+  //       signUpRequest.appOs = "iOS";
+  //       signUpRequest.deviceName = deviceData['utsname.nodename'];
+  //       signUpRequest.osVersion = deviceData['systemVersion'];
+  //       signUpRequest.deviceID = deviceData['identifierForVendor'];
+  //       signUpRequest.deviceModel = deviceData['model'];
+  //       signUpRequest.deviceBrand = "Apple";
+  //     }
+  //   } on PlatformException {
+  //     deviceData = <String, dynamic>{
+  //       'Error': 'Failed to get platform version.',
+  //     };
+  //     signUpRequest.deviceID = '';
+  //   }
 
-    loginRequest.appVersion = appInfo.version;
-  }
+  //   signUpRequest.appVersion = appInfo.version;
+  // }
 
   Map<String, dynamic> readAndroidBuildData(AndroidDeviceInfo build) {
     return <String, dynamic>{
@@ -110,32 +103,34 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> startApp() async {
-    String? userName = await readData(F_USER_NAME);
-    String? password = await readData(F_PASSWORD);
-    String firebaseToken = nvl(await readData(F_FIREBASE_TOKEN));
-    loginRequest.fireBaseToken = firebaseToken;
+    // String? userName = await readData(F_USER_NAME);
+    // String? password = await readData(F_PASSWORD);
+    // String firebaseToken = nvl(await readData(F_FIREBASE_TOKEN));
+    //  signUpRequest.fireBaseToken = firebaseToken;
 
-    if (nvl(userName).isNotEmpty) {
-      loginRequest.userName = nvl(userName);
-      loginRequest.password = nvl(password);
-      loginRequest.reconnect = true;
+    // if (nvl(userName).isNotEmpty) {
+    //   signUpRequest.userName = nvl(userName);
+    //   signUpRequest.password = nvl(password);
+    //   signUpRequest.reconnect = true;
 
-      AdminService service = AdminService();
-      LoginResponse response = await service.login(loginRequest);
-      processLoginResult(response);
-    } else {
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
-      );
-    }
+    //   AdminService service = AdminService();
+    //   LoginResponse response = await service.login(signUpRequest);
+    //   processLoginResult(response);
+    // } else {
+
+    // }
+    await Future.delayed(Duration(seconds: 2));
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const MainScreen()),
+    );
   }
 
   Future<void> processLoginResult(LoginResponse value) async {
     if (value.errorMessage.isEmpty) {
       loginResponse = value;
-      await saveData(F_FIREBASE_TOKEN, nvl(loginRequest.fireBaseToken));
+      await saveData(F_FIREBASE_TOKEN, nvl(signUpRequest.authenByFirebase));
       if (mounted) {
         Navigator.pushReplacement(
           context,

@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<int> selectedPlaceIds = [];
   Timer? vehicleTimer;
   Timer? moveDebounce;
-
+  BusService busService = BusService();
   void getCurrentLocation() async {
     final location = await MapHelper.getCurrentLocation();
     if (location == null) {
@@ -121,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Future<void> searchNearBus() async {
     if (!mounted) return;
     final center = mapController.camera.center;
-    final response = await BusService().searchNearVehicles(
+    final response = await busService.searchNearVehicles(
       center.latitude,
       center.longitude,
     );
@@ -162,8 +162,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void getListBusLine() async {
-    BusService service = BusService();
-    final response = await service.listBusLines();
+    final response = await busService.listBusLines();
     if (response.errorMessage.isEmpty && mounted) {
       setState(() {
         busLines = response.busLines;
@@ -215,7 +214,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         (timer) => searchNearBus(),
       );
     });
-
     getListBusLine();
   }
 

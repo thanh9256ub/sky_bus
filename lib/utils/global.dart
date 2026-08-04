@@ -9,7 +9,7 @@ const String baseUrl = "https://dev.skysoft.vn";
 // const String baseUrl = "";
 const String skymapUrl = "https://maps.skysoft.vn";
 
-LoginRequest loginRequest = LoginRequest();
+SignupRequest signUpRequest = SignupRequest();
 LoginResponse loginResponse = LoginResponse("", "");
 
 Color primaryColor = Color(0xFFf97316);

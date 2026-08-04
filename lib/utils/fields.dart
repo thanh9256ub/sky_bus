@@ -30,6 +30,10 @@ const String F_CUSTOMER_ID = "customerID";
 const String F_TOKEN_ID = "tokenID";
 const String F_CUSTOMER_NAME = "customerName";
 const String F_USER_ID = "userID";
+const String F_SIGNUP_TYPE = "signupType";
+const String F_AUTHEN_BY_FIREBASE = "authenByFirebase";
+const String F_LANGUAGE = "language";
+const String F_APP_NAME = "appName";
 
 // admin
 const String F_OLD_PASSWORD = "oldPassword";

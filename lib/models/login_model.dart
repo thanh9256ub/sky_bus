@@ -3,39 +3,30 @@ import 'package:skysoft_bus/models/action_result.dart';
 import '../utils/fields.dart';
 import '../utils/string_utils.dart';
 
-class LoginRequest {
-  String userName = "";
-  String password = "";
-  String appOs = "";
-  String osVersion = "";
+class SignupRequest {
+  String mobileNo = "";
+  String email = "";
+  String fullName = "";
+  String appOS = "";
+  String signupType = "";
   String deviceID = "";
-  String deviceName = "";
-  String deviceModel = "";
-  String deviceBrand = "";
-  String appVersion = "";
-  String fireBaseToken = "";
-  bool reconnect = false;
+  String authenByFirebase = "";
+  String language = "";
+  String appName = "";
 
-  @override
-  String toString() {
-    return '{appOs: $appOs, deviceName: $deviceName, firebaseTo: $fireBaseToken}';
-  }
-
-  LoginRequest();
+  SignupRequest();
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> map = {
-      F_USER_NAME: userName.trim(),
-      F_PASSWORD: password.trim(),
+      F_MOBILE_NO: mobileNo,
+      F_EMAIL: email,
+      F_FULL_NAME: fullName,
+      F_APP_OS: appOS,
+      F_SIGNUP_TYPE: signupType,
       F_DEVICE_ID: deviceID,
-      F_DEVICE_NAME: deviceName,
-      F_DEVICE_MODEL: deviceModel,
-      F_DEVICE_BRAND: deviceBrand,
-      F_APP_OS: appOs,
-      F_OS_VERSION: osVersion,
-      F_APP_VERSION: appVersion,
-      F_FIREBASE_TOKEN: fireBaseToken,
-      F_RECONNECT: reconnect,
+      F_AUTHEN_BY_FIREBASE: authenByFirebase,
+      F_LANGUAGE: language,
+      F_APP_NAME: appName,
     };
 
     return map;

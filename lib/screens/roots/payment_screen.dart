@@ -38,7 +38,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         .description;
   }
 
-  Future<void> _downloadQrCode() async {
+  Future<void> downloadQrCode() async {
     setState(() {
       isSaving = true;
     });
@@ -64,15 +64,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
       if (mounted) {
         showToast('Đã lưu mã QR vào thư viện ảnh!', ToastificationType.success);
       }
+      setState(() {
+        isSaving = false;
+      });
     } catch (e) {
       if (mounted) {
         showToast('Lưu mã QR thất bại: $e', ToastificationType.error);
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          isSaving = false;
-        });
       }
     }
   }
@@ -84,7 +81,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: const Text("Thanh toán", style: TextStyle(color: Colors.white)),
+        title: Text("Thanh toán", style: TextStyle(color: Colors.white)),
         leading: IconButton(
           onPressed: () {
             Navigator.of(context).pop();
@@ -104,7 +101,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   size: 18,
                   color: Colors.grey.shade700,
                 ),
-                SizedBox(width: 8),
+                SizedBox(width: 10),
                 Text(
                   "Thông tin đặt vé",
                   style: TextStyle(
@@ -191,7 +188,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             Row(
               children: [
                 Icon(Icons.qr_code, size: 18, color: Colors.grey.shade700),
-                SizedBox(width: 8),
+                SizedBox(width: 10),
                 Text(
                   "Mã QR thanh toán",
                   style: TextStyle(
@@ -219,7 +216,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
             SizedBox(height: 10),
             InkWell(
-              onTap: isSaving ? null : _downloadQrCode,
+              onTap: isSaving ? null : downloadQrCode,
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.45,
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),

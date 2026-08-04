@@ -1,4 +1,5 @@
 import '../models/bus_line_model.dart';
+import '../models/vehicle_model.dart';
 import '../utils/fields.dart';
 import '../utils/global.dart';
 import '../utils/http_service.dart';
@@ -28,6 +29,20 @@ class BusService {
       return BusLineResponse.fromJson(response);
     } on Exception catch (e) {
       return BusLineResponse("FAIL", e.toString());
+    }
+  }
+
+  Future<VehicleResponse> searchNearVehicles(
+    double latitude,
+    double longitude,
+  ) async {
+    String url = "$baseUrl/rest/bus/searchNearVehicles";
+    try {
+      Map<String, dynamic> map = {F_Y: latitude, F_X: longitude};
+      final response = await httpService.post(url, body: map);
+      return VehicleResponse.fromJson(response);
+    } on Exception catch (e) {
+      return VehicleResponse("FAIL", e.toString());
     }
   }
 }

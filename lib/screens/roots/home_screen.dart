@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
@@ -6,8 +9,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../models/bus_line_model.dart';
+import '../../models/vehicle_model.dart';
 import '../../service/bus_service.dart';
-import '../../service/map_service.dart';
 import '../../utils/global.dart';
 import '../../utils/map_helper.dart';
 import '../../utils/string_utils.dart';
@@ -21,19 +24,19 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  String address = "";
   LatLng currentLocation = LatLng(21.051873, 105.777787);
-  List<Marker> markers = [];
   late final AnimatedMapController animatedMapController;
   final mapController = MapController();
   final popupController = PopupController();
   final searchController = TextEditingController();
   final sheetController = DraggableScrollableController();
   final _focusNode = FocusNode();
-  bool showBottomSheet = true;
   BusLine? selectedBusLine;
   List<BusLine> busLines = [];
+  List<Vehicle> nearVehicles = [];
   List<int> selectedPlaceIds = [];
+  Timer? vehicleTimer;
+  Timer? moveDebounce;
 
   void getCurrentLocation() async {
     final location = await MapHelper.getCurrentLocation();
@@ -43,21 +46,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
     setState(() {
       currentLocation = location;
-      markers = [
-        Marker(
-          point: currentLocation,
-          width: 50,
-          height: 50,
-          child: const Icon(Icons.location_on, color: Colors.blue, size: 24),
-        ),
-      ];
     });
     MapHelper.moveToLocation(
       mapController: mapController,
       animatedController: animatedMapController,
       location: currentLocation,
     );
-    getAddress();
   }
 
   void togglePlace(int placeId) {
@@ -115,9 +109,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void selectLine(BusLine busLine) {
     setState(() {
       selectedBusLine = busLine;
-      showBottomSheet = false;
     });
-
     animatedMapController.animateTo(
       dest: busLine.startPoint!,
       zoom: 16,
@@ -126,16 +118,47 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  void getAddress() async {
-    MapService service = MapService();
-    final response = await service.getAddress(
-      currentLocation.longitude,
-      currentLocation.latitude,
-    );
+  Future<void> searchNearBus() async {
     if (!mounted) return;
-    setState(() {
-      address = response;
-    });
+    final center = mapController.camera.center;
+    final response = await BusService().searchNearVehicles(
+      center.latitude,
+      center.longitude,
+    );
+    if (response.errorMessage.isEmpty) {
+      setState(() {
+        nearVehicles = response.vehicles;
+      });
+    } else {
+      showToast(response.errorMessage, ToastificationType.error);
+    }
+  }
+
+  Marker createVehicleMarker(Vehicle e) {
+    return Marker(
+      point: LatLng(e.y, e.x),
+      width: 70,
+      height: 75,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            e.plateNo,
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+          ),
+          Transform.rotate(
+            angle: e.direction * math.pi / 180,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(Icons.navigation, size: 32, color: Colors.black),
+                Icon(Icons.navigation, size: 26, color: getVehicleColor(e)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void getListBusLine() async {
@@ -156,6 +179,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         .description;
   }
 
+  Color getVehicleColor(Vehicle vehicle) {
+    if (vehicle.currentSpeed > 0) {
+      return Colors.greenAccent.shade400;
+    }
+    if (vehicle.engineState == "ON") {
+      return Colors.purpleAccent;
+    }
+    return Colors.red;
+  }
+
   Matrix? getSelectedMatrixPrice() {
     if (selectedPlaceIds.length != 2) return null;
     final fromId = selectedPlaceIds[0];
@@ -174,14 +207,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       vsync: this,
       mapController: mapController,
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((e) {
       getCurrentLocation();
+      searchNearBus();
+      vehicleTimer = Timer.periodic(
+        Duration(seconds: 5),
+        (timer) => searchNearBus(),
+      );
     });
+
     getListBusLine();
   }
 
   @override
   void dispose() {
+    vehicleTimer?.cancel();
     sheetController.dispose();
     searchController.dispose();
     _focusNode.dispose();
@@ -198,13 +238,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       body: Stack(
         children: [
           mapWidget(),
-          Positioned.fill(
-            child: IgnorePointer(
-              child: Center(
-                child: Icon(Icons.add, color: Colors.red, size: 18),
-              ),
-            ),
-          ),
+          centerPointMap(),
           searchBusLine(),
           if (selectedBusLine != null) mainContent(),
         ],
@@ -227,6 +261,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 InteractiveFlag.pinchZoom |
                 InteractiveFlag.flingAnimation,
           ),
+          onPositionChanged: (position, hasGesture) {
+            if (!hasGesture) return;
+            moveDebounce?.cancel();
+            moveDebounce = Timer(
+              Duration(milliseconds: 800),
+              () => searchNearBus(),
+            );
+          },
         ),
         children: [
           TileLayer(
@@ -247,7 +289,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
           PopupMarkerLayer(
             options: PopupMarkerLayerOptions(
-              markers: markers,
+              markers: [
+                ...nearVehicles.map((e) => createVehicleMarker(e)),
+                Marker(
+                  point: currentLocation,
+                  width: 50,
+                  height: 50,
+                  child: Icon(Icons.location_on, color: Colors.blue, size: 24),
+                ),
+              ],
               popupController: popupController,
             ),
           ),
@@ -289,7 +339,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               });
             }).toList(),
           ),
+          Positioned(
+            bottom: MediaQuery.of(context).size.height * 0.01,
+            right: 20,
+            child: FloatingActionButton.small(
+              heroTag: "gps_button",
+              backgroundColor: Colors.white,
+              onPressed: getCurrentLocation,
+              child: Icon(Icons.my_location, color: Colors.blue),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget centerPointMap() {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Center(child: Icon(Icons.add, color: Colors.red, size: 18)),
       ),
     );
   }
@@ -300,78 +368,62 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       left: 16,
       right: 16,
       child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Autocomplete<BusLine>(
-              textEditingController: searchController,
-              focusNode: _focusNode,
-              displayStringForOption: (busLine) => busLine.description,
-              optionsBuilder: (textEditingValue) {
-                final query = textEditingValue.text.searchText;
-                if (query.isNotEmpty) {
-                  return busLines.where(
-                    (e) => e.description.searchText.contains(query),
-                  );
-                } else {
-                  return busLines;
-                }
-              },
-              fieldViewBuilder:
-                  (context, controller, focusNode, onFieldSubmitted) {
-                    return Container(
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(25),
-                        border: Border.all(color: Colors.grey.shade400),
-                        boxShadow: [
-                          BoxShadow(blurRadius: 10, color: Colors.black12),
-                        ],
-                      ),
-                      child: TextFormField(
-                        controller: controller,
-                        focusNode: focusNode,
-                        decoration: InputDecoration(
-                          hintText: "Tìm kiếm tuyến xe...",
-                          prefixIcon: Icon(Icons.search),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(vertical: 12),
-                          fillColor: Colors.white,
-                          suffixIcon: selectedBusLine != null
-                              ? IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      selectedBusLine = null;
-                                      searchController.text = "";
-                                      selectedPlaceIds = [];
-                                    });
-                                  },
-                                  icon: Icon(Icons.close),
-                                )
-                              : SizedBox(),
-                        ),
-                        onFieldSubmitted: (value) => onFieldSubmitted,
-                        onTapOutside: (event) {
-                          FocusManager.instance.primaryFocus!.unfocus();
-                        },
-                      ),
-                    );
-                  },
-              onSelected: (busLine) {
-                _focusNode.unfocus();
-                selectLine(busLine);
-              },
-            ),
-            SizedBox(height: 5),
-            FloatingActionButton.small(
-              heroTag: "gps_button",
-              backgroundColor: Colors.white,
-              onPressed: getCurrentLocation,
-              child: Icon(Icons.my_location, color: Colors.blue),
-            ),
-          ],
+        child: Autocomplete<BusLine>(
+          textEditingController: searchController,
+          focusNode: _focusNode,
+          displayStringForOption: (busLine) => busLine.description,
+          optionsBuilder: (textEditingValue) {
+            final query = textEditingValue.text.searchText;
+            if (query.isNotEmpty) {
+              return busLines.where(
+                (e) => e.description.searchText.contains(query),
+              );
+            } else {
+              return busLines;
+            }
+          },
+          fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+            return Container(
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: Colors.grey.shade400),
+                boxShadow: [BoxShadow(blurRadius: 10, color: Colors.black12)],
+              ),
+              child: TextFormField(
+                controller: controller,
+                focusNode: focusNode,
+                decoration: InputDecoration(
+                  hintText: "Tìm kiếm tuyến xe...",
+                  prefixIcon: Icon(Icons.search),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 12),
+                  fillColor: Colors.white,
+                  suffixIcon: selectedBusLine != null
+                      ? IconButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedBusLine = null;
+                              searchController.text = "";
+                              selectedPlaceIds = [];
+                            });
+                          },
+                          icon: Icon(Icons.close),
+                        )
+                      : SizedBox(),
+                ),
+                onFieldSubmitted: (value) => onFieldSubmitted,
+                onTapOutside: (event) {
+                  FocusManager.instance.primaryFocus!.unfocus();
+                },
+              ),
+            );
+          },
+          onSelected: (busLine) {
+            _focusNode.unfocus();
+            selectLine(busLine);
+          },
         ),
       ),
     );
@@ -568,7 +620,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                         Checkbox(
                           value: isSelected,
-                          onChanged: (_) {
+                          onChanged: (value) {
                             togglePlace(place.placeID);
                           },
                         ),

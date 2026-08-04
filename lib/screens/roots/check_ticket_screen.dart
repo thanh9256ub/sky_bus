@@ -279,7 +279,7 @@ class _CheckTicketScreenState extends State<CheckTicketScreen> {
               Icon(Icons.lock_open, size: 18, color: Colors.green),
             ],
           ),
-          SizedBox(height: 2),
+          SizedBox(height: 10),
           Text(
             item.station,
             style: TextStyle(fontSize: 13, color: Colors.black54),

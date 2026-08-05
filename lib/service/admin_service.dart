@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:skysoft_bus/models/action_result.dart';
+import 'package:skysoft_bus/utils/fields.dart';
 
 import '../models/login_model.dart';
 import '../utils/global.dart';
@@ -24,6 +25,29 @@ class AdminService {
     try {
       log("model: ${jsonEncode(requestModel)}");
       final response = await httpService.post(url, body: requestModel.toJson());
+      log(jsonEncode(response));
+      return ActionResult.fromJson(response);
+    } on Exception catch (e) {
+      return ActionResult("FAIL", e.toString());
+    }
+  }
+
+  Future<ActionResult> reactivePassenger(
+    String mobileNo,
+    String deviceID,
+    String appOS,
+    String language,
+  ) async {
+    String url = "$baseUrl/rest/app/passenger/signup";
+    try {
+      Map<String, dynamic> map = {
+        F_MOBILE_NO: mobileNo,
+        F_DEVICE_ID: deviceID,
+        F_APP_OS: appOS,
+        F_LANGUAGE: language,
+      };
+      log("model: ${jsonEncode(map)}");
+      final response = await httpService.post(url, body: map);
       log(jsonEncode(response));
       return ActionResult.fromJson(response);
     } on Exception catch (e) {

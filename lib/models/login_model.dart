@@ -33,6 +33,22 @@ class SignupRequest {
   }
 }
 
+class SignupResponse {
+  String accountID = "";
+  bool accountExisting = false;
+  bool authenByFirebase = false;
+  SignupResponse();
+  factory SignupResponse.fromJson(Map<String, dynamic> json) {
+    SignupResponse model = SignupResponse();
+
+    model.accountID = nvl(json[F_ACCOUNT_ID]);
+
+    model.accountExisting = json[F_ACCOUNT_EXISTING] ?? false;
+    model.authenByFirebase = json[F_AUTHEN_BY_FIREBASE] ?? false;
+    return model;
+  }
+}
+
 class LoginResponse extends ActionResult {
   String loginState = "";
   String userName = "";

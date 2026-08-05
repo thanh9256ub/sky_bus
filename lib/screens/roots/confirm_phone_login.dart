@@ -22,6 +22,16 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
     log(response.errorMessage);
   }
 
+  void reactivePassenger() async {
+    ActionResult response = await service.reactivePassenger(
+      signUpRequest.mobileNo,
+      signUpRequest.deviceID,
+      signUpRequest.appOS,
+      signUpRequest.language,
+    );
+    log(response.errorMessage);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -85,7 +95,7 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
                 ),
                 SizedBox(width: 10),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: reactivePassenger,
                   child: Text(
                     "Gửi lại mã",
                     style: TextStyle(decoration: TextDecoration.underline),

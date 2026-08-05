@@ -5,6 +5,7 @@ import 'package:skysoft_bus/utils/global.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../models/login_model.dart';
+import '../../utils/string_utils.dart';
 import 'main_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -23,6 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void pushToConfirm() {
     if (!_key.currentState!.validate()) return;
+
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (context) => ConfirmPhoneLogin()));
@@ -206,8 +208,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Vui lòng nhập số điện thoại';
+                    } else if (!isValidPhoneNumber(value)) {
+                      return "Sai định dạng số điện thoại";
+                    } else {
+                      return null;
                     }
-                    return null;
                   },
                   onChanged: (value) {
                     setState(() {
@@ -282,8 +287,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Vui lòng nhập số điện thoại';
+                    } else if (!isValidPhoneNumber(value)) {
+                      return "Sai định dạng số điện thoại";
+                    } else {
+                      return null;
                     }
-                    return null;
                   },
                   onChanged: (value) {
                     setState(() {

@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.NFC" />
     <uses-feature android:name="android.hardware.nfc" android:required="true" />    
     <application
-        android:label="skyBus"
+        android:label="SkyBus"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

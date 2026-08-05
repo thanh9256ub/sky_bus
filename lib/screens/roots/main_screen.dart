@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:skysoft_bus/screens/roots/home_screen.dart';
 
 import '../../models/tab_item.dart';
 import '../../utils/global.dart';
@@ -32,41 +33,42 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: PageView(
-        physics: NeverScrollableScrollPhysics(),
-        controller: pageViewController,
-        onPageChanged: (index) {
-          setState(() {
-            selectedIndex = index;
-          });
-        },
-        children: tabs.map((e) => e.page).toList(),
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border(top: BorderSide(color: Colors.grey.shade400)),
-          ),
-          child: BottomNavigationBar(
-            elevation: 0,
-            type: BottomNavigationBarType.fixed,
-            selectedItemColor: Colors.blue,
-            selectedFontSize: 11,
-            unselectedFontSize: 11,
-            backgroundColor: Colors.white,
-            currentIndex: selectedIndex,
-            onTap: changePage,
-            items: List.generate(tabs.length, (index) {
-              final item = tabs[index];
-              return BottomNavigationBarItem(
-                icon: Icon(item.icon),
-                label: item.label,
-              );
-            }),
-          ),
-        ),
-      ),
+      body: HomeScreen(),
+      //  PageView(
+      //   physics: NeverScrollableScrollPhysics(),
+      //   controller: pageViewController,
+      //   onPageChanged: (index) {
+      //     setState(() {
+      //       selectedIndex = index;
+      //     });
+      //   },
+      //   children: tabs.map((e) => e.page).toList(),
+      // ),
+      // bottomNavigationBar: SafeArea(
+      //   child: Container(
+      //     decoration: BoxDecoration(
+      //       color: Colors.white,
+      //       border: Border(top: BorderSide(color: Colors.grey.shade400)),
+      //     ),
+      //     child: BottomNavigationBar(
+      //       elevation: 0,
+      //       type: BottomNavigationBarType.fixed,
+      //       selectedItemColor: Colors.blue,
+      //       selectedFontSize: 11,
+      //       unselectedFontSize: 11,
+      //       backgroundColor: Colors.white,
+      //       currentIndex: selectedIndex,
+      //       onTap: changePage,
+      //       items: List.generate(tabs.length, (index) {
+      //         final item = tabs[index];
+      //         return BottomNavigationBarItem(
+      //           icon: Icon(item.icon),
+      //           label: item.label,
+      //         );
+      //       }),
+      //     ),
+      //   ),
+      // ),
     );
   }
 }

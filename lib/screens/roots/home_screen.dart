@@ -252,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           mapWidget(),
           Positioned(
-            bottom: MediaQuery.of(context).size.height * 0.01,
+            bottom: MediaQuery.of(context).size.height * 0.03,
             right: 20,
             child: FloatingActionButton.small(
               heroTag: "gps_button",
@@ -442,11 +442,11 @@ class _HomeScreenState extends State<HomeScreen>
   Widget mainContent() {
     return DraggableScrollableSheet(
       controller: sheetController,
-      initialChildSize: 0.25,
-      minChildSize: 0.25,
+      initialChildSize: 0.32,
+      minChildSize: 0.32,
       maxChildSize: 0.8,
       snap: true,
-      snapSizes: [0.25, 0.8],
+      snapSizes: [0.32, 0.8],
       builder: (context, scrollController) {
         final matrixPrice = getSelectedMatrixPrice();
         return Container(
@@ -479,8 +479,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
               buildListItem(scrollController),
-              Padding(
-                padding: EdgeInsets.all(10),
+              SafeArea(
                 child: SizedBox(
                   width: double.infinity,
                   height: 45,

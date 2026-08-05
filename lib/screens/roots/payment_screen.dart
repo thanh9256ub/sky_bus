@@ -5,21 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:gal/gal.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:skysoft_bus/utils/string_utils.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../models/bus_line_model.dart';
 import '../../utils/global.dart';
 
 class PaymentScreen extends StatefulWidget {
-  final BusLine selectedLine;
-  final List<int> placeIds;
+  final Place fromPlace;
+  final Place toPlace;
   final Matrix matrix;
   final int quantity;
   const PaymentScreen({
     super.key,
-    required this.selectedLine,
+    required this.fromPlace,
+    required this.toPlace,
     required this.matrix,
-    required this.placeIds,
     required this.quantity,
   });
 
@@ -30,18 +31,8 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   final GlobalKey _globalKey = GlobalKey();
   String qrData = "https://flutter.dev";
-  bool isSaving = false;
-
-  String getPlaceName(int placeId) {
-    return widget.selectedLine.placeMarks
-        .firstWhere((e) => e.placeID == placeId)
-        .description;
-  }
 
   Future<void> downloadQrCode() async {
-    setState(() {
-      isSaving = true;
-    });
     try {
       RenderRepaintBoundary boundary =
           _globalKey.currentContext!.findRenderObject()
@@ -64,9 +55,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
       if (mounted) {
         showToast('Đã lưu mã QR vào thư viện ảnh!', ToastificationType.success);
       }
-      setState(() {
-        isSaving = false;
-      });
     } catch (e) {
       if (mounted) {
         showToast('Lưu mã QR thất bại: $e', ToastificationType.error);
@@ -130,7 +118,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            getPlaceName(widget.placeIds[0]),
+                            widget.fromPlace.description,
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ),
@@ -146,7 +134,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            getPlaceName(widget.placeIds[1]),
+                            widget.toPlace.description,
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ),
@@ -168,17 +156,67 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 padding: EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    buildRow(
-                      "Đơn giá",
-                      "${moneyFormat.format(widget.matrix.price)},000đ",
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Đơn giá",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                        Text(
+                          "${(widget.matrix.price).formatThousand()},000đ",
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                     SizedBox(height: 12),
-                    buildRow("Số lượng", widget.quantity.toString()),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Số lượng",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                        Text(
+                          widget.quantity.toString(),
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                     Divider(height: 24),
-                    buildRow(
-                      "Tổng tiền",
-                      "${moneyFormat.format(totalPrice)},000đ",
-                      isTotal: true,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Tổng tiền",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          "${(totalPrice).formatThousand()},000đ",
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -216,7 +254,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
             SizedBox(height: 10),
             InkWell(
-              onTap: isSaving ? null : downloadQrCode,
+              onTap: downloadQrCode,
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.45,
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -230,7 +268,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     Icon(Icons.download_rounded, color: Colors.blue),
                     SizedBox(width: 10),
                     Text(
-                      isSaving ? "Đang lưu..." : "Lưu ảnh QR",
+                      "Lưu ảnh QR",
                       style: TextStyle(
                         color: Colors.blue,
                         fontWeight: FontWeight.w600,
@@ -243,29 +281,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget buildRow(String title, String value, {bool isTotal = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: isTotal ? 18 : 15,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            color: isTotal ? Colors.red : Colors.black87,
-            fontSize: isTotal ? 20 : 15,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
-          ),
-        ),
-      ],
     );
   }
 }

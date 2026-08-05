@@ -165,7 +165,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
                   ),
                 ),
                 onTapOutside: (event) {
-                  FocusManager.instance.primaryFocus!.unfocus();
+                  FocusManager.instance.primaryFocus?.unfocus();
                 },
               ),
             ),

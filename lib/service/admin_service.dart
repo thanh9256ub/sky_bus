@@ -9,7 +9,7 @@ import '../utils/http_service.dart';
 
 class AdminService {
   Future<LoginResponse> login(SignupRequest requestModel) async {
-    String url = "${baseUrl}rest/admin/mobile/login";
+    String url = "$baseUrl/rest/admin/mobile/login";
     try {
       final response = await httpService.post(url, body: requestModel.toJson());
       log(jsonEncode(response));
@@ -20,8 +20,9 @@ class AdminService {
   }
 
   Future<ActionResult> signup(SignupRequest requestModel) async {
-    String url = "${baseUrl}rest/app/passenger/signup";
+    String url = "$baseUrl/rest/app/passenger/signup";
     try {
+      log("model: ${jsonEncode(requestModel)}");
       final response = await httpService.post(url, body: requestModel.toJson());
       log(jsonEncode(response));
       return ActionResult.fromJson(response);

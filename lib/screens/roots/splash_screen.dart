@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/login_model.dart';
@@ -17,42 +20,39 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  static final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
   @override
   void initState() {
+    initPlatformState();
     super.initState();
     startApp();
   }
 
-  // void initPlatformState() async {
-  //   var deviceData = <String, dynamic>{};
-  //   final appInfo = await PackageInfo.fromPlatform();
+  void initPlatformState() async {
+    var deviceData = <String, dynamic>{};
+    final appInfo = await PackageInfo.fromPlatform();
 
-  //   try {
-  //     if (Platform.isAndroid) {
-  //       deviceData = readAndroidBuildData(await deviceInfoPlugin.androidInfo);
-  //       signUpRequest.appOs = "Android";
-  //       signUpRequest.deviceName = deviceData['device'];
-  //       signUpRequest.deviceID = deviceData['id'];
-  //       signUpRequest.deviceModel = deviceData['model'];
-  //       signUpRequest.deviceBrand = deviceData['brand'];
-  //     } else if (Platform.isIOS) {
-  //       deviceData = readIosDeviceInfo(await deviceInfoPlugin.iosInfo);
-  //       signUpRequest.appOs = "iOS";
-  //       signUpRequest.deviceName = deviceData['utsname.nodename'];
-  //       signUpRequest.osVersion = deviceData['systemVersion'];
-  //       signUpRequest.deviceID = deviceData['identifierForVendor'];
-  //       signUpRequest.deviceModel = deviceData['model'];
-  //       signUpRequest.deviceBrand = "Apple";
-  //     }
-  //   } on PlatformException {
-  //     deviceData = <String, dynamic>{
-  //       'Error': 'Failed to get platform version.',
-  //     };
-  //     signUpRequest.deviceID = '';
-  //   }
+    try {
+      if (Platform.isAndroid) {
+        deviceData = readAndroidBuildData(await deviceInfoPlugin.androidInfo);
+        signUpRequest.appOS = "Android";
+        signUpRequest.deviceID = deviceData['id'];
+        signUpRequest.language = "vi";
+      } else if (Platform.isIOS) {
+        deviceData = readIosDeviceInfo(await deviceInfoPlugin.iosInfo);
+        signUpRequest.appOS = "iOS";
+        signUpRequest.deviceID = deviceData['identifierForVendor'];
+        signUpRequest.language = "vi";
+      }
+    } on PlatformException {
+      deviceData = <String, dynamic>{
+        'Error': 'Failed to get platform version.',
+      };
+      signUpRequest.deviceID = '';
+    }
 
-  //   signUpRequest.appVersion = appInfo.version;
-  // }
+    signUpRequest.appName = appInfo.appName;
+  }
 
   Map<String, dynamic> readAndroidBuildData(AndroidDeviceInfo build) {
     return <String, dynamic>{

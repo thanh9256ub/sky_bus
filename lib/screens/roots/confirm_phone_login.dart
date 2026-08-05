@@ -19,6 +19,7 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
   AdminService service = AdminService();
   void signUp() async {
     ActionResult response = await service.signup(signUpRequest);
+    log(response.errorMessage);
   }
 
   @override
@@ -62,7 +63,16 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
               child: Pinput(
                 length: 6,
                 defaultPinTheme: defaultPinTheme,
-                onCompleted: (pin) => log(pin),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Vui lòng nhập mã OTP';
+                  }
+                  if (value.length < 6) {
+                    return 'Mã OTP phải gồm 6 số';
+                  }
+                  return null;
+                },
+                onCompleted: (pin) => signUp,
               ),
             ),
             SizedBox(height: 20),
@@ -90,7 +100,7 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
                 height: 56,
                 width: 300,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: signUp,
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
                     backgroundColor: secondaryColor,

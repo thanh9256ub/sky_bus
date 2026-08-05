@@ -9,6 +9,7 @@ const String FUEL_CHART_TAB = "fuelChart";
 const String TRIP_COUNTING_TAB = "tripCounting";
 const String REPORT_TAB = "report";
 const String CUSTOMER_SERVICE_TAB = "customerService";
+const String PROFILE_TAB = "profile";
 
 const String F_ERROR_CODE = "errorCode";
 const String F_ERROR_MESSAGE = "errorMessage";

@@ -3,16 +3,17 @@ import 'package:flutter/services.dart';
 import 'package:skysoft_bus/models/bus_line_model.dart';
 
 import '../../utils/global.dart';
+import '../../utils/string_utils.dart';
 import '../roots/payment_screen.dart';
 
 class TicketBuyDialog extends StatefulWidget {
-  final BusLine selectedLine;
-  final List<int> palaceIds;
+  final Place fromPlace;
+  final Place toPlace;
   final Matrix matrix;
   const TicketBuyDialog({
     super.key,
-    required this.palaceIds,
-    required this.selectedLine,
+    required this.fromPlace,
+    required this.toPlace,
     required this.matrix,
   });
 
@@ -23,11 +24,6 @@ class TicketBuyDialog extends StatefulWidget {
 class _TicketBuyDialogState extends State<TicketBuyDialog> {
   int quantity = 1;
   final qtyController = TextEditingController();
-  String getPlaceName(int placeId) {
-    return widget.selectedLine.placeMarks
-        .firstWhere((e) => e.placeID == placeId)
-        .description;
-  }
 
   @override
   void initState() {
@@ -37,8 +33,8 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
 
   @override
   void dispose() {
-    super.dispose();
     qtyController.dispose();
+    super.dispose();
   }
 
   @override
@@ -81,7 +77,7 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
                           Icon(Icons.circle, color: Colors.blue, size: 20),
                           SizedBox(width: 8),
                           Text(
-                            getPlaceName(widget.palaceIds[0]),
+                            widget.fromPlace.description,
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ],
@@ -95,7 +91,7 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
                           Icon(Icons.circle, color: Colors.green, size: 20),
                           SizedBox(width: 8),
                           Text(
-                            getPlaceName(widget.palaceIds[1]),
+                            widget.toPlace.description,
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ],
@@ -141,7 +137,7 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
                         ),
                       ),
                       Text(
-                        "${moneyFormat.format(widget.matrix.price * quantity == 0 ? widget.matrix.price : widget.matrix.price * quantity)},000đ",
+                        "${((widget.matrix.price * quantity)).formatThousand()},000đ",
                         style: TextStyle(
                           color: Colors.red,
                           fontSize: 18,
@@ -160,10 +156,10 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
                           Navigator.of(context).pushReplacement(
                             MaterialPageRoute(
                               builder: (context) => PaymentScreen(
+                                fromPlace: widget.fromPlace,
+                                toPlace: widget.toPlace,
                                 matrix: widget.matrix,
-                                placeIds: widget.palaceIds,
                                 quantity: quantity,
-                                selectedLine: widget.selectedLine,
                               ),
                             ),
                           );
@@ -254,12 +250,6 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(vertical: 15),
               ),
-              onChanged: (value) {
-                setState(() {
-                  quantity = int.tryParse(value) ?? 0;
-                  qtyController.text = quantity.toString();
-                });
-              },
             ),
           ),
           InkWell(

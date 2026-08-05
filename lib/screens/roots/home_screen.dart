@@ -23,7 +23,10 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   LatLng currentLocation = LatLng(21.051873, 105.777787);
   late final AnimatedMapController animatedMapController;
   final mapController = MapController();
@@ -37,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<int> selectedPlaceIds = [];
   Timer? vehicleTimer;
   Timer? moveDebounce;
-  BusService busService = BusService();
+
   void getCurrentLocation() async {
     final location = await MapHelper.getCurrentLocation();
     if (location == null) {
@@ -59,28 +62,30 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (selectedPlaceIds.contains(placeId)) {
         selectedPlaceIds.remove(placeId);
         return;
-      }
-
-      if (selectedPlaceIds.length < 2) {
+      } else if (selectedPlaceIds.length < 2) {
         selectedPlaceIds.add(placeId);
         return;
       }
 
-      final newIndex = selectedBusLine!.placeMarks.indexWhere(
-        (e) => e.placeID == placeId,
-      );
+      int? newIndex;
+      int? firstIndex;
+      int? secondIndex;
 
-      final firstIndex = selectedBusLine!.placeMarks.indexWhere(
-        (e) => e.placeID == selectedPlaceIds[0],
-      );
-
-      final secondIndex = selectedBusLine!.placeMarks.indexWhere(
-        (e) => e.placeID == selectedPlaceIds[1],
-      );
-
+      for (int i = 0; i < selectedBusLine!.placeMarks.length; i++) {
+        final id = selectedBusLine!.placeMarks[i].placeID;
+        if (id == placeId) {
+          newIndex = i;
+        } else if (id == selectedPlaceIds[0]) {
+          firstIndex = i;
+        } else if (id == selectedPlaceIds[1]) {
+          secondIndex = i;
+        }
+      }
+      if (newIndex == null || firstIndex == null || secondIndex == null) {
+        return;
+      }
       final distanceToFirst = (newIndex - firstIndex).abs();
       final distanceToSecond = (newIndex - secondIndex).abs();
-
       if (distanceToFirst <= distanceToSecond) {
         selectedPlaceIds[0] = placeId;
       } else {
@@ -90,19 +95,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> showDialogTicket(Matrix? matrix) async {
+    if (matrix == null) {
+      showToast("Không tìm thấy giá vé", ToastificationType.error);
+      return;
+    }
     if (selectedPlaceIds.length == 2) {
       await showDialog(
         context: context,
         builder: (context) {
           return TicketBuyDialog(
-            matrix: matrix!,
-            palaceIds: selectedPlaceIds,
-            selectedLine: selectedBusLine!,
+            fromPlace: selectedBusLine!.placeMarks
+                .where((e) => e.placeID == selectedPlaceIds.first)
+                .first,
+            toPlace: selectedBusLine!.placeMarks
+                .where((e) => e.placeID == selectedPlaceIds.last)
+                .first,
+            matrix: matrix,
           );
         },
       );
     } else {
       showToast("Vui lòng chọn điểm đi và điểm đến", ToastificationType.error);
+      return;
     }
   }
 
@@ -113,13 +127,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     animatedMapController.animateTo(
       dest: busLine.startPoint!,
       zoom: 16,
-      duration: const Duration(milliseconds: 800),
+      duration: Duration(milliseconds: 800),
       curve: Curves.easeInOutCubic,
     );
   }
 
   Future<void> searchNearBus() async {
     if (!mounted) return;
+    BusService busService = BusService();
     final center = mapController.camera.center;
     final response = await busService.searchNearVehicles(
       center.latitude,
@@ -162,6 +177,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void getListBusLine() async {
+    BusService busService = BusService();
     final response = await busService.listBusLines();
     if (response.errorMessage.isEmpty && mounted) {
       setState(() {
@@ -172,31 +188,30 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  String getPlaceName(int placeId) {
-    return selectedBusLine!.placeMarks
-        .firstWhere((e) => e.placeID == placeId)
-        .description;
-  }
-
   Color getVehicleColor(Vehicle vehicle) {
     if (vehicle.currentSpeed > 0) {
       return Colors.greenAccent.shade400;
-    }
-    if (vehicle.engineState == "ON") {
+    } else if (vehicle.engineState == "ON") {
       return Colors.purpleAccent;
+    } else {
+      return Colors.red;
     }
-    return Colors.red;
   }
 
   Matrix? getSelectedMatrixPrice() {
     if (selectedPlaceIds.length != 2) return null;
     final fromId = selectedPlaceIds[0];
     final toId = selectedPlaceIds[1];
-    return selectedBusLine!.matrixPrices.firstWhere(
+    final result = selectedBusLine!.matrixPrices.where(
       (e) =>
           (e.fromPlaceID == fromId && e.toPlaceID == toId) ||
           (e.fromPlaceID == toId && e.toPlaceID == fromId),
     );
+    if (result.isEmpty) {
+      return null;
+    } else {
+      return result.first;
+    }
   }
 
   @override
@@ -206,36 +221,46 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       vsync: this,
       mapController: mapController,
     );
-    WidgetsBinding.instance.addPostFrameCallback((e) {
-      getCurrentLocation();
+    vehicleTimer = Timer.periodic(Duration(seconds: 5), (timer) {
       searchNearBus();
-      vehicleTimer = Timer.periodic(
-        Duration(seconds: 5),
-        (timer) => searchNearBus(),
-      );
     });
+    getCurrentLocation();
     getListBusLine();
+    WidgetsBinding.instance.addPostFrameCallback((e) {
+      searchNearBus();
+    });
   }
 
   @override
   void dispose() {
     vehicleTimer?.cancel();
-    sheetController.dispose();
     searchController.dispose();
     _focusNode.dispose();
     popupController.dispose();
     mapController.dispose();
+    animatedMapController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: Colors.white,
       resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
           mapWidget(),
+          Positioned(
+            bottom: MediaQuery.of(context).size.height * 0.01,
+            right: 20,
+            child: FloatingActionButton.small(
+              heroTag: "gps_button",
+              backgroundColor: Colors.white,
+              onPressed: getCurrentLocation,
+              child: Icon(Icons.my_location, color: Colors.blue),
+            ),
+          ),
           centerPointMap(),
           searchBusLine(),
           if (selectedBusLine != null) mainContent(),
@@ -262,10 +287,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           onPositionChanged: (position, hasGesture) {
             if (!hasGesture) return;
             moveDebounce?.cancel();
-            moveDebounce = Timer(
-              Duration(milliseconds: 1500),
-              () => searchNearBus(),
-            );
+            moveDebounce = Timer(Duration(milliseconds: 1500), searchNearBus);
           },
         ),
         children: [
@@ -337,16 +359,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               });
             }).toList(),
           ),
-          Positioned(
-            bottom: MediaQuery.of(context).size.height * 0.01,
-            right: 20,
-            child: FloatingActionButton.small(
-              heroTag: "gps_button",
-              backgroundColor: Colors.white,
-              onPressed: getCurrentLocation,
-              child: Icon(Icons.my_location, color: Colors.blue),
-            ),
-          ),
         ],
       ),
     );
@@ -411,9 +423,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         )
                       : SizedBox(),
                 ),
-                onFieldSubmitted: (value) => onFieldSubmitted,
+                onFieldSubmitted: (_) => onFieldSubmitted(),
                 onTapOutside: (event) {
-                  FocusManager.instance.primaryFocus!.unfocus();
+                  FocusManager.instance.primaryFocus?.unfocus();
                 },
               ),
             );
@@ -445,26 +457,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
           child: Column(
             children: [
-              Container(
-                height: 50,
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: secondaryColor,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
+              if (selectedBusLine!.placeMarks.isNotEmpty)
+                Container(
+                  height: 50,
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: secondaryColor,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    "${selectedBusLine!.placeMarks.first.description} - ${selectedBusLine!.placeMarks.last.description}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-                child: Text(
-                  "${selectedBusLine!.placeMarks.first.description} - ${selectedBusLine!.placeMarks.last.description}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
               buildListItem(scrollController),
               Padding(
                 padding: EdgeInsets.all(10),
@@ -526,6 +539,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         itemBuilder: (context, index) {
           final place = selectedBusLine!.placeMarks[index];
           final isSelected = selectedPlaceIds.contains(place.placeID);
+          String distance = MapHelper.calculateDistance(
+            currentLocation,
+            LatLng(place.y, place.x),
+          ).toStringAsFixed(2);
           return IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -577,7 +594,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   );
                                   sheetController.animateTo(
                                     0.25,
-                                    duration: const Duration(milliseconds: 300),
+                                    duration: Duration(milliseconds: 300),
                                     curve: Curves.easeOut,
                                   );
                                   scrollController.jumpTo(0);
@@ -613,7 +630,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                         ),
                         Text(
-                          "${MapHelper.calculateDistance(currentLocation, LatLng(place.y, place.x)).toStringAsFixed(2)} km",
+                          "$distance km",
                           style: TextStyle(color: Colors.grey),
                         ),
                         Checkbox(

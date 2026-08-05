@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-// import 'package:skysoft_bus/screens/roots/check_ticket_screen.dart';
-import 'package:skysoft_bus/screens/roots/home_screen.dart';
-import 'package:skysoft_bus/screens/roots/profile_screen.dart';
+
+import '../../models/tab_item.dart';
+import '../../utils/global.dart';
+import '../../utils/page_router.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -11,20 +12,36 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  bool hasLocation = false;
-  String address = "";
-  int _selectedIndex = 0;
-  final List<Widget> _widgetOptions = <Widget>[
-    HomeScreen(),
-    // CheckTicketScreen(),
-    ProfileScreen(),
-  ];
+  int selectedIndex = 0;
+  List<TabItem> tabs = [];
+  void changePage(int index) {
+    if (selectedIndex == index) return;
+    setState(() {
+      selectedIndex = index;
+    });
+    pageViewController.jumpToPage(index);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    tabs = pages.values.toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: IndexedStack(index: _selectedIndex, children: _widgetOptions),
+      body: PageView(
+        physics: NeverScrollableScrollPhysics(),
+        controller: pageViewController,
+        onPageChanged: (index) {
+          setState(() {
+            selectedIndex = index;
+          });
+        },
+        children: tabs.map((e) => e.page).toList(),
+      ),
       bottomNavigationBar: SafeArea(
         child: Container(
           decoration: BoxDecoration(
@@ -37,26 +54,15 @@ class _MainScreenState extends State<MainScreen> {
             selectedFontSize: 11,
             unselectedFontSize: 11,
             backgroundColor: Colors.white,
-            currentIndex: _selectedIndex,
-            onTap: (value) {
-              setState(() {
-                _selectedIndex = value;
-              });
-            },
-            items: [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.explore),
-                label: 'Trang chủ',
-              ),
-              // BottomNavigationBarItem(
-              //   icon: Icon(Icons.confirmation_number_outlined),
-              //   label: 'Thẻ tháng',
-              // ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.account_circle_outlined),
-                label: 'Tài khoản',
-              ),
-            ],
+            currentIndex: selectedIndex,
+            onTap: changePage,
+            items: List.generate(tabs.length, (index) {
+              final item = tabs[index];
+              return BottomNavigationBarItem(
+                icon: Icon(item.icon),
+                label: item.label,
+              );
+            }),
           ),
         ),
       ),

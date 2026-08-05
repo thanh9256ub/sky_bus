@@ -49,6 +49,7 @@ class _MainScreenState extends State<MainScreen> {
             border: Border(top: BorderSide(color: Colors.grey.shade400)),
           ),
           child: BottomNavigationBar(
+            elevation: 0,
             type: BottomNavigationBarType.fixed,
             selectedItemColor: Colors.blue,
             selectedFontSize: 11,

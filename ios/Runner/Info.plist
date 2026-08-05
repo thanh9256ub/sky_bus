@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>skysoft_bus</string>
+	<string>SkyBus</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

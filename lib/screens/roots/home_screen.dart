@@ -479,45 +479,48 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
               buildListItem(scrollController),
-              Padding(
-                padding: EdgeInsets.all(10.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 45,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      showDialogTicket(matrixPrice);
-                    },
-                    label: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.confirmation_number_outlined),
-                        SizedBox(width: 10),
-                        Text(
-                          "Đặt vé",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: EdgeInsets.all(10.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 45,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        showDialogTicket(matrixPrice);
+                      },
+                      label: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.confirmation_number_outlined),
+                          SizedBox(width: 10),
+                          Text(
+                            "Đặt vé",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
+                          matrixPrice != null
+                              ? Text(
+                                  " - Giá vé: ${moneyFormat.format(matrixPrice.price)},000đ",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              : Text(""),
+                        ],
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
                         ),
-                        matrixPrice != null
-                            ? Text(
-                                " - Giá vé: ${moneyFormat.format(matrixPrice.price)},000đ",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              )
-                            : Text(""),
-                      ],
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      elevation: 3,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
                       ),
                     ),
                   ),

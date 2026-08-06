@@ -5,6 +5,7 @@ import 'package:skysoft_bus/utils/global.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../models/login_model.dart';
+import '../../service/admin_service.dart';
 import '../../utils/string_utils.dart';
 import 'main_screen.dart';
 
@@ -28,6 +29,15 @@ class _LoginScreenState extends State<LoginScreen> {
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (context) => ConfirmPhoneLogin()));
+  }
+
+  void signUp() async {
+    AdminService service = AdminService();
+    final response = await service.signup(signUpRequest);
+    if (response.errorMessage.isEmpty) {
+      loginRequest.accountID = response.accountID;
+      pushToConfirm();
+    }
   }
 
   Future<void> processLoginResult(LoginResponse value) async {
@@ -97,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       )
                     : ElevatedButton(
-                        onPressed: pushToConfirm,
+                        onPressed: signUp,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: secondaryColor,
                           shape: RoundedRectangleBorder(

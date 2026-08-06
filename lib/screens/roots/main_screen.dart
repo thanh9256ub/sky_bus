@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:skysoft_bus/screens/roots/home_screen.dart';
 
 import '../../models/tab_item.dart';
-import '../../utils/global.dart';
 import '../../utils/page_router.dart';
 
 class MainScreen extends StatefulWidget {
@@ -15,12 +14,13 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int selectedIndex = 0;
   List<TabItem> tabs = [];
+  late PageController pageController = PageController();
   void changePage(int index) {
     if (selectedIndex == index) return;
     setState(() {
       selectedIndex = index;
     });
-    pageViewController.jumpToPage(index);
+    pageController.jumpToPage(index);
   }
 
   @override
@@ -34,9 +34,9 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: HomeScreen(),
-      //  PageView(
+      // PageView(
       //   physics: NeverScrollableScrollPhysics(),
-      //   controller: pageViewController,
+      //   controller: pageController,
       //   onPageChanged: (index) {
       //     setState(() {
       //       selectedIndex = index;

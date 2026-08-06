@@ -38,11 +38,20 @@ class _SplashScreenState extends State<SplashScreen> {
         signUpRequest.appOS = "Android";
         signUpRequest.deviceID = deviceData['id'];
         signUpRequest.language = "vi";
+        loginRequest.appOS = "Android";
+        loginRequest.deviceID = deviceData['id'];
+        loginRequest.deviceName = deviceData['device'];
+        loginRequest.language = "vi";
       } else if (Platform.isIOS) {
         deviceData = readIosDeviceInfo(await deviceInfoPlugin.iosInfo);
         signUpRequest.appOS = "iOS";
         signUpRequest.deviceID = deviceData['identifierForVendor'];
         signUpRequest.language = "vi";
+        loginRequest.appOS = "iOS";
+        loginRequest.osVersion = deviceData['systemVersion'];
+        loginRequest.deviceID = deviceData['identifierForVendor'];
+        loginRequest.deviceName = deviceData['utsname.nodename'];
+        loginRequest.language = "vi";
       }
     } on PlatformException {
       deviceData = <String, dynamic>{
@@ -52,6 +61,7 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     signUpRequest.appName = appInfo.appName;
+    loginRequest.appVersion = appInfo.version;
   }
 
   Map<String, dynamic> readAndroidBuildData(AndroidDeviceInfo build) {
@@ -103,7 +113,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> startApp() async {
-    // String? userName = await readData(F_USER_NAME);
+    // String? accountID   = await readData(F_ACCOUNT_ID);
     // String? password = await readData(F_PASSWORD);
     // String firebaseToken = nvl(await readData(F_FIREBASE_TOKEN));
     //  signUpRequest.fireBaseToken = firebaseToken;

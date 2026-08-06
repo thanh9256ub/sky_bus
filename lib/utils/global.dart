@@ -9,6 +9,7 @@ const String baseUrl = "https://dev.skysoft.vn";
 // const String baseUrl = "";
 const String skymapUrl = "https://maps.skysoft.vn";
 
+LoginRequest loginRequest = LoginRequest();
 SignupRequest signUpRequest = SignupRequest();
 LoginResponse loginResponse = LoginResponse("", "");
 
@@ -17,7 +18,6 @@ Color secondaryColor = Color(0xFF0ea5e9);
 
 FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 final moneyFormat = NumberFormat("#,##0", "en_US");
-final PageController pageViewController = PageController();
 
 const Color LIGHT_GREY = Color.fromARGB(255, 228, 227, 227);
 

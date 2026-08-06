@@ -22,8 +22,6 @@
 	<string>Ứng dụng cần truy cập thư viện ảnh để bạn có thể chọn và tải ảnh lên hệ thống.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Ứng dụng cần truy cập thư viện ảnh để lưu hình ảnh sau khi chỉnh sửa vào máy.</string>
-	<key>NFCReaderUsageDescription</key>
-	<string>Ứng dụng sử dụng NFC để đọc thẻ.</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>

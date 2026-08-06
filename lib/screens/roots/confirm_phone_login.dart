@@ -3,8 +3,12 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
 import 'package:skysoft_bus/models/action_result.dart';
+import 'package:skysoft_bus/screens/roots/main_screen.dart';
+import 'package:skysoft_bus/utils/fields.dart';
 import 'package:skysoft_bus/utils/global.dart';
+import 'package:toastification/toastification.dart';
 
+import '../../models/login_model.dart';
 import '../../service/admin_service.dart';
 
 class ConfirmPhoneLogin extends StatefulWidget {
@@ -17,19 +21,48 @@ class ConfirmPhoneLogin extends StatefulWidget {
 class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
   PinTheme defaultPinTheme = PinTheme();
   AdminService service = AdminService();
-  void signUp() async {
-    ActionResult response = await service.signup(signUpRequest);
+  ActiveRequest request = ActiveRequest();
+
+  void reactivePassenger() async {
+    ActionResult response = await service.reactivePassenger(signUpRequest);
     log(response.errorMessage);
   }
 
-  void reactivePassenger() async {
-    ActionResult response = await service.reactivePassenger(
-      signUpRequest.mobileNo,
-      signUpRequest.deviceID,
-      signUpRequest.appOS,
-      signUpRequest.language,
-    );
-    log(response.errorMessage);
+  Future<void> activatePassenger(String activeKey) async {
+    request.accountID = loginRequest.accountID;
+    request.activeKey = activeKey;
+    request.deviceID = loginRequest.deviceID;
+
+    final response = await service.activatePassenger(request);
+
+    if (response.errorMessage.isEmpty) {
+      loginRequest.authenKey = activeKey;
+
+      await login();
+    } else {
+      showToast(response.errorMessage, ToastificationType.error);
+      return;
+    }
+  }
+
+  Future<void> login() async {
+    final response = await service.login(loginRequest);
+
+    if (response.errorMessage.isEmpty) {
+      setState(() {
+        loginResponse = response;
+      });
+      await saveData(F_ACCOUNT_ID, loginRequest.accountID);
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreen()),
+      );
+    } else {
+      showToast(response.errorMessage, ToastificationType.error);
+      return;
+    }
   }
 
   @override
@@ -67,7 +100,10 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
             SizedBox(height: 20),
-            Text(signUpRequest.mobileNo, style: TextStyle(fontSize: 16)),
+            Text(
+              signUpRequest.mobileNo,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             SizedBox(height: 30),
             Center(
               child: Pinput(
@@ -82,7 +118,9 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
                   }
                   return null;
                 },
-                onCompleted: (pin) => signUp,
+                onCompleted: (val) {
+                  activatePassenger(val);
+                },
               ),
             ),
             SizedBox(height: 20),
@@ -110,7 +148,7 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
                 height: 56,
                 width: 300,
                 child: ElevatedButton(
-                  onPressed: signUp,
+                  onPressed: login,
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
                     backgroundColor: secondaryColor,

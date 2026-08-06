@@ -37,6 +37,10 @@ const String F_LANGUAGE = "language";
 const String F_APP_NAME = "appName";
 const String F_ACCOUNT_ID = "accountID";
 const String F_ACCOUNT_EXISTING = "accountExisting";
+const String F_AUTHEN_KEY = "authenKey";
+const String F_ACTIVE_KEY = "activeKey";
+const String F_UID = "uid";
+const String F_SESSION_ID = "sessionID";
 
 // admin
 const String F_OLD_PASSWORD = "oldPassword";

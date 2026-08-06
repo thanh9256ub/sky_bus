@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skysoft_bus/screens/roots/login_screen.dart';
-import 'package:toastification/toastification.dart';
+import 'package:skysoft_bus/screens/roots/user_infomation_screen.dart';
 
 import '../../utils/global.dart';
 
@@ -12,6 +12,12 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  void pushToUserInfoScreen() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => UserInfomationScreen()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,47 +40,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color: Colors.white,
                   child: Column(
                     children: [
-                      Visibility(
-                        visible: loginResponse.userName.isEmpty,
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => LoginScreen(),
+                      loginResponse.fullName.isEmpty
+                          ? TextButton(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => LoginScreen(),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                "Đăng nhập",
+                                style: TextStyle(
+                                  color: secondaryColor,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            );
-                          },
-                          child: Text(
-                            "Đăng nhập",
-                            style: TextStyle(
-                              color: secondaryColor,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                            )
+                          : Text(
+                              loginResponse.fullName,
+                              style: TextStyle(
+                                color: secondaryColor,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
+                      SizedBox(height: 20),
+                      Visibility(
+                        visible: loginResponse.fullName.isNotEmpty,
+                        child: profileFeature(
+                          "Thông tin cá nhân",
+                          icon: Icons.person,
+                          onTap: pushToUserInfoScreen,
                         ),
-                      ),
-                      SizedBox(height: 10),
-                      profileFeature(
-                        "Thông tin cá nhân",
-                        icon: Icons.person,
-                        onTap: () {
-                          showToast(
-                            "Vui lòng đăng nhập để xem thông tin",
-                            ToastificationType.error,
-                          );
-                        },
                       ),
                       SizedBox(height: 10),
                       profileFeature(
                         "Cài đặt",
                         icon: Icons.settings,
-                        onTap: () {},
-                      ),
-                      SizedBox(height: 10),
-                      profileFeature(
-                        "Thông tin công ty",
-                        icon: Icons.insert_page_break,
                         onTap: () {},
                       ),
                     ],

@@ -442,11 +442,11 @@ class _HomeScreenState extends State<HomeScreen>
   Widget mainContent() {
     return DraggableScrollableSheet(
       controller: sheetController,
-      initialChildSize: 0.32,
-      minChildSize: 0.32,
+      initialChildSize: 0.3,
+      minChildSize: 0.3,
       maxChildSize: 0.8,
       snap: true,
-      snapSizes: [0.32, 0.8],
+      snapSizes: [0.3, 0.8],
       builder: (context, scrollController) {
         final matrixPrice = getSelectedMatrixPrice();
         return Container(
@@ -479,47 +479,45 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
               buildListItem(scrollController),
-              SafeArea(
-                child: Padding(
-                  padding: EdgeInsets.all(10.0),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 45,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        showDialogTicket(matrixPrice);
-                      },
-                      label: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.confirmation_number_outlined),
-                          SizedBox(width: 10),
-                          Text(
-                            "Đặt vé",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+              Padding(
+                padding: EdgeInsets.all(10.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 45,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      showDialogTicket(matrixPrice);
+                    },
+                    label: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.confirmation_number_outlined),
+                        SizedBox(width: 10),
+                        Text(
+                          "Đặt vé",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
-                          matrixPrice != null
-                              ? Text(
-                                  " - Giá vé: ${moneyFormat.format(matrixPrice.price)},000đ",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                )
-                              : Text(""),
-                        ],
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
                         ),
+                        matrixPrice != null
+                            ? Text(
+                                " - Giá vé: ${moneyFormat.format(matrixPrice.price)},000đ",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : Text(""),
+                      ],
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
                       ),
                     ),
                   ),

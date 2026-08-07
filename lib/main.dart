@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ToastificationWrapper(
       child: MaterialApp(
-        title: 'Skysoft Bus',
+        title: 'SkyBus',
         theme: ThemeData(
           colorScheme: .fromSeed(seedColor: Colors.orange[800]!),
           splashFactory: NoSplash.splashFactory,

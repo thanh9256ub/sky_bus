@@ -123,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
       top: 8,
       left: 16,
       child: Material(
-        color: Colors.white,
+        color: Colors.white38,
         shape: CircleBorder(),
         elevation: 3,
         shadowColor: Colors.black.withValues(alpha: 0.15),
@@ -144,24 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildHeader() {
     return Column(
       children: [
-        Container(
-          padding: EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(
-                color: secondaryColor.withValues(alpha: 0.18),
-                blurRadius: 24,
-                offset: Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Image.asset(
-            "assets/images/skysoft_logo_ok_h80.png",
-            height: 52,
-          ),
-        ),
+        Image.asset("assets/images/logo_skybus.png", height: 65),
         SizedBox(height: 20),
         Text(
           isLogin ? "Chào mừng trở lại" : "Tạo tài khoản mới",

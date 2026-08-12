@@ -8,7 +8,7 @@ class HeaderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.20,
+      height: MediaQuery.of(context).size.height * 0.21,
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -72,6 +72,17 @@ class HeaderWidget extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.3,
                 ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 90,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(
+                loginResponse.fullName,
+                style: TextStyle(color: Colors.white, fontSize: 18),
               ),
             ),
           ),

@@ -51,7 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           HeaderWidget(),
           Padding(
             padding: EdgeInsets.only(
-              top: MediaQuery.of(context).size.height * 0.20 - 50,
+              top: MediaQuery.of(context).size.height * 0.21 - 50,
             ),
             child: Column(
               children: [
@@ -100,17 +100,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           iconColor: Color(0xFF868E96),
                           onTap: pushToAppInfoScreen,
                         ),
-                        if (loginResponse.fullName.isNotEmpty) ...[
-                          SizedBox(height: 24),
-                          profileFeature(
-                            "Đăng xuất",
-                            icon: Icons.logout_rounded,
-                            iconColor: Colors.redAccent,
-                            titleColor: Colors.redAccent,
-                            showArrow: false,
-                            onTap: () {},
-                          ),
-                        ],
                         SizedBox(height: 24),
                       ],
                     ),

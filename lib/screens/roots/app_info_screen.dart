@@ -42,9 +42,24 @@ class AppInfoScreen extends StatelessWidget {
           "Thông tin ứng dụng",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+        leading: Padding(
+          padding: EdgeInsets.all(10),
+          child: Material(
+            color: Colors.white38,
+            shape: CircleBorder(),
+            elevation: 3,
+            shadowColor: Colors.black.withValues(alpha: 0.15),
+            child: InkWell(
+              customBorder: CircleBorder(),
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+              ),
+            ),
+          ),
         ),
       ),
       body: SingleChildScrollView(

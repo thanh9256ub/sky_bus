@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:skysoft_bus/screens/roots/app_info_screen.dart';
 import 'package:skysoft_bus/screens/roots/login_screen.dart';
+import 'package:skysoft_bus/screens/roots/setting_screen.dart';
 import 'package:skysoft_bus/screens/roots/user_infomation_screen.dart';
 
 import '../../utils/global.dart';
+import '../widgets/header_widget.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -18,91 +21,102 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ).push(MaterialPageRoute(builder: (context) => UserInfomationScreen()));
   }
 
+  void pushToLoginScreen() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => LoginScreen()));
+  }
+
+  void pushToSettingScreen() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => SettingsScreen()));
+  }
+
+  void pushToAppInfoScreen() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => AppInfoScreen()));
+  }
+
+  bool get isLoggedIn => loginResponse.fullName.isNotEmpty;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
       body: Stack(
         clipBehavior: Clip.none,
         children: [
-          Column(
-            children: [
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.22,
-                width: double.infinity,
-                child: Image.asset(
-                  "assets/images/anh_nen.png",
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.only(top: 60, left: 10, right: 10),
-                  color: Colors.white,
-                  child: Column(
-                    children: [
-                      loginResponse.fullName.isEmpty
-                          ? TextButton(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => LoginScreen(),
-                                  ),
-                                );
-                              },
-                              child: Text(
-                                "Đăng nhập",
-                                style: TextStyle(
-                                  color: secondaryColor,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            )
-                          : Text(
-                              loginResponse.fullName,
-                              style: TextStyle(
-                                color: secondaryColor,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                      SizedBox(height: 20),
-                      Visibility(
-                        visible: loginResponse.fullName.isNotEmpty,
-                        child: profileFeature(
-                          "Thông tin cá nhân",
-                          icon: Icons.person,
-                          onTap: pushToUserInfoScreen,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      profileFeature(
-                        "Cài đặt",
-                        icon: Icons.settings,
-                        onTap: () {},
+          HeaderWidget(),
+          Padding(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).size.height * 0.20 - 50,
+            ),
+            child: Column(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.shade200,
+                        blurRadius: 12,
+                        offset: Offset(0, 6),
                       ),
                     ],
                   ),
+                  child: CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.grey.shade300,
+                    child: Icon(Icons.person, color: Colors.white, size: 50),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.22 - 50,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
+                SizedBox(height: 28),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(horizontal: 18),
+                    child: Column(
+                      children: [
+                        profileFeature(
+                          "Thông tin cá nhân",
+                          icon: Icons.person_outline_rounded,
+                          iconColor: Color(0xFF4C6EF5),
+                          onTap: pushToLoginScreen,
+                        ),
+                        SizedBox(height: 12),
+                        profileFeature(
+                          "Cài đặt",
+                          icon: Icons.settings_outlined,
+                          iconColor: Color(0xFF12B886),
+                          onTap: pushToSettingScreen,
+                        ),
+                        SizedBox(height: 12),
+                        profileFeature(
+                          "Về ứng dụng",
+                          icon: Icons.info_outline_rounded,
+                          iconColor: Color(0xFF868E96),
+                          onTap: pushToAppInfoScreen,
+                        ),
+                        if (loginResponse.fullName.isNotEmpty) ...[
+                          SizedBox(height: 24),
+                          profileFeature(
+                            "Đăng xuất",
+                            icon: Icons.logout_rounded,
+                            iconColor: Colors.redAccent,
+                            titleColor: Colors.redAccent,
+                            showArrow: false,
+                            onTap: () {},
+                          ),
+                        ],
+                        SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
                 ),
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundImage: AssetImage('assets/images/images.jpg'),
-                ),
-              ),
+              ],
             ),
           ),
         ],
@@ -114,28 +128,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
     String title, {
     required Function() onTap,
     required IconData icon,
+    Color iconColor = Colors.grey,
+    Color titleColor = const Color(0xFF1C1C1E),
+    bool showArrow = true,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(14.0),
-          child: Row(
-            children: [
-              Icon(icon, size: 18),
-              SizedBox(width: 10),
-              Expanded(child: Text(title, style: TextStyle(fontSize: 14))),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: Colors.grey.shade400,
-                size: 12,
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.shade100,
+                blurRadius: 10,
+                blurStyle: BlurStyle.outer,
+                offset: Offset(0, 4),
               ),
             ],
+          ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(9),
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, size: 18, color: iconColor),
+                ),
+                SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w500,
+                      color: titleColor,
+                    ),
+                  ),
+                ),
+                if (showArrow)
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: Colors.grey.shade400,
+                    size: 12,
+                  ),
+              ],
+            ),
           ),
         ),
       ),

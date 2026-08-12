@@ -459,38 +459,68 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               if (selectedBusLine!.placeMarks.isNotEmpty)
                 Container(
-                  height: 50,
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  alignment: Alignment.center,
+                  margin: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: secondaryColor,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(12),
-                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: secondaryColor.withValues(alpha: 0.35),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    "${selectedBusLine!.placeMarks.first.description} - ${selectedBusLine!.placeMarks.last.description}",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.alt_route_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "${selectedBusLine!.placeMarks.first.description} → "
+                          "${selectedBusLine!.placeMarks.last.description}",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               buildListItem(scrollController),
               SafeArea(
                 top: false,
                 child: Padding(
-                  padding: EdgeInsets.all(10.0),
+                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
                   child: SizedBox(
                     width: double.infinity,
-                    height: 45,
-                    child: ElevatedButton.icon(
+                    height: 50,
+                    child: ElevatedButton(
                       onPressed: () {
                         showDialogTicket(matrixPrice);
                       },
-                      label: Row(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: secondaryColor,
+                        foregroundColor: Colors.white,
+                        elevation: 4,
+                        shadowColor: secondaryColor.withValues(alpha: 0.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                      child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -503,24 +533,27 @@ class _HomeScreenState extends State<HomeScreen>
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          matrixPrice != null
-                              ? Text(
-                                  " - Giá vé: ${moneyFormat.format(matrixPrice.price)},000đ",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                )
-                              : Text(""),
+                          if (matrixPrice != null) ...[
+                            SizedBox(width: 8),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white12,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text(
+                                "${moneyFormat.format(matrixPrice.price)},000đ",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
                       ),
                     ),
                   ),
@@ -542,6 +575,8 @@ class _HomeScreenState extends State<HomeScreen>
         itemBuilder: (context, index) {
           final place = selectedBusLine!.placeMarks[index];
           final isSelected = selectedPlaceIds.contains(place.placeID);
+          final isFirst = index == 0;
+          final isLast = index == selectedBusLine!.placeMarks.length - 1;
           String distance = MapHelper.calculateDistance(
             currentLocation,
             LatLng(place.y, place.x),
@@ -551,23 +586,40 @@ class _HomeScreenState extends State<HomeScreen>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(
-                  width: 40,
+                  width: 34,
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
                       Positioned.fill(
                         child: Align(
                           alignment: Alignment.center,
-                          child: Container(width: 3, color: Colors.blue),
+                          child: Container(
+                            margin: EdgeInsets.only(
+                              top: isFirst ? 20 : 0,
+                              bottom: isLast ? 20 : 0,
+                            ),
+                            width: 3,
+                            color: secondaryColor.withValues(alpha: 0.25),
+                          ),
                         ),
                       ),
                       Container(
-                        width: 14,
-                        height: 14,
+                        width: isSelected ? 16 : 12,
+                        height: isSelected ? 16 : 12,
                         decoration: BoxDecoration(
-                          color: isSelected ? Colors.white : Colors.blue,
+                          color: isSelected ? secondaryColor : Colors.white,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.blue, width: 3),
+                          border: Border.all(color: secondaryColor, width: 3),
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: secondaryColor.withValues(
+                                      alpha: 0.4,
+                                    ),
+                                    blurRadius: 6,
+                                  ),
+                                ]
+                              : null,
                         ),
                       ),
                     ],
@@ -584,63 +636,84 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Row(
                       children: [
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextButton(
-                                onPressed: () {
-                                  MapHelper.moveToLocation(
-                                    mapController: mapController,
-                                    animatedController: animatedMapController,
-                                    location: LatLng(place.y, place.x),
-                                  );
-                                  sheetController.animateTo(
-                                    0.25,
-                                    duration: Duration(milliseconds: 300),
-                                    curve: Curves.easeOut,
-                                  );
-                                  scrollController.jumpTo(0);
-                                },
-                                child: Text(
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: () {
+                              MapHelper.moveToLocation(
+                                mapController: mapController,
+                                animatedController: animatedMapController,
+                                location: LatLng(place.y, place.x),
+                              );
+                              sheetController.animateTo(
+                                0.25,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOut,
+                              );
+                              scrollController.jumpTo(0);
+                            },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
                                   place.description,
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: isSelected
                                         ? FontWeight.bold
-                                        : FontWeight.normal,
+                                        : FontWeight.w500,
                                     color: isSelected
-                                        ? Colors.blue.shade400
-                                        : Colors.black,
+                                        ? secondaryColor
+                                        : Colors.black87,
                                   ),
                                 ),
-                              ),
-                              if (isSelected)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 10),
-                                  child: Text(
-                                    selectedPlaceIds.indexOf(place.placeID) == 0
-                                        ? "Điểm đi"
-                                        : "Điểm đến",
-                                    style: TextStyle(
-                                      color: isSelected
-                                          ? Colors.blue.shade400
-                                          : Colors.black,
+                                if (isSelected)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 2),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: secondaryColor,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        selectedPlaceIds.indexOf(
+                                                  place.placeID,
+                                                ) ==
+                                                0
+                                            ? "Điểm đi"
+                                            : "Điểm đến",
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                         Text(
                           "$distance km",
-                          style: TextStyle(color: Colors.grey),
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
                         ),
-                        Checkbox(
-                          value: isSelected,
-                          onChanged: (value) {
-                            togglePlace(place.placeID);
-                          },
+                        Transform.scale(
+                          scale: 0.9,
+                          child: Checkbox(
+                            value: isSelected,
+                            activeColor: secondaryColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            onChanged: (value) {
+                              togglePlace(place.placeID);
+                            },
+                          ),
                         ),
                       ],
                     ),

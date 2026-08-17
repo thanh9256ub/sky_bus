@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:skysoft_bus/screens/roots/login_screen.dart';
 import 'package:toastification/toastification.dart';
 import '../../utils/global.dart';
 
@@ -14,136 +13,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool notificationsEnabled = true;
   bool darkModeEnabled = false;
 
-  void logout() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          "Đăng xuất",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản này không?",
-          style: TextStyle(fontSize: 14),
-        ),
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text("Hủy", style: TextStyle(color: Colors.grey.shade600)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-                (route) => false,
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text(
-              "Đăng xuất",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF5F6FA),
-      body: Stack(
+      backgroundColor: Colors.white,
+      body: Column(
         children: [
-          Container(
-            height: 150,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [secondaryColor, secondaryColor.withValues(alpha: 0.5)],
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(32),
-                bottomRight: Radius.circular(32),
-              ),
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  top: -30,
-                  right: -20,
-                  child: Container(
-                    width: 110,
-                    height: 110,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white24,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: -30,
-                  left: -20,
-                  child: Container(
-                    width: 90,
-                    height: 90,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white24,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 16,
-                  right: 30,
-                  child: Icon(
-                    Icons.directions_bus_rounded,
-                    size: 26,
-                    color: Colors.white24,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           SafeArea(
             child: Padding(
               padding: EdgeInsets.all(10),
-              child: Material(
-                color: Colors.white38,
-                shape: CircleBorder(),
-                elevation: 3,
-                shadowColor: Colors.black.withValues(alpha: 0.15),
-                child: InkWell(
-                  customBorder: CircleBorder(),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+              child: Row(
+                children: [
+                  Material(
+                    color: Colors.white38,
+                    shape: CircleBorder(),
+                    elevation: 3,
+                    shadowColor: Colors.black26,
+                    child: InkWell(
+                      customBorder: CircleBorder(),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                      ),
+                    ),
                   ),
-                ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      "Cài đặt",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-
-          Padding(
-            padding: EdgeInsets.only(top: 130),
+          Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(28),
@@ -151,7 +62,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               child: Container(
                 width: double.infinity,
-                height: double.infinity,
                 color: Color(0xFFF5F6FA),
                 child: SingleChildScrollView(
                   padding: EdgeInsets.fromLTRB(18, 24, 18, 24),
@@ -165,17 +75,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: "Đổi mật khẩu",
                           icon: Icons.lock_outline_rounded,
                           iconColor: Color(0xFF4C6EF5),
-                          onTap: () {
-                            showToast(
-                              "Tính năng đang phát triển",
-                              ToastificationType.error,
-                            );
-                          },
-                        ),
-                        settingsTile(
-                          title: "Thông tin cá nhân",
-                          icon: Icons.person_outline_rounded,
-                          iconColor: Color(0xFF12B886),
                           onTap: () {
                             showToast(
                               "Tính năng đang phát triển",
@@ -217,33 +116,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(10),
-          child: SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: OutlinedButton.icon(
-              onPressed: logout,
-              style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.redAccent.withValues(alpha: 0.1),
-                side: BorderSide(
-                  color: Colors.redAccent.withValues(alpha: 0.3),
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
+          child: ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade50,
+              elevation: 1,
+              shape: RoundedRectangleBorder(
+                side: BorderSide(color: Colors.red),
+                borderRadius: BorderRadius.circular(15),
               ),
-              icon: Icon(
-                Icons.logout_rounded,
-                color: Colors.redAccent,
-                size: 18,
-              ),
-              label: Text(
-                "Đăng xuất",
-                style: TextStyle(
-                  color: Colors.redAccent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
+            ),
+            child: Text(
+              "Đăng xuất",
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
             ),
           ),
         ),

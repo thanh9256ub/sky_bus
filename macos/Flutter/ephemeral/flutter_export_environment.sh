@@ -1,8 +1,8 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=C:\flutter"
-export "FLUTTER_APPLICATION_PATH=D:\flutter_project\skysoft_bus"
-export "FLUTTER_FRAMEWORK_SWIFT_PACKAGE_PATH=D:\flutter_project\skysoft_bus\macos\Flutter\ephemeral\Packages\.packages\FlutterFramework"
+export "FLUTTER_ROOT=/Users/nguyenvietha/FlutterDev/flutter"
+export "FLUTTER_APPLICATION_PATH=/Users/nguyenvietha/FlutterDev/projects/sky_bus"
+export "FLUTTER_FRAMEWORK_SWIFT_PACKAGE_PATH=/Users/nguyenvietha/FlutterDev/projects/sky_bus/macos/Flutter/ephemeral/Packages/.packages/FlutterFramework"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_BUILD_DIR=build"
 export "FLUTTER_BUILD_NAME=1.0.2"

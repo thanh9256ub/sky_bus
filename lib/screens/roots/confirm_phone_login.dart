@@ -1,8 +1,5 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
-import 'package:skysoft_bus/models/action_result.dart';
 import 'package:skysoft_bus/screens/roots/main_screen.dart';
 import 'package:skysoft_bus/utils/fields.dart';
 import 'package:skysoft_bus/utils/global.dart';
@@ -26,35 +23,16 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
 
   bool isResending = false;
 
-  void reactivePassenger() async {
-    setState(() {
-      isResending = true;
-    });
-    ActionResult response = await service.reactivePassenger(signUpRequest);
-    log(response.errorMessage);
-    if (mounted) {
-      setState(() {
-        isResending = false;
-      });
-    }
-    if (response.errorMessage.isEmpty) {
-      if (mounted) {
-        showToast("Mã OTP đã được gửi lại", ToastificationType.success);
-      }
-    }
-  }
-
   Future<void> activatePassenger(String activeKey) async {
     request.accountID = loginRequest.accountID;
     request.activeKey = activeKey;
     request.deviceID = loginRequest.deviceID;
 
     final response = await service.activatePassenger(request);
-
     if (response.errorMessage.isEmpty) {
       loginRequest.authenKey = activeKey;
-
-      await login();
+      await saveData(F_SECURE_KEY, response.secureKey);
+      login();
     } else {
       showToast(response.errorMessage, ToastificationType.error);
       return;
@@ -63,33 +41,29 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
 
   Future<void> login() async {
     final response = await service.login(loginRequest);
-
     if (response.errorMessage.isEmpty) {
       setState(() {
         loginResponse = response;
       });
       await saveData(F_ACCOUNT_ID, loginRequest.accountID);
-
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MainScreen()),
+        MaterialPageRoute(builder: (context) => const MainScreen()),
       );
     } else {
       showToast(response.errorMessage, ToastificationType.error);
-      return;
     }
   }
 
   @override
   void initState() {
     super.initState();
-
     defaultPinTheme = PinTheme(
       width: 52,
       height: 58,
       textStyle: const TextStyle(
-        fontSize: 22,
+        fontSize: 20,
         fontWeight: FontWeight.bold,
         color: Color(0xFF1F2937),
       ),
@@ -217,43 +191,6 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
                     return null;
                   },
                   onCompleted: activatePassenger,
-                ),
-                SizedBox(height: 28),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Không nhận được mã? ",
-                      style: TextStyle(fontSize: 15, color: Color(0xFF6B7280)),
-                    ),
-                    TextButton(
-                      onPressed: isResending ? null : reactivePassenger,
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size(0, 0),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: isResending
-                          ? SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: secondaryColor,
-                              ),
-                            )
-                          : Text(
-                              "Gửi lại mã",
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: secondaryColor,
-                                decoration: TextDecoration.underline,
-                                decorationColor: secondaryColor,
-                              ),
-                            ),
-                    ),
-                  ],
                 ),
                 SizedBox(height: 28),
                 SizedBox(

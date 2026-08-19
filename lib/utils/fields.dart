@@ -1,3 +1,5 @@
+//key
+const String PRIVATE_BUS_KEY = "q46bbmGc7lg73ooUNb7dfSQ2ulwHx3CJ";
 // tab
 const String HOME_TAB = "home";
 const String TRACKING_TAB = "tracking";
@@ -39,6 +41,7 @@ const String F_ACCOUNT_ID = "accountID";
 const String F_ACCOUNT_EXISTING = "accountExisting";
 const String F_AUTHEN_KEY = "authenKey";
 const String F_ACTIVE_KEY = "activeKey";
+const String F_SECURE_KEY = "secureKey";
 const String F_UID = "uid";
 const String F_SESSION_ID = "sessionID";
 

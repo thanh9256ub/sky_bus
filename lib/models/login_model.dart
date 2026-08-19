@@ -1,12 +1,11 @@
 import 'package:skysoft_bus/models/action_result.dart';
 
-import '../utils/date_utils.dart';
 import '../utils/fields.dart';
 import '../utils/string_utils.dart';
 
 class LoginRequest {
   String accountID = "";
-  DateTime time = DateTime.now();
+  String time = DateTime.now().millisecondsSinceEpoch.toString();
   String authenKey = "";
   String appOS = "";
   String osVersion = "";
@@ -22,7 +21,7 @@ class LoginRequest {
   Map<String, dynamic> toJson() {
     return {
       F_ACCOUNT_ID: nvl(accountID),
-      F_TIME: DateTime.now().formatDateTimeTz(),
+      F_TIME: nvl(time),
       F_AUTHEN_KEY: nvl(authenKey),
       F_APP_OS: nvl(appOS),
       F_OS_VERSION: nvl(osVersion),
@@ -128,5 +127,24 @@ class ActiveRequest {
       F_DEVICE_ID: deviceID,
       F_TOKEN_ID: tokenID,
     };
+  }
+}
+
+class ActiveResponse extends ActionResult {
+  String accountID = "";
+  String secureKey = "";
+
+  ActiveResponse(super.errorCode, super.errorMessage);
+
+  static Future<ActiveResponse> fromJson(Map<String, dynamic> json) async {
+    final response = ActiveResponse(
+      nvl(json[F_ERROR_CODE]),
+      nvl(json[F_ERROR_MESSAGE]),
+    );
+
+    response.accountID = nvl(json[F_ACCOUNT_ID]);
+    response.secureKey = nvl(json[F_SECURE_KEY]);
+
+    return response;
   }
 }

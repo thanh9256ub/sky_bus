@@ -1,12 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/login_model.dart';
+import '../../service/admin_service.dart';
 import '../../utils/fields.dart';
 import '../../utils/global.dart';
 import '../../utils/string_utils.dart';
@@ -23,13 +27,14 @@ class _SplashScreenState extends State<SplashScreen> {
   static final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
   @override
   void initState() {
-    initPlatformState();
     super.initState();
+    initPlatformState();
     startApp();
   }
 
   void initPlatformState() async {
     var deviceData = <String, dynamic>{};
+
     final appInfo = await PackageInfo.fromPlatform();
 
     try {
@@ -38,6 +43,7 @@ class _SplashScreenState extends State<SplashScreen> {
         signUpRequest.appOS = "Android";
         signUpRequest.deviceID = deviceData['id'];
         signUpRequest.language = "vi";
+
         loginRequest.appOS = "Android";
         loginRequest.deviceID = deviceData['id'];
         loginRequest.deviceName = deviceData['device'];
@@ -47,6 +53,7 @@ class _SplashScreenState extends State<SplashScreen> {
         signUpRequest.appOS = "iOS";
         signUpRequest.deviceID = deviceData['identifierForVendor'];
         signUpRequest.language = "vi";
+
         loginRequest.appOS = "iOS";
         loginRequest.osVersion = deviceData['systemVersion'];
         loginRequest.deviceID = deviceData['identifierForVendor'];
@@ -54,9 +61,6 @@ class _SplashScreenState extends State<SplashScreen> {
         loginRequest.language = "vi";
       }
     } on PlatformException {
-      deviceData = <String, dynamic>{
-        'Error': 'Failed to get platform version.',
-      };
       signUpRequest.deviceID = '';
     }
 
@@ -113,28 +117,29 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> startApp() async {
-    // String? accountID   = await readData(F_ACCOUNT_ID);
-    // String? password = await readData(F_PASSWORD);
-    // String firebaseToken = nvl(await readData(F_FIREBASE_TOKEN));
-    //  signUpRequest.fireBaseToken = firebaseToken;
-
-    // if (nvl(userName).isNotEmpty) {
-    //   signUpRequest.userName = nvl(userName);
-    //   signUpRequest.password = nvl(password);
-    //   signUpRequest.reconnect = true;
-
-    //   AdminService service = AdminService();
-    //   LoginResponse response = await service.login(signUpRequest);
-    //   processLoginResult(response);
-    // } else {
-
-    // }
-    await Future.delayed(Duration(seconds: 2));
-    if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const MainScreen()),
-    );
+    final accountID = await readData(F_ACCOUNT_ID);
+    if (nvl(accountID).isNotEmpty) {
+      loginRequest.accountID = accountID!;
+      String time = DateTime.now().millisecondsSinceEpoch.toString();
+      String? sercureKey = await readData(F_SECURE_KEY);
+      String rawKey =
+          "$accountID-$time-${loginRequest.deviceID}-$sercureKey-$PRIVATE_BUS_KEY";
+      log("rawKey:$rawKey");
+      String authenKey = md5.convert(utf8.encode(rawKey)).toString();
+      log("authenKey:$authenKey");
+      loginRequest.time = time;
+      loginRequest.authenKey = authenKey;
+      AdminService service = AdminService();
+      final response = await service.login(loginRequest);
+      await processLoginResult(response);
+    } else {
+      await Future.delayed(const Duration(seconds: 2));
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainScreen()),
+      );
+    }
   }
 
   Future<void> processLoginResult(LoginResponse value) async {
@@ -148,6 +153,7 @@ class _SplashScreenState extends State<SplashScreen> {
         );
       }
     } else {
+      loginRequest.reconnect = false;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainScreen()),

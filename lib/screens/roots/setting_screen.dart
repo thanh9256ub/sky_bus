@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:toastification/toastification.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:skysoft_bus/models/login_model.dart';
+import 'package:skysoft_bus/screens/roots/main_screen.dart';
+import 'package:skysoft_bus/utils/fields.dart';
 import '../../utils/global.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -12,6 +15,18 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool notificationsEnabled = true;
   bool darkModeEnabled = false;
+  Future<void> logout() async {
+    const storage = FlutterSecureStorage();
+    storage.delete(key: F_ACCOUNT_ID);
+    storage.delete(key: F_AUTHEN_KEY);
+    loginResponse = LoginResponse("", "");
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainScreen()),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,22 +83,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      sectionTitle("Tài khoản"),
-                      SizedBox(height: 10),
-                      settingsGroup([
-                        settingsTile(
-                          title: "Đổi mật khẩu",
-                          icon: Icons.lock_outline_rounded,
-                          iconColor: Color(0xFF4C6EF5),
-                          onTap: () {
-                            showToast(
-                              "Tính năng đang phát triển",
-                              ToastificationType.error,
-                            );
-                          },
-                        ),
-                      ]),
-                      SizedBox(height: 24),
+                      // sectionTitle("Tài khoản"),
+                      // SizedBox(height: 10),
+                      // settingsGroup([
+                      //   settingsTile(
+                      //     title: "Đổi mật khẩu",
+                      //     icon: Icons.lock_outline_rounded,
+                      //     iconColor: Color(0xFF4C6EF5),
+                      //     onTap: () {
+                      //       showToast(
+                      //         "Tính năng đang phát triển",
+                      //         ToastificationType.error,
+                      //       );
+                      //     },
+                      //   ),
+                      // ]),
+                      // SizedBox(height: 24),
                       sectionTitle("Tuỳ chọn"),
                       SizedBox(height: 10),
                       settingsGroup([
@@ -117,7 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Padding(
           padding: EdgeInsets.all(10),
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: logout,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade50,
               elevation: 1,

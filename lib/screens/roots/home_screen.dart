@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:skysoft_bus/screens/roots/busline_list_screen.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../models/bus_line_model.dart';
@@ -13,7 +14,6 @@ import '../../models/vehicle_model.dart';
 import '../../service/bus_service.dart';
 import '../../utils/global.dart';
 import '../../utils/map_helper.dart';
-import '../../utils/string_utils.dart';
 import '../widgets/ticket_buy_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -34,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen>
   final searchController = TextEditingController();
   final sheetController = DraggableScrollableController();
   final _focusNode = FocusNode();
+
   BusLine? selectedBusLine;
   List<BusLine> busLines = [];
   List<Vehicle> nearVehicles = [];
@@ -55,6 +56,27 @@ class _HomeScreenState extends State<HomeScreen>
       animatedController: animatedMapController,
       location: currentLocation,
     );
+  }
+
+  void openBusLineListScreen() async {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => BusLineListScreen(
+          busLines: busLines,
+          selectedBusLine: selectedBusLine,
+          onChanged: (value) {
+            selectLine(value);
+          },
+        ),
+      ),
+    );
+  }
+
+  void clearSelectedBusLine() {
+    setState(() {
+      selectedBusLine = null;
+      selectedPlaceIds = [];
+    });
   }
 
   void togglePlace(int placeId) {
@@ -120,14 +142,25 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  void selectLine(BusLine busLine) {
+  void selectLine(BusLine busLine, {LatLng? focusPoint}) {
     setState(() {
       selectedBusLine = busLine;
+      selectedPlaceIds = [];
     });
+
+    LatLng? target = focusPoint ?? busLine.startPoint;
+
+    if (target == null && busLine.placeMarks.isNotEmpty) {
+      final first = busLine.placeMarks.first;
+      target = LatLng(first.y, first.x);
+    }
+
+    if (target == null) return;
+
     animatedMapController.animateTo(
-      dest: busLine.startPoint!,
+      dest: target,
       zoom: 16,
-      duration: Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 800),
       curve: Curves.easeInOutCubic,
     );
   }
@@ -295,18 +328,18 @@ class _HomeScreenState extends State<HomeScreen>
             urlTemplate: '$skymapUrl/web_tile.jsp?c={x}&r={y}&z={z}',
             userAgentPackageName: 'com.skysoft.sks_web',
           ),
-          PolylineLayer(
-            polylines: busLines.map((line) {
-              final isSelected = selectedBusLine?.lineID == line.lineID;
-              return Polyline(
-                points: line.wayPoints
-                    .map((e) => LatLng(e.latitude, e.longitude))
-                    .toList(),
-                strokeWidth: isSelected ? 6 : 3,
-                color: isSelected ? Colors.green : Color(line.color),
-              );
-            }).toList(),
-          ),
+          if (selectedBusLine != null && selectedBusLine!.wayPoints.length >= 2)
+            PolylineLayer(
+              polylines: [
+                Polyline(
+                  points: selectedBusLine!.wayPoints
+                      .map((e) => LatLng(e.latitude, e.longitude))
+                      .toList(),
+                  strokeWidth: 4,
+                  color: Color(selectedBusLine!.color.toUnsigned(32)),
+                ),
+              ],
+            ),
           PopupMarkerLayer(
             options: PopupMarkerLayerOptions(
               markers: [
@@ -322,42 +355,70 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           MarkerLayer(
-            markers: busLines.expand((line) {
-              return line.placeMarks.map((place) {
-                return Marker(
-                  point: LatLng(place.y, place.x),
-                  width: 70,
-                  height: 50,
-                  child: GestureDetector(
-                    onTap: () {
-                      selectLine(line);
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.directions_bus,
-                          color: Color(line.color),
-                          size: 22,
-                        ),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 2),
-                          child: Text(
-                            place.description,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 8,
-                              fontWeight: FontWeight.bold,
+            markers: (selectedBusLine != null ? [selectedBusLine!] : busLines)
+                .expand((line) {
+                  return line.placeMarks.map((place) {
+                    return Marker(
+                      point: LatLng(place.y, place.x),
+                      width: 110,
+                      height: 65,
+                      child: GestureDetector(
+                        onTap: () {
+                          if (selectedBusLine != line) {
+                            selectLine(
+                              line,
+                              focusPoint: LatLng(place.y, place.x),
+                            );
+                            return;
+                          }
+                          MapHelper.moveToLocation(
+                            mapController: mapController,
+                            animatedController: animatedMapController,
+                            location: LatLng(place.y, place.x),
+                          );
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                border: Border.all(
+                                  color: Color(line.color.toUnsigned(32)),
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Icon(
+                                Icons.directions_bus,
+                                color: Color(line.color.toUnsigned(32)),
+                                size: 18,
+                              ),
                             ),
-                          ),
+                            Visibility(
+                              visible:
+                                  mapController.camera.zoom >= 12 ||
+                                  selectedBusLine != null,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 2),
+                                child: Text(
+                                  place.description,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              });
-            }).toList(),
+                      ),
+                    );
+                  });
+                })
+                .toList(),
           ),
         ],
       ),
@@ -378,62 +439,59 @@ class _HomeScreenState extends State<HomeScreen>
       left: 16,
       right: 16,
       child: SafeArea(
-        child: Autocomplete<BusLine>(
-          textEditingController: searchController,
-          focusNode: _focusNode,
-          displayStringForOption: (busLine) => busLine.description,
-          optionsBuilder: (textEditingValue) {
-            final query = textEditingValue.text.searchText;
-            if (query.isNotEmpty) {
-              return busLines.where(
-                (e) => e.description.searchText.contains(query),
-              );
-            } else {
-              return busLines;
-            }
-          },
-          fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-            return Container(
-              height: 50,
+        child: Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(25),
+            onTap: openBusLineListScreen,
+            child: Container(
+              height: 45,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(25),
                 border: Border.all(color: Colors.grey.shade400),
                 boxShadow: [BoxShadow(blurRadius: 10, color: Colors.black12)],
               ),
-              child: TextFormField(
-                controller: controller,
-                focusNode: focusNode,
-                decoration: InputDecoration(
-                  hintText: "Tìm kiếm tuyến xe...",
-                  prefixIcon: Icon(Icons.search),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 12),
-                  fillColor: Colors.white,
-                  suffixIcon: selectedBusLine != null
-                      ? IconButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedBusLine = null;
-                              searchController.text = "";
-                              selectedPlaceIds = [];
-                            });
-                          },
-                          icon: Icon(Icons.close),
-                        )
-                      : SizedBox(),
-                ),
-                onFieldSubmitted: (_) => onFieldSubmitted(),
-                onTapOutside: (event) {
-                  FocusManager.instance.primaryFocus?.unfocus();
-                },
+              child: Row(
+                children: [
+                  SizedBox(width: 16),
+                  Container(
+                    padding: EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: secondaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: Icon(Icons.search, color: secondaryColor),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      selectedBusLine?.description ?? "Tìm kiếm tuyến xe",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: selectedBusLine != null
+                            ? Colors.black87
+                            : Colors.grey.shade600,
+                        fontWeight: selectedBusLine != null
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                  if (selectedBusLine != null)
+                    IconButton(
+                      onPressed: clearSelectedBusLine,
+                      icon: const Icon(Icons.close),
+                    )
+                  else
+                    const SizedBox(width: 16),
+                ],
               ),
-            );
-          },
-          onSelected: (busLine) {
-            _focusNode.unfocus();
-            selectLine(busLine);
-          },
+            ),
+          ),
         ),
       ),
     );
@@ -458,44 +516,66 @@ class _HomeScreenState extends State<HomeScreen>
           child: Column(
             children: [
               if (selectedBusLine!.placeMarks.isNotEmpty)
-                Container(
-                  margin: const EdgeInsets.fromLTRB(16, 10, 16, 4),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: secondaryColor,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: secondaryColor.withValues(alpha: 0.35),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onVerticalDragUpdate: (details) {
+                    final screenHeight = MediaQuery.of(context).size.height;
+                    final newSize =
+                        sheetController.size - details.delta.dy / screenHeight;
+                    sheetController.jumpTo(newSize.clamp(0.3, 0.8));
+                  },
+                  onVerticalDragEnd: (details) {
+                    final target = sheetController.size > 0.4 ? 0.8 : 0.3;
+                    sheetController.animateTo(
+                      target,
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOut,
+                    );
+                  },
+                  child: Column(
                     children: [
-                      const Icon(
-                        Icons.alt_route_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          "${selectedBusLine!.placeMarks.first.description} → "
-                          "${selectedBusLine!.placeMarks.last.description}",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Colors.white,
+                      if (selectedBusLine!.placeMarks.isNotEmpty)
+                        Container(
+                          margin: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: secondaryColor,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: secondaryColor.withValues(alpha: 0.35),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.alt_route_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  "${selectedBusLine!.placeMarks.first.description} → "
+                                  "${selectedBusLine!.placeMarks.last.description}",
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -703,7 +783,7 @@ class _HomeScreenState extends State<HomeScreen>
                           style: TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                         Transform.scale(
-                          scale: 0.9,
+                          scale: 1.1,
                           child: Checkbox(
                             value: isSelected,
                             activeColor: secondaryColor,

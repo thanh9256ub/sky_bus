@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:skysoft_bus/screens/roots/app_info_screen.dart';
+import 'package:skysoft_bus/screens/roots/infomation_user_screen.dart';
 import 'package:skysoft_bus/screens/roots/login_screen.dart';
 import 'package:skysoft_bus/screens/roots/setting_screen.dart';
 import 'package:skysoft_bus/screens/roots/user_infomation_screen.dart';
+import 'package:skysoft_bus/utils/string_utils.dart';
 
 import '../../utils/global.dart';
 import '../widgets/header_widget.dart';
@@ -21,10 +23,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ).push(MaterialPageRoute(builder: (context) => UserInfomationScreen()));
   }
 
-  void pushToLoginScreen() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => LoginScreen()));
+  void pushToScreen() {
+    if (nvl(loginResponse.fullName).isNotEmpty) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => InformationUserScreen(
+            name: loginResponse.fullName,
+            phoneNumber: loginResponse.mobileNo,
+          ),
+        ),
+      );
+    } else {
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (context) => LoginScreen()));
+    }
   }
 
   void pushToSettingScreen() {
@@ -84,7 +97,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           "Thông tin cá nhân",
                           icon: Icons.person_outline_rounded,
                           iconColor: Color(0xFF4C6EF5),
-                          onTap: pushToLoginScreen,
+                          onTap: pushToScreen,
                         ),
                         SizedBox(height: 12),
                         profileFeature(

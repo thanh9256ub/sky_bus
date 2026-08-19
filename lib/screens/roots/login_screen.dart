@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:skysoft_bus/screens/roots/confirm_phone_login.dart';
+import 'package:skysoft_bus/utils/fields.dart';
 import 'package:skysoft_bus/utils/global.dart';
 import 'package:toastification/toastification.dart';
 
@@ -34,10 +35,20 @@ class _LoginScreenState extends State<LoginScreen> {
     AdminService service = AdminService();
     final response = await service.signup(signUpRequest);
     if (response.errorMessage.isEmpty) {
+      saveData(F_ACCOUNT_ID, response.accountID);
       loginRequest.accountID = response.accountID;
       pushToConfirm();
     } else {
-      showToast(response.errorMessage, ToastificationType.error);
+      final response = await service.reactivePassenger(
+        signUpRequest.mobileNo,
+        signUpRequest.appOS,
+        signUpRequest.deviceID,
+        signUpRequest.language,
+      );
+      if (response.errorMessage.isEmpty) {
+        loginRequest.accountID = response.accountID;
+        pushToConfirm();
+      }
     }
   }
 

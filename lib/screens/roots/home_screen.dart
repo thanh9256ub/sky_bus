@@ -34,7 +34,6 @@ class _HomeScreenState extends State<HomeScreen>
   final searchController = TextEditingController();
   final sheetController = DraggableScrollableController();
   final _focusNode = FocusNode();
-
   BusLine? selectedBusLine;
   List<BusLine> busLines = [];
   List<Vehicle> nearVehicles = [];
@@ -472,12 +471,8 @@ class _HomeScreenState extends State<HomeScreen>
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 15,
-                        color: selectedBusLine != null
-                            ? Colors.black87
-                            : Colors.grey.shade600,
-                        fontWeight: selectedBusLine != null
-                            ? FontWeight.w600
-                            : FontWeight.normal,
+                        color: Colors.black,
+                        fontWeight: FontWeight.normal,
                       ),
                     ),
                   ),
@@ -500,14 +495,17 @@ class _HomeScreenState extends State<HomeScreen>
   Widget mainContent() {
     return DraggableScrollableSheet(
       controller: sheetController,
-      initialChildSize: 0.3,
-      minChildSize: 0.3,
-      maxChildSize: 0.8,
+      initialChildSize: 0.32,
+      minChildSize: 0.32,
+      maxChildSize: 0.82,
       snap: true,
-      snapSizes: [0.3, 0.8],
+      snapSizes: [0.32, 0.82],
       builder: (context, scrollController) {
         final matrixPrice = getSelectedMatrixPrice();
         return Container(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height * 0.1 - 20,
+          ),
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -522,10 +520,19 @@ class _HomeScreenState extends State<HomeScreen>
                     final screenHeight = MediaQuery.of(context).size.height;
                     final newSize =
                         sheetController.size - details.delta.dy / screenHeight;
-                    sheetController.jumpTo(newSize.clamp(0.3, 0.8));
+                    sheetController.jumpTo(newSize.clamp(0.32, 0.82));
                   },
                   onVerticalDragEnd: (details) {
-                    final target = sheetController.size > 0.4 ? 0.8 : 0.3;
+                    const flickVelocityThreshold =
+                        300.0; // px/s, càng nhỏ càng nhạy
+                    final velocity = details.primaryVelocity ?? 0;
+
+                    double target;
+                    if (velocity.abs() > flickVelocityThreshold) {
+                      target = velocity < 0 ? 0.82 : 0.32;
+                    } else {
+                      target = sheetController.size < 0.4 ? 0.32 : 0.82;
+                    }
                     sheetController.animateTo(
                       target,
                       duration: const Duration(milliseconds: 200),
@@ -580,60 +587,63 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
               buildListItem(scrollController),
-              SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        showDialogTicket(matrixPrice);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: secondaryColor,
-                        foregroundColor: Colors.white,
-                        elevation: 4,
-                        shadowColor: secondaryColor.withValues(alpha: 0.5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.confirmation_number_outlined),
-                          SizedBox(width: 10),
-                          Text(
-                            "Đặt vé",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+              Visibility(
+                visible: selectedPlaceIds.length == 2,
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          showDialogTicket(matrixPrice);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: secondaryColor,
+                          foregroundColor: Colors.white,
+                          elevation: 4,
+                          shadowColor: secondaryColor.withValues(alpha: 0.5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
                           ),
-                          if (matrixPrice != null) ...[
-                            SizedBox(width: 8),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.confirmation_number_outlined),
+                            SizedBox(width: 10),
+                            Text(
+                              "Đặt vé",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
                               ),
-                              decoration: BoxDecoration(
-                                color: Colors.white12,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Text(
-                                "${moneyFormat.format(matrixPrice.price)},000đ",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
+                            ),
+                            if (matrixPrice != null) ...[
+                              SizedBox(width: 8),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white12,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Text(
+                                  "${moneyFormat.format(matrixPrice.price)},000đ",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
                   ),

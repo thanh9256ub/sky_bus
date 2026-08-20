@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:developer';
-
 import '../models/login_model.dart';
 import '../utils/fields.dart';
 import '../utils/global.dart';
@@ -10,9 +7,7 @@ class AdminService {
   Future<LoginResponse> login(LoginRequest requestModel) async {
     String url = "$baseUrl/rest/app/passenger/login";
     try {
-      log("request: ${jsonEncode(requestModel)}");
       final response = await httpService.post(url, body: requestModel.toJson());
-      log(jsonEncode(response));
       return await LoginResponse.fromJson(response);
     } on Exception catch (e) {
       return LoginResponse("FAIL", e.toString());
@@ -33,7 +28,6 @@ class AdminService {
     String url = "$baseUrl/rest/app/passenger/activatePassenger";
     try {
       final response = await httpService.post(url, body: requestModel.toJson());
-      log("Active Rp:${jsonEncode(response)}");
       return await ActiveResponse.fromJson(response);
     } on Exception catch (e) {
       return ActiveResponse("FAIL", e.toString());

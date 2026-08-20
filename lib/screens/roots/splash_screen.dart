@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
@@ -124,9 +123,7 @@ class _SplashScreenState extends State<SplashScreen> {
       String? sercureKey = await readData(F_SECURE_KEY);
       String rawKey =
           "$accountID-$time-${loginRequest.deviceID}-$sercureKey-$PRIVATE_BUS_KEY";
-      log("rawKey:$rawKey");
       String authenKey = md5.convert(utf8.encode(rawKey)).toString();
-      log("authenKey:$authenKey");
       loginRequest.time = time;
       loginRequest.authenKey = authenKey;
       AdminService service = AdminService();

@@ -64,29 +64,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           HeaderWidget(),
           Padding(
             padding: EdgeInsets.only(
-              top: MediaQuery.of(context).size.height * 0.21 - 50,
+              top: MediaQuery.of(context).size.height * 0.21,
             ),
             child: Column(
               children: [
-                Container(
-                  padding: EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.shade200,
-                        blurRadius: 12,
-                        offset: Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: CircleAvatar(
-                    radius: 40,
-                    backgroundColor: Colors.grey.shade300,
-                    child: Icon(Icons.person, color: Colors.white, size: 50),
-                  ),
-                ),
                 SizedBox(height: 28),
                 Expanded(
                   child: SingleChildScrollView(

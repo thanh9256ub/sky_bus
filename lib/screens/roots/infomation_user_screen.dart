@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../utils/global.dart';
+
 class InformationUserScreen extends StatelessWidget {
   final String name;
   final String phoneNumber;
@@ -15,17 +17,30 @@ class InformationUserScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF5F6FA),
         elevation: 0,
-        scrolledUnderElevation: 0,
+        backgroundColor: secondaryColor,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Color(0xFF1C1C1E)),
-        title: const Text(
-          'Thông tin cá nhân',
-          style: TextStyle(
-            color: Color(0xFF1C1C1E),
-            fontWeight: FontWeight.w600,
-            fontSize: 17,
+        title: Text(
+          "Thông tin cá nhân",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        leading: Padding(
+          padding: EdgeInsets.all(10),
+          child: Material(
+            color: Colors.white38,
+            shape: CircleBorder(),
+            elevation: 3,
+            shadowColor: Colors.black.withValues(alpha: 0.15),
+            child: InkWell(
+              customBorder: CircleBorder(),
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+              ),
+            ),
           ),
         ),
       ),

@@ -60,7 +60,31 @@ class HeaderWidget extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 50,
+            top: -30,
+            left: 30,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white24,
+              ),
+            ),
+          ),
+          Positioned(
+            top: 20,
+            left: 80,
+            child: Transform.rotate(
+              angle: -0.2,
+              child: Icon(
+                Icons.directions_car_filled,
+                size: 30,
+                color: Colors.white24,
+              ),
+            ),
+          ),
+          Positioned(
+            top: 70,
             left: 0,
             right: 0,
             child: Center(
@@ -76,7 +100,7 @@ class HeaderWidget extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 90,
+            top: 110,
             left: 0,
             right: 0,
             child: Center(
@@ -87,8 +111,29 @@ class HeaderWidget extends StatelessWidget {
             ),
           ),
           Positioned(
+            bottom: -45,
+            right: 10,
+            child: Container(
+              width: 110,
+              height: 110,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white24,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 15,
+            right: 50,
+            child: Icon(
+              Icons.airport_shuttle_sharp,
+              size: 24,
+              color: Colors.white24,
+            ),
+          ),
+          Positioned(
             bottom: 20,
-            left: 40,
+            left: 20,
             child: Icon(Icons.route_rounded, size: 24, color: Colors.white24),
           ),
         ],

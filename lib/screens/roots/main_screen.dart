@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:skysoft_bus/utils/global.dart';
 
 import '../../models/tab_item.dart';
 import '../../utils/page_router.dart';
@@ -14,6 +15,7 @@ class _MainScreenState extends State<MainScreen> {
   int selectedIndex = 0;
   List<TabItem> tabs = [];
   late PageController pageController = PageController();
+
   void changePage(int index) {
     if (selectedIndex == index) return;
     setState(() {
@@ -32,40 +34,93 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: PageView(
-        physics: NeverScrollableScrollPhysics(),
-        controller: pageController,
-        onPageChanged: (index) {
-          setState(() {
-            selectedIndex = index;
-          });
-        },
-        children: tabs.map((e) => e.page).toList(),
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border(top: BorderSide(color: Colors.grey.shade400)),
+      extendBody: true,
+      body: Stack(
+        children: [
+          PageView(
+            physics: const NeverScrollableScrollPhysics(),
+            controller: pageController,
+            onPageChanged: (index) {
+              setState(() {
+                selectedIndex = index;
+              });
+            },
+            children: tabs.map((e) => e.page).toList(),
           ),
-          child: BottomNavigationBar(
-            elevation: 0,
-            type: BottomNavigationBarType.fixed,
-            selectedItemColor: Colors.blue,
-            selectedFontSize: 11,
-            unselectedFontSize: 11,
-            backgroundColor: Colors.white,
-            currentIndex: selectedIndex,
-            onTap: changePage,
-            items: List.generate(tabs.length, (index) {
-              final item = tabs[index];
-              return BottomNavigationBarItem(
-                icon: Icon(item.icon),
-                label: item.label,
-              );
-            }),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.all(10),
+                child: Container(
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(25),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.shade300,
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: List.generate(tabs.length, (index) {
+                      final item = tabs[index];
+                      final isSelected = index == selectedIndex;
+                      return Expanded(
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(20),
+                          onTap: () => changePage(index),
+                          child: Padding(
+                            padding: const EdgeInsets.all(5.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? secondaryColor.withValues(alpha: 0.1)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    item.icon,
+                                    size: 22,
+                                    color: isSelected
+                                        ? Colors.blue
+                                        : Colors.grey.shade500,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    item.label,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                      color: isSelected
+                                          ? Colors.blue
+                                          : Colors.grey.shade500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

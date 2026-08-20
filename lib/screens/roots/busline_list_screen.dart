@@ -23,7 +23,6 @@ class BusLineListScreen extends StatefulWidget {
 class _BusLineListScreenState extends State<BusLineListScreen> {
   TextEditingController searchController = TextEditingController();
   List<BusLine> filteredBusLines = [];
-  String busline = "";
 
   @override
   void initState() {
@@ -71,27 +70,19 @@ class _BusLineListScreenState extends State<BusLineListScreen> {
                 ),
                 child: TextFormField(
                   controller: searchController,
-                  autofocus: false,
                   decoration: InputDecoration(
                     hintText: "Tìm kiếm tuyến xe...",
                     prefixIcon: Icon(Icons.search),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(vertical: 12),
-                    suffixIcon: searchController.text.isNotEmpty
-                        ? IconButton(
-                            onPressed: () {
-                              searchController.clear();
-                            },
-                            icon: Icon(Icons.close),
-                          )
-                        : null,
                   ),
                   onChanged: (value) {
                     setState(() {
-                      busline = value;
                       filteredBusLines = widget.busLines
                           .where(
-                            (e) => e.description.searchText.contains(busline),
+                            (e) => e.description.searchText.contains(
+                              value.searchText,
+                            ),
                           )
                           .toList();
                     });
@@ -107,19 +98,7 @@ class _BusLineListScreenState extends State<BusLineListScreen> {
                         style: TextStyle(color: Colors.grey.shade500),
                       ),
                     )
-                  : ListView.separated(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 4,
-                      ),
-                      itemCount: filteredBusLines.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final busLine = filteredBusLines[index];
-                        return busLineTile(busLine);
-                      },
-                    ),
+                  : listBusLine(),
             ),
           ],
         ),
@@ -127,74 +106,85 @@ class _BusLineListScreenState extends State<BusLineListScreen> {
     );
   }
 
-  Widget busLineTile(BusLine busLine) {
-    final lineColor = Color(busLine.color.toUnsigned(32));
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          widget.onChanged(busLine);
-          Navigator.of(context).pop();
-        },
-        child: Container(
-          decoration: BoxDecoration(
+  Widget listBusLine() {
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      itemCount: filteredBusLines.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final busLine = filteredBusLines[index];
+        final lineColor = Color(busLine.color.toUnsigned(32));
+        return Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.shade100,
-                blurRadius: 10,
-                blurStyle: BlurStyle.outer,
-                offset: const Offset(0, 4),
+            onTap: () {
+              widget.onChanged(busLine);
+              Navigator.of(context).pop();
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.shade100,
+                    blurRadius: 10,
+                    blurStyle: BlurStyle.outer,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(9),
-                  decoration: BoxDecoration(
-                    color: lineColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Icons.directions_bus_rounded,
-                    size: 20,
-                    color: lineColor,
-                  ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    busLine.description,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1C1C1E),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(9),
+                      decoration: BoxDecoration(
+                        color: lineColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.directions_bus_rounded,
+                        size: 20,
+                        color: lineColor,
+                      ),
                     ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        busLine.description,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1C1C1E),
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    InkWell(
+                      hoverColor: Colors.transparent,
+                      onTap: () {},
+                      child: Icon(
+                        // starMark ? Icons.star : Icons.star_border,
+                        Icons.star_border,
+                        color: primaryColor,
+                        size: 24,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 10),
-                InkWell(
-                  hoverColor: Colors.transparent,
-                  onTap: () {},
-                  child: Icon(
-                    // starMark ? Icons.star : Icons.star_border,
-                    Icons.star_border,
-                    color: primaryColor,
-                    size: 24,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

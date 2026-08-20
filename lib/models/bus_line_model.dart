@@ -15,6 +15,7 @@ class BusLine {
   List<LatLng> wayPoints = [];
   List<Matrix> matrixPrices = [];
   String schedules = "";
+  bool starMark = false;
   LatLng? startPoint;
   LatLng? endPoint;
 
@@ -59,7 +60,7 @@ class BusLine {
         response.endPoint = response.wayPoints[response.wayPoints.length - 1];
       }
     }
-
+    response.starMark = json[F_STAR_MARK] ?? false;
     var placeMarks = json[F_PLACE_MARKS];
     if (placeMarks != null) {
       response.placeMarks = (placeMarks as List)

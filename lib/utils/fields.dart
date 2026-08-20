@@ -67,6 +67,7 @@ const String F_UPDATE_DATE = "updateDate";
 const String F_TEXT_COLOR = "textColor";
 const String F_LINE_ID = "lineID";
 const String F_VOICE_SIZE = "voiceSize";
+const String F_STAR_MARK = "starMark";
 
 // vehicle
 const String F_VEHICLE_ID = "vehicleID";

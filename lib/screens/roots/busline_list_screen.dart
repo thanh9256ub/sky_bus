@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:skysoft_bus/utils/global.dart';
+import 'package:toastification/toastification.dart';
 
 import '../../models/bus_line_model.dart';
+import '../../service/admin_service.dart';
 import '../../utils/string_utils.dart';
 
 class BusLineListScreen extends StatefulWidget {
@@ -24,10 +26,34 @@ class _BusLineListScreenState extends State<BusLineListScreen> {
   TextEditingController searchController = TextEditingController();
   List<BusLine> filteredBusLines = [];
 
+  void updateStarMark(BusLine line, bool starMark) async {
+    AdminService service = AdminService();
+    final response = await service.updateStarMark(line.lineID, starMark);
+    if (response.errorMessage.isEmpty) {
+      setState(() {
+        line.starMark = starMark;
+        filteredBusLines.sort((a, b) {
+          if (a.starMark != b.starMark) {
+            return a.starMark ? -1 : 1;
+          }
+          return a.description.compareTo(b.description);
+        });
+      });
+    } else {
+      showToast(response.errorMessage, ToastificationType.error);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    filteredBusLines = widget.busLines;
+    filteredBusLines = List.from(widget.busLines);
+    filteredBusLines.sort((a, b) {
+      if (a.starMark != b.starMark) {
+        return a.starMark ? -1 : 1;
+      }
+      return a.description.compareTo(b.description);
+    });
   }
 
   @override
@@ -108,78 +134,79 @@ class _BusLineListScreenState extends State<BusLineListScreen> {
 
   Widget listBusLine() {
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       itemCount: filteredBusLines.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      separatorBuilder: (context, index) => SizedBox(height: 12),
       itemBuilder: (context, index) {
         final busLine = filteredBusLines[index];
         final lineColor = Color(busLine.color.toUnsigned(32));
-        return Material(
-          color: Colors.white,
+        final starMark = busLine.starMark;
+        return InkWell(
           borderRadius: BorderRadius.circular(16),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () {
-              widget.onChanged(busLine);
-              Navigator.of(context).pop();
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.shade100,
-                    blurRadius: 10,
-                    blurStyle: BlurStyle.outer,
-                    offset: const Offset(0, 4),
+          onTap: () {
+            widget.onChanged(busLine);
+            Navigator.of(context).pop();
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: starMark
+                  ? secondaryColor.withValues(alpha: 0.05)
+                  : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.shade100,
+                  blurRadius: 10,
+                  blurStyle: BlurStyle.outer,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(9),
+                    decoration: BoxDecoration(
+                      color: lineColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.directions_bus_rounded,
+                      size: 20,
+                      color: lineColor,
+                    ),
+                  ),
+                  SizedBox(width: 14),
+                  Expanded(
+                    child: Text(
+                      busLine.description,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1C1C1E),
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: 5),
+                  Visibility(
+                    visible: loginResponse.fullName.isNotEmpty,
+                    child: InkWell(
+                      hoverColor: Colors.transparent,
+                      onTap: () {
+                        updateStarMark(busLine, !starMark);
+                      },
+                      child: Icon(
+                        starMark ? Icons.star : Icons.star_border,
+                        color: primaryColor,
+                        size: 34,
+                      ),
+                    ),
                   ),
                 ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(9),
-                      decoration: BoxDecoration(
-                        color: lineColor.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        Icons.directions_bus_rounded,
-                        size: 20,
-                        color: lineColor,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Text(
-                        busLine.description,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1C1C1E),
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    InkWell(
-                      hoverColor: Colors.transparent,
-                      onTap: () {},
-                      child: Icon(
-                        // starMark ? Icons.star : Icons.star_border,
-                        Icons.star_border,
-                        color: primaryColor,
-                        size: 24,
-                      ),
-                    ),
-                  ],
-                ),
               ),
             ),
           ),

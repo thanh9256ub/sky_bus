@@ -1,3 +1,5 @@
+import 'package:skysoft_bus/models/action_result.dart';
+
 import '../models/login_model.dart';
 import '../utils/fields.dart';
 import '../utils/global.dart';
@@ -52,6 +54,17 @@ class AdminService {
       return SignupResponse.fromJson(response);
     } on Exception catch (e) {
       return SignupResponse("FAIL", e.toString());
+    }
+  }
+
+  Future<ActionResult> updateStarMark(int lineID, bool starMark) async {
+    String url = "$baseUrl/rest/app/passenger/updateStarMark";
+    try {
+      Map<String, dynamic> map = {F_LINE_ID: lineID, F_STAR_MARK: starMark};
+      final response = await httpService.post(url, body: map);
+      return ActionResult.fromJson(response);
+    } on Exception catch (e) {
+      return ActionResult("FAIL", e.toString());
     }
   }
 }

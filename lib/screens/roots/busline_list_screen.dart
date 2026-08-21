@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:skysoft_bus/service/bus_service.dart';
 import 'package:skysoft_bus/utils/global.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../models/bus_line_model.dart';
-import '../../service/admin_service.dart';
 import '../../utils/string_utils.dart';
 
 class BusLineListScreen extends StatefulWidget {
@@ -27,7 +27,7 @@ class _BusLineListScreenState extends State<BusLineListScreen> {
   List<BusLine> filteredBusLines = [];
 
   void updateStarMark(BusLine line, bool starMark) async {
-    AdminService service = AdminService();
+    BusService service = BusService();
     final response = await service.updateStarMark(line.lineID, starMark);
     if (response.errorMessage.isEmpty) {
       setState(() {

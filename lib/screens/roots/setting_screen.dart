@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:skysoft_bus/models/login_model.dart';
 import 'package:skysoft_bus/screens/roots/main_screen.dart';
 import 'package:skysoft_bus/utils/fields.dart';
+import 'package:toastification/toastification.dart';
 import '../../utils/global.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -18,9 +19,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> logout() async {
     const storage = FlutterSecureStorage();
     storage.delete(key: F_ACCOUNT_ID);
-    storage.delete(key: F_AUTHEN_KEY);
+    storage.delete(key: F_SECURE_KEY);
     loginResponse = LoginResponse("", "");
     if (mounted) {
+      showToast("Đăng xuất thành công", ToastificationType.success);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainScreen()),

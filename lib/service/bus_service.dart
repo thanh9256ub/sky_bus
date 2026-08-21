@@ -1,3 +1,6 @@
+import 'package:skysoft_bus/models/ticket_model.dart';
+
+import '../models/action_result.dart';
 import '../models/bus_line_model.dart';
 import '../models/vehicle_model.dart';
 import '../utils/fields.dart';
@@ -43,6 +46,37 @@ class BusService {
       return VehicleResponse.fromJson(response);
     } on Exception catch (e) {
       return VehicleResponse("FAIL", e.toString());
+    }
+  }
+
+  Future<ActionResult> updateStarMark(int lineID, bool starMark) async {
+    String url = "$baseUrl/rest/app/passenger/updateStarMark";
+    try {
+      Map<String, dynamic> map = {F_LINE_ID: lineID, F_STAR_MARK: starMark};
+      final response = await httpService.post(url, body: map);
+      return ActionResult.fromJson(response);
+    } on Exception catch (e) {
+      return ActionResult("FAIL", e.toString());
+    }
+  }
+
+  Future<TicketResponse> addNewTicket(TicketAddRequest model) async {
+    String url = "$baseUrl/rest/app/passenger/addNewTicket";
+    try {
+      final response = await httpService.post(url, body: model);
+      return TicketResponse.fromJson(response);
+    } on Exception catch (e) {
+      return TicketResponse("FAIL", e.toString());
+    }
+  }
+
+  Future<TicketListResponse> listTickets() async {
+    String url = "$baseUrl/rest/app/passenger/listTickets";
+    try {
+      final response = await httpService.post(url);
+      return TicketListResponse.fromJson(response);
+    } on Exception catch (e) {
+      return TicketListResponse("FAIL", e.toString());
     }
   }
 }

@@ -125,6 +125,7 @@ class _HomeScreenState extends State<HomeScreen>
         context: context,
         builder: (context) {
           return TicketBuyDialog(
+            selectedLine: selectedBusLine!,
             fromPlace: selectedBusLine!.placeMarks
                 .where((e) => e.placeID == selectedPlaceIds.first)
                 .first,
@@ -165,7 +166,6 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> searchNearBus() async {
-    if (!mounted) return;
     BusService busService = BusService();
     final center = mapController.camera.center;
     final response = await busService.searchNearVehicles(
@@ -173,9 +173,11 @@ class _HomeScreenState extends State<HomeScreen>
       center.longitude,
     );
     if (response.errorMessage.isEmpty) {
-      setState(() {
-        nearVehicles = response.vehicles;
-      });
+      if (mounted) {
+        setState(() {
+          nearVehicles = response.vehicles;
+        });
+      }
     } else {
       showToast(response.errorMessage, ToastificationType.error);
     }
@@ -258,9 +260,6 @@ class _HomeScreenState extends State<HomeScreen>
     });
     getCurrentLocation();
     getListBusLine();
-    WidgetsBinding.instance.addPostFrameCallback((e) {
-      searchNearBus();
-    });
   }
 
   @override
@@ -359,8 +358,8 @@ class _HomeScreenState extends State<HomeScreen>
                   return line.placeMarks.map((place) {
                     return Marker(
                       point: LatLng(place.y, place.x),
-                      width: 110,
-                      height: 65,
+                      width: MediaQuery.of(context).size.width * 0.27,
+                      height: MediaQuery.of(context).size.height * 0.07,
                       child: GestureDetector(
                         onTap: () {
                           if (selectedBusLine != line) {
@@ -402,7 +401,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 padding: EdgeInsets.symmetric(horizontal: 2),
                                 child: Text(
                                   place.description,
-                                  maxLines: 3,
+                                  maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 10,

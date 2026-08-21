@@ -58,7 +58,7 @@ class _MainScreenState extends State<MainScreen> {
                 child: Container(
                   height: 60,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Colors.white70,
                     borderRadius: BorderRadius.circular(25),
                     boxShadow: [
                       BoxShadow(
@@ -82,7 +82,7 @@ class _MainScreenState extends State<MainScreen> {
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? secondaryColor.withValues(alpha: 0.1)
-                                    : Colors.white,
+                                    : Colors.white60,
                                 borderRadius: BorderRadius.circular(25),
                               ),
                               child: Column(

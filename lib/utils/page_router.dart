@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:skysoft_bus/screens/roots/home_screen.dart';
 import 'package:skysoft_bus/screens/roots/profile_screen.dart';
+import 'package:skysoft_bus/screens/roots/ticket_list_screen.dart';
 
 import '../models/tab_item.dart';
 import 'fields.dart';
@@ -11,6 +12,12 @@ Map<String, TabItem> pages = {
     label: 'Trang chủ',
     module: "",
     page: HomeScreen(),
+  ),
+  TICKET_TAB: TabItem(
+    icon: Icons.local_activity,
+    label: 'Vé',
+    module: "",
+    page: TicketListScreen(),
   ),
   PROFILE_TAB: TabItem(
     icon: Icons.account_circle_outlined,

@@ -12,6 +12,7 @@ const String TRIP_COUNTING_TAB = "tripCounting";
 const String REPORT_TAB = "report";
 const String CUSTOMER_SERVICE_TAB = "customerService";
 const String PROFILE_TAB = "profile";
+const String TICKET_TAB = "ticket";
 
 const String F_ERROR_CODE = "errorCode";
 const String F_ERROR_MESSAGE = "errorMessage";
@@ -290,6 +291,11 @@ const String F_PREPAID = "prepaid";
 const String F_AMOUNT = "amount";
 const String F_DISCOUNT_PERCENT = "discountPercent";
 const String F_RECHARGES = "recharges";
+const String F_BANK_ID = "bankID";
+const String F_BANK_ACCOUNT_NO = "bankAccountNo";
+const String F_QR_CODE = "qrCode";
+const String F_TICKET = "ticket";
+const String F_TICKETS = "tickets";
 
 //bus card
 const String F_ID_CARD_NO = "IDCardNo";

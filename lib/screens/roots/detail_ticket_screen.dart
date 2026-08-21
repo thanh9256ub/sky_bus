@@ -2,31 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:gal/gal.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:screenshot/screenshot.dart';
-import 'package:skysoft_bus/utils/string_utils.dart';
+import 'package:skysoft_bus/models/ticket_model.dart';
+import 'package:skysoft_bus/utils/date_utils.dart';
 import 'package:toastification/toastification.dart';
 
-import '../../models/bus_line_model.dart';
 import '../../utils/global.dart';
+import '../../utils/string_utils.dart';
 
-class PaymentScreen extends StatefulWidget {
-  final Place fromPlace;
-  final Place toPlace;
-  final Matrix matrix;
-  final int quantity;
-  const PaymentScreen({
-    super.key,
-    required this.fromPlace,
-    required this.toPlace,
-    required this.matrix,
-    required this.quantity,
-  });
+class DetailTicketScreen extends StatefulWidget {
+  final Ticket ticket;
+  const DetailTicketScreen({super.key, required this.ticket});
 
   @override
-  State<PaymentScreen> createState() => _PaymentScreenState();
+  State<DetailTicketScreen> createState() => _DetailTicketScreenState();
 }
 
-class _PaymentScreenState extends State<PaymentScreen> {
-  String qrData = "https://flutter.dev";
+class _DetailTicketScreenState extends State<DetailTicketScreen> {
   ScreenshotController screenshotController = ScreenshotController();
 
   Future<void> downloadQrCode() async {
@@ -56,14 +47,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final totalPrice = widget.matrix.price * widget.quantity;
+    final totalPrice = widget.ticket.price * widget.ticket.quantity;
     return Screenshot(
       controller: screenshotController,
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.blue,
-          title: Text("Thanh toán", style: TextStyle(color: Colors.white)),
+          title: Text("Chi tiết vé", style: TextStyle(color: Colors.white)),
           leading: IconButton(
             onPressed: () {
               Navigator.of(context).pop();
@@ -112,7 +103,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              widget.fromPlace.description,
+                              widget.ticket.fromPlaceName,
                               style: TextStyle(fontWeight: FontWeight.w600),
                             ),
                           ),
@@ -128,7 +119,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              widget.toPlace.description,
+                              widget.ticket.toPlaceName,
                               style: TextStyle(fontWeight: FontWeight.w600),
                             ),
                           ),
@@ -150,6 +141,28 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   padding: EdgeInsets.all(16),
                   child: Column(
                     children: [
+                      if (widget.ticket.createDate != null)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Ngày tạo",
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                            Text(
+                              widget.ticket.createDate!.formatDate,
+                              style: TextStyle(
+                                color: Colors.black87,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -161,7 +174,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             ),
                           ),
                           Text(
-                            "${(widget.matrix.price).formatThousand()},000đ",
+                            "${(widget.ticket.price * 1000).formatThousand()}đ",
                             style: TextStyle(
                               color: Colors.black87,
                               fontSize: 15,
@@ -182,7 +195,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             ),
                           ),
                           Text(
-                            widget.quantity.toString(),
+                            widget.ticket.quantity.toString(),
                             style: TextStyle(
                               color: Colors.black87,
                               fontSize: 15,
@@ -203,7 +216,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             ),
                           ),
                           Text(
-                            "${(totalPrice).formatThousand()},000đ",
+                            "${(totalPrice * 1000).formatThousand()}đ",
                             style: TextStyle(
                               color: Colors.red,
                               fontSize: 20,
@@ -241,7 +254,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   border: Border.all(color: Colors.grey),
                   borderRadius: BorderRadius.circular(15),
                 ),
-                child: QrImageView(data: qrData, version: QrVersions.auto),
+                child: QrImageView(
+                  data: widget.ticket.qrCode,
+                  version: QrVersions.auto,
+                ),
               ),
               SizedBox(height: 10),
               InkWell(

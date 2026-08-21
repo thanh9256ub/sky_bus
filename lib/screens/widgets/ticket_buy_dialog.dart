@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:skysoft_bus/models/bus_line_model.dart';
+import 'package:skysoft_bus/models/ticket_model.dart';
+import 'package:skysoft_bus/service/bus_service.dart';
+import 'package:toastification/toastification.dart';
 
 import '../../utils/global.dart';
 import '../../utils/string_utils.dart';
-import '../roots/payment_screen.dart';
+import '../roots/detail_ticket_screen.dart';
 
 class TicketBuyDialog extends StatefulWidget {
   final Place fromPlace;
   final Place toPlace;
   final Matrix matrix;
+  final BusLine selectedLine;
   const TicketBuyDialog({
     super.key,
     required this.fromPlace,
     required this.toPlace,
     required this.matrix,
+    required this.selectedLine,
   });
 
   @override
@@ -24,6 +29,78 @@ class TicketBuyDialog extends StatefulWidget {
 class _TicketBuyDialogState extends State<TicketBuyDialog> {
   int quantity = 1;
   final qtyController = TextEditingController();
+  TicketAddRequest ticketLine = TicketAddRequest();
+
+  void addNewTicket() async {
+    ticketLine.lineID = widget.selectedLine.lineID;
+    ticketLine.fromPlaceID = widget.fromPlace.placeID;
+    ticketLine.toPlaceID = widget.toPlace.placeID;
+    ticketLine.quantity = quantity;
+    ticketLine.price = widget.matrix.price;
+    BusService service = BusService();
+    final response = await service.addNewTicket(ticketLine);
+    if (response.errorMessage.isEmpty) {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => DetailTicketScreen(ticket: response.ticket),
+          ),
+        );
+      }
+    } else {
+      showToast("Thêm vé không thành công", ToastificationType.error);
+    }
+  }
+
+  void showConfirmTicket() async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Text("Xác nhận đặt vé"),
+          content: Text(
+            "Bạn có chắc chắn muốn đặt $quantity vé với tổng tiền "
+            "${((widget.matrix.price * quantity * 1000)).formatThousand()}đ không?",
+          ),
+          actions: [
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              label: Text(
+                "Hủy",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey,
+                foregroundColor: Colors.white,
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: addNewTicket,
+              label: Text(
+                "Xác nhận",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -116,7 +193,7 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            "Đơn giá: ${moneyFormat.format(widget.matrix.price)},000đ/vé",
+                            "Đơn giá: ${moneyFormat.format(widget.matrix.price * 1000)}đ/vé",
                             style: TextStyle(
                               color: Colors.red.shade600,
                               fontWeight: FontWeight.bold,
@@ -160,7 +237,7 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
                               ),
                             ),
                             Text(
-                              "${((widget.matrix.price * quantity)).formatThousand()},000đ",
+                              "${((widget.matrix.price * quantity * 1000)).formatThousand()}đ",
                               style: TextStyle(
                                 color: Colors.red,
                                 fontSize: 18,
@@ -223,18 +300,7 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
       children: [
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => PaymentScreen(
-                    fromPlace: widget.fromPlace,
-                    toPlace: widget.toPlace,
-                    matrix: widget.matrix,
-                    quantity: quantity,
-                  ),
-                ),
-              );
-            },
+            onPressed: showConfirmTicket,
             label: Text(
               "Xác nhận",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

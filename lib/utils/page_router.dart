@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:skysoft_bus/screens/roots/home_screen.dart';
-import 'package:skysoft_bus/screens/roots/profile_screen.dart';
-import 'package:skysoft_bus/screens/roots/ticket_list_screen.dart';
+import 'package:skysoft_bus/screens/home/home_screen.dart';
+import 'package:skysoft_bus/screens/profile/profile_screen.dart';
+import 'package:skysoft_bus/screens/ticket/ticket_list_screen.dart';
 
 import '../models/tab_item.dart';
 import 'fields.dart';

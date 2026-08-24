@@ -9,15 +9,15 @@ import 'package:toastification/toastification.dart';
 import '../../utils/global.dart';
 import '../../utils/string_utils.dart';
 
-class DetailTicketScreen extends StatefulWidget {
+class TicketPaymentScreen extends StatefulWidget {
   final Ticket ticket;
-  const DetailTicketScreen({super.key, required this.ticket});
+  const TicketPaymentScreen({super.key, required this.ticket});
 
   @override
-  State<DetailTicketScreen> createState() => _DetailTicketScreenState();
+  State<TicketPaymentScreen> createState() => _TicketPaymentScreenState();
 }
 
-class _DetailTicketScreenState extends State<DetailTicketScreen> {
+class _TicketPaymentScreenState extends State<TicketPaymentScreen> {
   ScreenshotController screenshotController = ScreenshotController();
 
   Future<void> downloadQrCode() async {
@@ -54,7 +54,7 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.blue,
-          title: Text("Chi tiết vé", style: TextStyle(color: Colors.white)),
+          title: Text("Thanh toán", style: TextStyle(color: Colors.white)),
           leading: IconButton(
             onPressed: () {
               Navigator.of(context).pop();

@@ -7,7 +7,7 @@ import 'package:toastification/toastification.dart';
 
 import '../../utils/global.dart';
 import '../../utils/string_utils.dart';
-import '../roots/detail_ticket_screen.dart';
+import '../home/ticket_payment_screen.dart';
 
 class TicketBuyDialog extends StatefulWidget {
   final Place fromPlace;
@@ -43,7 +43,7 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => DetailTicketScreen(ticket: response.ticket),
+            builder: (context) => TicketPaymentScreen(ticket: response.ticket),
           ),
         );
       }

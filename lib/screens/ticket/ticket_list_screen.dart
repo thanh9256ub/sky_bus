@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:skysoft_bus/models/ticket_model.dart';
-import 'package:skysoft_bus/screens/roots/detail_ticket_screen.dart';
+import 'package:skysoft_bus/screens/ticket/detail_ticket_screen.dart';
 import 'package:skysoft_bus/utils/date_utils.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../service/bus_service.dart';
 import '../../utils/global.dart';
-import '../../utils/string_utils.dart';
 
 class TicketListScreen extends StatefulWidget {
   const TicketListScreen({super.key});
@@ -61,17 +60,6 @@ class _TicketListScreenState extends State<TicketListScreen> {
     );
   }
 
-  void onSearchChanged(String value) {
-    final key = value.searchText;
-    setState(() {
-      filteredTickets = filteredTickets.where((t) {
-        return t.fromPlaceName.searchText.contains(key) ||
-            t.toPlaceName.searchText.contains(key) ||
-            t.id.searchText.contains(key);
-      }).toList();
-    });
-  }
-
   String stateLabel(int state) {
     if (state == Ticket.STATE_PAID) {
       return "Đã thanh toán";
@@ -120,32 +108,7 @@ class _TicketListScreenState extends State<TicketListScreen> {
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [searchWidget(), summaryBar(), listTickets()],
-        ),
-      ),
-    );
-  }
-
-  Widget searchWidget() {
-    return Padding(
-      padding: EdgeInsets.all(12),
-      child: Container(
-        height: 50,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(25),
-          border: Border.all(color: Colors.grey.shade300),
-          boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black12)],
-        ),
-        child: TextFormField(
-          controller: searchController,
-          decoration: const InputDecoration(
-            hintText: "Tìm kiếm điểm đi, điểm đến...",
-            prefixIcon: Icon(Icons.search),
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: 12),
-          ),
-          onChanged: onSearchChanged,
+          children: [summaryBar(), listTickets()],
         ),
       ),
     );
@@ -153,45 +116,51 @@ class _TicketListScreenState extends State<TicketListScreen> {
 
   Widget summaryBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-      child: Row(
-        children: [
-          Expanded(
-            child: summaryItem(
-              label: "Tổng vé",
-              value: totalCount,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade100,
+              blurRadius: 8,
+              blurStyle: BlurStyle.outer,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.confirmation_number_rounded,
+              size: 18,
               color: secondaryColor,
-              icon: Icons.confirmation_number_rounded,
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: summaryItem(
-              label: "Chưa TT",
-              value: inputCount,
-              color: const Color(0xFFE65100),
-              icon: Icons.hourglass_bottom_rounded,
+            const SizedBox(width: 5),
+            Text(
+              "Tổng vé",
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: summaryItem(
-              label: "Đã TT",
-              value: paidCount,
-              color: const Color(0xFF2E7D32),
-              icon: Icons.check_circle_rounded,
+            Spacer(),
+            Text(
+              "$totalCount",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: secondaryColor,
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: summaryItem(
-              label: "Đã dùng",
-              value: usedCount,
-              color: Colors.grey.shade600,
-              icon: Icons.task_alt_rounded,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -269,17 +238,59 @@ class _TicketListScreenState extends State<TicketListScreen> {
                   ),
                   SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      "Vé #${index + 1}",
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1C1C1E),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          ticket.fromPlaceName,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 18,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        Text(
+                          ticket.toPlaceName,
+                          textAlign: TextAlign.end,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ),
+                ],
+              ),
+              SizedBox(height: 12),
+              Divider(height: 1, thickness: 1, color: Colors.grey.shade300),
+              SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(
+                    Icons.access_time_rounded,
+                    size: 15,
+                    color: Colors.grey.shade500,
+                  ),
+                  SizedBox(width: 6),
+                  Text(
+                    ticket.createDate != null
+                        ? ticket.createDate!.formatDate
+                        : "--",
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                  Spacer(),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
@@ -294,62 +305,6 @@ class _TicketListScreenState extends State<TicketListScreen> {
                         color: color,
                       ),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12),
-              Divider(height: 1, thickness: 1, color: Colors.grey.shade300),
-              SizedBox(height: 12),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Text(
-                      ticket.fromPlaceName,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
-                    child: Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 18,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      ticket.toPlaceName,
-                      textAlign: TextAlign.end,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(
-                    Icons.access_time_rounded,
-                    size: 15,
-                    color: Colors.grey.shade500,
-                  ),
-                  SizedBox(width: 6),
-                  Text(
-                    ticket.createDate != null
-                        ? ticket.createDate!.formatDateTime
-                        : "--",
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
                 ],
               ),
@@ -368,7 +323,15 @@ class _TicketListScreenState extends State<TicketListScreen> {
                       Text(
                         "${ticket.quantity} vé",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      SizedBox(width: 20),
+                      Text(
+                        "Đã dùng 0/${ticket.quantity}",
+                        style: TextStyle(
+                          fontSize: 12,
                           color: Colors.grey.shade600,
                         ),
                       ),
@@ -387,51 +350,6 @@ class _TicketListScreenState extends State<TicketListScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget summaryItem({
-    required String label,
-    required int value,
-    required Color color,
-    required IconData icon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade100,
-            blurRadius: 8,
-            blurStyle: BlurStyle.outer,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(height: 6),
-          Text(
-            "$value",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(fontSize: 12, color: Colors.black),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
       ),
     );
   }

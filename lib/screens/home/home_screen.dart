@@ -6,7 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:skysoft_bus/screens/roots/busline_list_screen.dart';
+import 'package:skysoft_bus/screens/home/busline_list_screen.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../models/bus_line_model.dart';

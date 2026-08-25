@@ -46,11 +46,13 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
         loginResponse = response;
       });
       await saveData(F_ACCOUNT_ID, loginRequest.accountID);
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
-      );
+      if (mounted) {
+        showToast("Đăng nhập thành công", ToastificationType.success);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+        );
+      }
     } else {
       showToast(response.errorMessage, ToastificationType.error);
     }

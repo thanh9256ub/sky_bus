@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:gal/gal.dart';
 import 'package:intl/intl.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:toastification/toastification.dart';
 
 import '../models/login_model.dart';
@@ -37,4 +39,25 @@ Future<void> saveData(String key, String value) async {
 
 Future<String?> readData(String key) async {
   return secureStorage.read(key: key);
+}
+
+Future<void> downloadQrCode(ScreenshotController screenshotController) async {
+  try {
+    final image = await screenshotController.capture(
+      pixelRatio: 3,
+      delay: Duration(milliseconds: 100),
+    );
+    if (image == null) {
+      throw Exception("Không thể chụp màn hình");
+    }
+    final hasAccess = await Gal.hasAccess();
+    if (!hasAccess) {
+      await Gal.requestAccess();
+    }
+    await Gal.putImageBytes(image, name: "payment_ticket");
+
+    showToast("Đã lưu ảnh vé vào thư viện", ToastificationType.success);
+  } catch (e) {
+    showToast("Lỗi khi lưu ảnh: $e", ToastificationType.error);
+  }
 }

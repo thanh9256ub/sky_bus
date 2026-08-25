@@ -23,6 +23,7 @@ class Ticket {
   String bankAccountNo = "";
   String qrCode = "";
   int state = 0;
+  List<SlotTicket> slots = [];
   Ticket();
 
   factory Ticket.fromJson(Map<String, dynamic> json) {
@@ -43,6 +44,10 @@ class Ticket {
     model.bankAccountNo = nvl(json[F_BANK_ACCOUNT_NO]);
     model.qrCode = nvl(json[F_QR_CODE]);
     model.state = json[F_STATE] ?? 0;
+    var slots = json[F_SLOTS];
+    if (slots != null) {
+      model.slots = (slots as List).map((e) => SlotTicket.fromJson(e)).toList();
+    }
     return model;
   }
 }
@@ -103,5 +108,30 @@ class TicketAddRequest {
     };
 
     return map;
+  }
+}
+
+class SlotTicket {
+  int idx = 0;
+  String serialNo = "";
+  int tripID = 0;
+  DateTime? usedDate;
+  int userID = 0;
+  String userName = "";
+  String token = "";
+
+  SlotTicket();
+
+  factory SlotTicket.fromJson(Map<String, dynamic> json) {
+    SlotTicket model = SlotTicket();
+
+    model.idx = json[F_IDX] ?? 0;
+    model.serialNo = nvl(json[F_SERIAL_NO]);
+    model.tripID = json[F_TRIP_ID] ?? 0;
+    model.usedDate = nvl(json[F_USED_DATE]).parseTz;
+    model.userID = json[F_USER_ID] ?? 0;
+    model.userName = nvl(json[F_USER_NAME]);
+    model.token = nvl(json[F_TOKEN]);
+    return model;
   }
 }

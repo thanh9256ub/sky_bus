@@ -296,6 +296,9 @@ const String F_BANK_ACCOUNT_NO = "bankAccountNo";
 const String F_QR_CODE = "qrCode";
 const String F_TICKET = "ticket";
 const String F_TICKETS = "tickets";
+const String F_SERIAL_NO = "serialNo";
+const String F_USED_DATE = "usedDate";
+const String F_SLOTS = "slots";
 
 //bus card
 const String F_ID_CARD_NO = "IDCardNo";

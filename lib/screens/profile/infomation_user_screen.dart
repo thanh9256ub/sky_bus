@@ -38,7 +38,11 @@ class InformationUserScreen extends StatelessWidget {
               },
               child: Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                child: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  size: 18,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),

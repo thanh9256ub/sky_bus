@@ -52,7 +52,7 @@ class _TicketListScreenState extends State<TicketListScreen> {
     }
   }
 
-  void pushToDetailTicket(Ticket ticket) {
+  void pushToDetailTicket(Ticket ticket) async {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => DetailTicketScreen(ticket: ticket),
@@ -118,7 +118,7 @@ class _TicketListScreenState extends State<TicketListScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
@@ -133,10 +133,17 @@ class _TicketListScreenState extends State<TicketListScreen> {
         ),
         child: Row(
           children: [
-            Icon(
-              Icons.confirmation_number_rounded,
-              size: 18,
-              color: secondaryColor,
+            Container(
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: secondaryColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Icon(
+                Icons.confirmation_number_rounded,
+                size: 18,
+                color: secondaryColor,
+              ),
             ),
             const SizedBox(width: 5),
             Text(
@@ -152,7 +159,7 @@ class _TicketListScreenState extends State<TicketListScreen> {
             ),
             Spacer(),
             Text(
-              "$totalCount",
+              "$totalCount vé",
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -199,6 +206,9 @@ class _TicketListScreenState extends State<TicketListScreen> {
 
   Widget ticketCard(Ticket ticket, int index) {
     final color = stateColor(ticket.state);
+    final usedTicketCount = ticket.slots
+        .where((e) => e.usedDate != null)
+        .length;
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () {
@@ -329,7 +339,7 @@ class _TicketListScreenState extends State<TicketListScreen> {
                       ),
                       SizedBox(width: 20),
                       Text(
-                        "Đã dùng 0/${ticket.quantity}",
+                        "Đã dùng $usedTicketCount/${ticket.quantity}",
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade600,

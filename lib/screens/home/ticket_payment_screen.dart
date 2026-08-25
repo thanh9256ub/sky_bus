@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:gal/gal.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:skysoft_bus/models/ticket_model.dart';
 import 'package:skysoft_bus/utils/date_utils.dart';
-import 'package:toastification/toastification.dart';
 
 import '../../utils/global.dart';
 import '../../utils/string_utils.dart';
@@ -20,29 +18,11 @@ class TicketPaymentScreen extends StatefulWidget {
 class _TicketPaymentScreenState extends State<TicketPaymentScreen> {
   ScreenshotController screenshotController = ScreenshotController();
 
-  Future<void> downloadQrCode() async {
-    try {
-      final image = await screenshotController.capture(
-        pixelRatio: 3,
-        delay: Duration(milliseconds: 100),
-      );
-      if (image == null) {
-        throw Exception("Không thể chụp màn hình");
-      }
-      final hasAccess = await Gal.hasAccess();
-      if (!hasAccess) {
-        await Gal.requestAccess();
-      }
-      await Gal.putImageBytes(image, name: "payment_ticket");
-
-      if (mounted) {
-        showToast("Đã lưu ảnh vé vào thư viện", ToastificationType.success);
-      }
-    } catch (e) {
-      if (mounted) {
-        showToast("Lỗi khi lưu ảnh: $e", ToastificationType.error);
-      }
-    }
+  void pushToHomeScreen() {
+    Navigator.of(
+      context,
+      rootNavigator: true,
+    ).popUntil((route) => route.isFirst);
   }
 
   @override
@@ -56,9 +36,7 @@ class _TicketPaymentScreenState extends State<TicketPaymentScreen> {
           backgroundColor: Colors.blue,
           title: Text("Thanh toán", style: TextStyle(color: Colors.white)),
           leading: IconButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            onPressed: pushToHomeScreen,
             icon: Icon(Icons.arrow_back, color: Colors.white),
           ),
           centerTitle: true,
@@ -261,7 +239,9 @@ class _TicketPaymentScreenState extends State<TicketPaymentScreen> {
               ),
               SizedBox(height: 10),
               InkWell(
-                onTap: downloadQrCode,
+                onTap: () {
+                  downloadQrCode(screenshotController);
+                },
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.45,
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),

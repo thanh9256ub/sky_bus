@@ -5,19 +5,17 @@ import 'package:skysoft_bus/models/ticket_model.dart';
 import 'package:skysoft_bus/utils/date_utils.dart';
 
 import '../../utils/global.dart';
-import '../home/ticket_payment_screen.dart'; // để dùng secondaryColor
-
-class TicketQrItem {
-  final int index;
-  final String code;
-  final bool isUsed;
-
-  TicketQrItem({required this.index, required this.code, required this.isUsed});
-}
+import '../home/ticket_payment_screen.dart';
+import '../widgets/ticket_divider.dart';
 
 class DetailTicketScreen extends StatefulWidget {
   final Ticket ticket;
-  const DetailTicketScreen({super.key, required this.ticket});
+  final Function() onChange;
+  const DetailTicketScreen({
+    super.key,
+    required this.ticket,
+    required this.onChange,
+  });
 
   @override
   State<DetailTicketScreen> createState() => _DetailTicketScreenState();
@@ -27,6 +25,7 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
   List<SlotTicket> slots = [];
   int usedTicketCount = 0;
   ScreenshotController screenshotController = ScreenshotController();
+  late Ticket ticket;
   String stateLabel(int state) {
     if (state == Ticket.STATE_PAID) {
       return "Đã thanh toán";
@@ -100,6 +99,7 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
               child: InkWell(
                 customBorder: CircleBorder(),
                 onTap: () {
+                  widget.onChange();
                   Navigator.of(context).pop();
                 },
                 child: Padding(
@@ -116,7 +116,7 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
         ),
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -154,6 +154,7 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
                 ),
                 const SizedBox(height: 12),
                 qrListView(),
+                // paymentQR(),
               ],
             ),
           ),
@@ -171,7 +172,7 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+            padding: const EdgeInsets.all(12),
             child: Column(
               children: [
                 Row(
@@ -189,30 +190,45 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        ticket.fromPlaceName,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                          color: Color(0xFF1C1C1E),
-                        ),
+                    Text(
+                      ticket.fromPlaceName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        color: Color(0xFF1C1C1E),
                       ),
                     ),
-                    Icon(Icons.arrow_forward_rounded, color: secondaryColor),
-                    Expanded(
-                      child: Text(
-                        ticket.toPlaceName,
-                        maxLines: 2,
-                        textAlign: TextAlign.end,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                          color: Color(0xFF1C1C1E),
-                        ),
+                  ],
+                ),
+                SizedBox(height: 5),
+                Icon(Icons.arrow_downward, color: secondaryColor),
+                SizedBox(height: 5),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: secondaryColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.directions_bus_rounded,
+                        size: 18,
+                        color: secondaryColor,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      ticket.toPlaceName,
+                      maxLines: 2,
+                      textAlign: TextAlign.end,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        color: Color(0xFF1C1C1E),
                       ),
                     ),
                   ],
@@ -220,23 +236,33 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
               ],
             ),
           ),
-          Divider(height: 1, thickness: 1, color: Colors.grey.shade300),
+          TicketDivider(),
           Padding(
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+            padding: EdgeInsetsGeometry.all(12),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      ticket.createDate != null
-                          ? ticket.createDate!.formatDateTime
-                          : "--",
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1C1C1E),
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.access_time_rounded,
+                          color: Colors.grey,
+                          size: 16,
+                        ),
+                        SizedBox(width: 5),
+                        Text(
+                          ticket.createDate != null
+                              ? ticket.createDate!.formatDateTime
+                              : "--",
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -310,80 +336,62 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
   }
 
   Widget qrListView() {
-    final isUnpaid = widget.ticket.state == Ticket.STATE_INPUT;
+    // final isUnpaid = widget.ticket.state == Ticket.STATE_INPUT;
 
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Opacity(
-          opacity: isUnpaid ? 0.2 : 1,
-          child: IgnorePointer(
-            ignoring: isUnpaid,
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.25,
-              child: ListView.separated(
-                shrinkWrap: true,
-                scrollDirection: Axis.horizontal,
-                itemCount: slots.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 10),
-                itemBuilder: (context, index) {
-                  return qrItemTile(slots[index], index);
-                },
-              ),
-            ),
-          ),
-        ),
+    // return Stack(
+    //   alignment: Alignment.center,
+    //   children: [
+    //     Opacity(
+    //       opacity: isUnpaid ? 0.2 : 1,
+    //       child: IgnorePointer(
+    //         ignoring: isUnpaid,
+    //         child: SizedBox(
+    //           height: MediaQuery.of(context).size.height * 0.25,
+    //           child: ListView.separated(
+    //             shrinkWrap: true,
+    //             scrollDirection: Axis.horizontal,
+    //             itemCount: slots.length,
+    //             separatorBuilder: (context, index) => const SizedBox(width: 10),
+    //             itemBuilder: (context, index) {
+    //               return qrItemTile(slots[index], index);
+    //             },
+    //           ),
+    //         ),
+    //       ),
+    //     ),
 
-        if (isUnpaid)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.lock_outline),
-                    SizedBox(width: 8),
-                    Text(
-                      "Thanh toán để sử dụng vé",
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 5),
-                Container(
-                  width: 150,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade200),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: QrImageView(
-                    data: widget.ticket.qrCode,
-                    version: QrVersions.auto,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    downloadQrCode(screenshotController);
-                  },
-                  child: Text(
-                    "Tải mã QR",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: secondaryColor,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ],
+    //     if (isUnpaid)
+    //       Container(
+    //         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    //         decoration: BoxDecoration(
+    //           color: Colors.white,
+    //           borderRadius: BorderRadius.circular(12),
+    //         ),
+    //         child: Row(
+    //           mainAxisSize: MainAxisSize.min,
+    //           children: [
+    //             Icon(Icons.lock_outline),
+    //             SizedBox(width: 8),
+    //             Text(
+    //               "Thanh toán để sử dụng vé",
+    //               style: TextStyle(fontWeight: FontWeight.w600),
+    //             ),
+    //           ],
+    //         ),
+    //       ),
+    //   ],
+    // );
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.25,
+      child: ListView.separated(
+        shrinkWrap: true,
+        scrollDirection: Axis.horizontal,
+        itemCount: slots.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          return qrItemTile(slots[index], index);
+        },
+      ),
     );
   }
 
@@ -440,18 +448,19 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
@@ -472,8 +481,25 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 10),
+                        Text(
+                          "Thời gian dùng vé:",
+                          style: TextStyle(color: Colors.grey, fontSize: 13),
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          item.usedDate != null
+                              ? item.usedDate!.formatDateTime
+                              : "Chưa sử dụng",
+                          style: TextStyle(color: Colors.grey, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -481,5 +507,67 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
         ),
       ),
     );
+  }
+
+  Widget paymentQR() {
+    final isUnpaid = widget.ticket.state == Ticket.STATE_INPUT;
+    if (isUnpaid) {
+      return Container(
+        width: MediaQuery.of(context).size.width,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Text("Vui lòng thanh toán mã để xem danh sách vé"),
+            SizedBox(height: 5),
+            Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade200),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: QrImageView(
+                data: widget.ticket.qrCode,
+                version: QrVersions.auto,
+              ),
+            ),
+            SizedBox(height: 5),
+            InkWell(
+              onTap: () {
+                downloadQrCode(screenshotController);
+              },
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.4,
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.blue),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.download_rounded, color: Colors.blue),
+                    SizedBox(width: 10),
+                    Text(
+                      "Lưu ảnh QR",
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return SizedBox();
+    }
   }
 }

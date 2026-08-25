@@ -18,6 +18,9 @@ LoginResponse loginResponse = LoginResponse("", "");
 Color primaryColor = Color(0xFFf97316);
 Color secondaryColor = Color(0xFF0ea5e9);
 
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
+
 FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 final moneyFormat = NumberFormat("#,##0", "en_US");
 

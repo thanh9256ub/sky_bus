@@ -104,15 +104,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       sectionTitle("Tuỳ chọn"),
                       SizedBox(height: 10),
                       settingsGroup([
-                        settingsSwitchTile(
-                          title: "Chế độ tối",
-                          icon: Icons.dark_mode_outlined,
-                          iconColor: Color(0xFF495057),
-                          value: darkModeEnabled,
-                          onChanged: (value) {
-                            setState(() => darkModeEnabled = value);
-                          },
-                        ),
+                        // settingsSwitchTile(
+                        //   title: "Chế độ tối",
+                        //   icon: Icons.dark_mode_outlined,
+                        //   iconColor: Color(0xFF495057),
+                        //   value: darkModeEnabled,
+                        //   onChanged: (value) {
+                        //     setState(() => darkModeEnabled = value);
+                        //   },
+                        // ),
                         settingsTile(
                           title: "Ngôn ngữ",
                           icon: Icons.language_rounded,
@@ -236,11 +236,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
                 ),
               ),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              color: Colors.grey.shade400,
-              size: 12,
-            ),
+            // Icon(
+            //   Icons.arrow_forward_ios_rounded,
+            //   color: Colors.grey.shade400,
+            //   size: 12,
+            // ),
           ],
         ),
       ),

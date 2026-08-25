@@ -24,7 +24,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin, RouteAware {
   @override
   bool get wantKeepAlive => true;
   LatLng currentLocation = LatLng(21.051873, 105.777787);
@@ -40,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen>
   List<int> selectedPlaceIds = [];
   Timer? vehicleTimer;
   Timer? moveDebounce;
+  bool skipNextPopClear = false;
 
   void getCurrentLocation() async {
     final location = await MapHelper.getCurrentLocation();
@@ -64,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen>
           busLines: busLines,
           selectedBusLine: selectedBusLine,
           onChanged: (value) {
+            skipNextPopClear = true;
             selectLine(value);
           },
         ),
@@ -264,6 +266,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     vehicleTimer?.cancel();
     searchController.dispose();
     _focusNode.dispose();
@@ -271,6 +274,21 @@ class _HomeScreenState extends State<HomeScreen>
     mapController.dispose();
     animatedMapController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context) as PageRoute);
+  }
+
+  @override
+  void didPopNext() {
+    if (skipNextPopClear) {
+      skipNextPopClear = false;
+      return;
+    }
+    clearSelectedBusLine();
   }
 
   @override
@@ -367,8 +385,12 @@ class _HomeScreenState extends State<HomeScreen>
                               line,
                               focusPoint: LatLng(place.y, place.x),
                             );
+                            setState(() {
+                              selectedPlaceIds = [place.placeID];
+                            });
                             return;
                           }
+                          togglePlace(place.placeID);
                           MapHelper.moveToLocation(
                             mapController: mapController,
                             animatedController: animatedMapController,

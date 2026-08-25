@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:skysoft_bus/screens/roots/splash_screen.dart';
 import 'package:toastification/toastification.dart';
 
+import 'utils/global.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
@@ -15,6 +17,7 @@ class MyApp extends StatelessWidget {
     return ToastificationWrapper(
       child: MaterialApp(
         title: 'SkyBus',
+        navigatorObservers: [routeObserver],
         theme: ThemeData(
           colorScheme: .fromSeed(seedColor: Colors.orange[800]!),
           splashFactory: NoSplash.splashFactory,

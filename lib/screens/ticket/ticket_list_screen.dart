@@ -55,7 +55,8 @@ class _TicketListScreenState extends State<TicketListScreen> {
   void pushToDetailTicket(Ticket ticket) async {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => DetailTicketScreen(ticket: ticket),
+        builder: (context) =>
+            DetailTicketScreen(ticket: ticket, onChange: getListTicket),
       ),
     );
   }
@@ -188,10 +189,7 @@ class _TicketListScreenState extends State<TicketListScreen> {
               backgroundColor: Colors.white,
               onRefresh: () async => getListTicket(),
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 itemCount: filteredTickets.length,
                 separatorBuilder: (context, index) =>
                     const SizedBox(height: 12),
@@ -209,6 +207,7 @@ class _TicketListScreenState extends State<TicketListScreen> {
     final usedTicketCount = ticket.slots
         .where((e) => e.usedDate != null)
         .length;
+    final isLast = index == filteredTickets.length - 1;
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () {
@@ -357,6 +356,11 @@ class _TicketListScreenState extends State<TicketListScreen> {
                   ),
                 ],
               ),
+              isLast
+                  ? SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.11 - 20,
+                    )
+                  : SizedBox(),
             ],
           ),
         ),

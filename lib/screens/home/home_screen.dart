@@ -300,16 +300,6 @@ class _HomeScreenState extends State<HomeScreen>
       body: Stack(
         children: [
           mapWidget(),
-          Positioned(
-            bottom: MediaQuery.of(context).size.height * 0.03,
-            right: 20,
-            child: FloatingActionButton.small(
-              heroTag: "gps_button",
-              backgroundColor: Colors.white,
-              onPressed: getCurrentLocation,
-              child: Icon(Icons.my_location, color: Colors.blue),
-            ),
-          ),
           centerPointMap(),
           searchBusLine(),
           if (selectedBusLine != null) mainContent(),
@@ -460,53 +450,67 @@ class _HomeScreenState extends State<HomeScreen>
       right: 16,
       child: SafeArea(
         child: Material(
-          color: Colors.white,
+          color: Colors.transparent,
           borderRadius: BorderRadius.circular(25),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(25),
-            onTap: openBusLineListScreen,
-            child: Container(
-              height: 45,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(color: Colors.grey.shade400),
-                boxShadow: [BoxShadow(blurRadius: 10, color: Colors.black12)],
-              ),
-              child: Row(
-                children: [
-                  SizedBox(width: 16),
-                  Container(
-                    padding: EdgeInsets.all(5),
+          child: Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(25),
+                  onTap: openBusLineListScreen,
+                  child: Container(
+                    height: 45,
                     decoration: BoxDecoration(
-                      color: secondaryColor.withValues(alpha: 0.1),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(25),
+                      border: Border.all(color: Colors.grey.shade400),
+                      boxShadow: [
+                        BoxShadow(blurRadius: 10, color: Colors.black12),
+                      ],
                     ),
-                    child: Icon(Icons.search, color: secondaryColor),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      selectedBusLine?.description ?? "Tìm kiếm tuyến xe",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.black,
-                        fontWeight: FontWeight.normal,
-                      ),
+                    child: Row(
+                      children: [
+                        SizedBox(width: 16),
+                        Container(
+                          padding: EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: secondaryColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: Icon(Icons.search, color: secondaryColor),
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            selectedBusLine?.description ?? "Tìm kiếm tuyến xe",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.black,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                        if (selectedBusLine != null)
+                          IconButton(
+                            onPressed: clearSelectedBusLine,
+                            icon: const Icon(Icons.close),
+                          )
+                        else
+                          const SizedBox(width: 16),
+                      ],
                     ),
                   ),
-                  if (selectedBusLine != null)
-                    IconButton(
-                      onPressed: clearSelectedBusLine,
-                      icon: const Icon(Icons.close),
-                    )
-                  else
-                    const SizedBox(width: 16),
-                ],
+                ),
               ),
-            ),
+              FloatingActionButton.small(
+                heroTag: "gps_button",
+                backgroundColor: Colors.white,
+                onPressed: getCurrentLocation,
+                child: Icon(Icons.my_location, color: Colors.blue),
+              ),
+            ],
           ),
         ),
       ),
@@ -514,6 +518,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget mainContent() {
+    final bottomInset = MediaQuery.of(context).padding.bottom;
     return DraggableScrollableSheet(
       controller: sheetController,
       initialChildSize: 0.32,
@@ -524,6 +529,7 @@ class _HomeScreenState extends State<HomeScreen>
       builder: (context, scrollController) {
         final matrixPrice = getSelectedMatrixPrice();
         return Container(
+          padding: EdgeInsets.only(bottom: bottomInset),
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -607,61 +613,58 @@ class _HomeScreenState extends State<HomeScreen>
               buildListItem(scrollController),
               Visibility(
                 visible: selectedPlaceIds.length == 2,
-                child: SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          showDialogTicket(matrixPrice);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: secondaryColor,
-                          foregroundColor: Colors.white,
-                          elevation: 4,
-                          shadowColor: secondaryColor.withValues(alpha: 0.5),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
-                          ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        showDialogTicket(matrixPrice);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: secondaryColor,
+                        foregroundColor: Colors.white,
+                        elevation: 4,
+                        shadowColor: secondaryColor.withValues(alpha: 0.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
                         ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.confirmation_number_outlined),
-                            SizedBox(width: 10),
-                            Text(
-                              "Đặt vé",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.confirmation_number_outlined),
+                          SizedBox(width: 10),
+                          Text(
+                            "Đặt vé",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (matrixPrice != null) ...[
+                            SizedBox(width: 8),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white12,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text(
+                                "${moneyFormat.format(matrixPrice.price)},000đ",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                            if (matrixPrice != null) ...[
-                              SizedBox(width: 8),
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white12,
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: Text(
-                                  "${moneyFormat.format(matrixPrice.price)},000đ",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
                           ],
-                        ),
+                        ],
                       ),
                     ),
                   ),
@@ -677,12 +680,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget buildListItem(ScrollController scrollController) {
     return Expanded(
       child: ListView.builder(
-        padding: EdgeInsets.only(
-          top: 0,
-          bottom: MediaQuery.of(context).size.height * 0.01,
-          left: 16,
-          right: 16,
-        ),
+        padding: EdgeInsets.only(top: 0, bottom: 12, left: 16, right: 16),
         controller: scrollController,
         itemCount: selectedBusLine!.placeMarks.length,
         itemBuilder: (context, index) {

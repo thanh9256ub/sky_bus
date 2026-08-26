@@ -109,7 +109,11 @@ class _TicketListScreenState extends State<TicketListScreen> {
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [summaryBar(), listTickets()],
+          children: [
+            summaryBar(),
+            listTickets(),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.11 - 20),
+          ],
         ),
       ),
     );
@@ -189,7 +193,7 @@ class _TicketListScreenState extends State<TicketListScreen> {
               backgroundColor: Colors.white,
               onRefresh: () async => getListTicket(),
               child: ListView.separated(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                 itemCount: filteredTickets.length,
                 separatorBuilder: (context, index) =>
                     const SizedBox(height: 12),
@@ -207,7 +211,6 @@ class _TicketListScreenState extends State<TicketListScreen> {
     final usedTicketCount = ticket.slots
         .where((e) => e.usedDate != null)
         .length;
-    final isLast = index == filteredTickets.length - 1;
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () {
@@ -356,11 +359,6 @@ class _TicketListScreenState extends State<TicketListScreen> {
                   ),
                 ],
               ),
-              isLast
-                  ? SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.11 - 20,
-                    )
-                  : SizedBox(),
             ],
           ),
         ),

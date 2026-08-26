@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:skysoft_bus/models/ticket_model.dart';
+import 'package:skysoft_bus/service/bus_service.dart';
 import 'package:skysoft_bus/utils/date_utils.dart';
+import 'package:toastification/toastification.dart';
 
 import '../../utils/global.dart';
 import '../home/ticket_payment_screen.dart';
 import '../widgets/ticket_divider.dart';
+import '../widgets/ticket_qr_widget.dart';
 
 class DetailTicketScreen extends StatefulWidget {
   final Ticket ticket;
@@ -25,7 +30,28 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
   List<SlotTicket> slots = [];
   int usedTicketCount = 0;
   ScreenshotController screenshotController = ScreenshotController();
-  late Ticket ticket;
+  Ticket? ticket;
+  Timer? ticketTimer;
+
+  void getNewStateTicket() async {
+    BusService service = BusService();
+    final response = await service.listTickets();
+    if (response.errorMessage.isEmpty && mounted) {
+      final newTicket = response.tickets.firstWhere(
+        (e) => e.id == widget.ticket.id,
+      );
+      setState(() {
+        ticket = newTicket;
+        slots = newTicket.slots;
+        usedTicketCount = newTicket.slots
+            .where((e) => e.usedDate != null)
+            .length;
+      });
+    } else {
+      showToast(response.errorMessage, ToastificationType.error);
+    }
+  }
+
   String stateLabel(int state) {
     if (state == Ticket.STATE_PAID) {
       return "Đã thanh toán";
@@ -47,7 +73,7 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
   }
 
   IconData get stateIcon {
-    switch (widget.ticket.state) {
+    switch (ticket!.state) {
       case Ticket.STATE_PAID:
         return Icons.check_circle_rounded;
       case Ticket.STATE_USED:
@@ -69,10 +95,20 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
   @override
   void initState() {
     super.initState();
+    ticket = widget.ticket;
     slots = widget.ticket.slots;
     usedTicketCount = widget.ticket.slots
         .where((e) => e.usedDate != null)
         .length;
+    ticketTimer = Timer.periodic(Duration(seconds: 10), (timer) {
+      getNewStateTicket();
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    ticketTimer?.cancel();
   }
 
   @override
@@ -120,7 +156,7 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ticketCard(widget.ticket),
+                ticketCard(ticket!),
                 SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -397,12 +433,15 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
 
   Widget qrItemTile(SlotTicket item, int index) {
     final color = item.usedDate != null
-        ? Colors.grey.shade500
+        ? Colors.red.shade400
         : const Color(0xFF2E7D32);
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: item.usedDate != null ? Colors.red.shade300 : secondaryColor,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.shade100,
@@ -417,20 +456,9 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: secondaryColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                "QR vé: ${index + 1}",
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: secondaryColor,
-                ),
-              ),
+            Text(
+              "QR vé: ${index + 1}",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 5),
             Row(
@@ -442,9 +470,36 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
                     border: Border.all(color: Colors.grey.shade200),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: QrImageView(
-                    data: item.token,
-                    version: QrVersions.auto,
+                  child: Stack(
+                    children: [
+                      Opacity(
+                        opacity: item.usedDate == null ? 1 : 0.2,
+                        child: RepaintBoundary(
+                          child: TicketQrWidget(
+                            key: ValueKey(item.token),
+                            token: item.token,
+                          ),
+                        ),
+                      ),
+                      Visibility(
+                        visible: item.usedDate != null,
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          width: 150,
+                          height: 150,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            "Mã đã sử dụng",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -510,7 +565,7 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
   }
 
   Widget paymentQR() {
-    final isUnpaid = widget.ticket.state == Ticket.STATE_INPUT;
+    final isUnpaid = ticket!.state == Ticket.STATE_INPUT;
     if (isUnpaid) {
       return Container(
         width: MediaQuery.of(context).size.width,
@@ -531,7 +586,7 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: QrImageView(
-                data: widget.ticket.qrCode,
+                data: ticket!.qrCode,
                 version: QrVersions.auto,
               ),
             ),

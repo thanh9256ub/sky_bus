@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:skysoft_bus/models/ticket_model.dart';
 
 import '../models/action_result.dart';
@@ -74,6 +77,7 @@ class BusService {
     String url = "$baseUrl/rest/app/passenger/listTickets";
     try {
       final response = await httpService.post(url);
+      log(jsonEncode(response));
       return TicketListResponse.fromJson(response);
     } on Exception catch (e) {
       return TicketListResponse("FAIL", e.toString());

@@ -32,20 +32,31 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const navBarHeight = 60.0;
+    const navBarMargin = 10.0;
+    final totalNavSpace = navBarHeight + navBarMargin * 2;
+
+    final mediaQuery = MediaQuery.of(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       extendBody: true,
       body: Stack(
         children: [
-          PageView(
-            physics: const NeverScrollableScrollPhysics(),
-            controller: pageController,
-            onPageChanged: (index) {
-              setState(() {
-                selectedIndex = index;
-              });
-            },
-            children: tabs.map((e) => e.page).toList(),
+          MediaQuery(
+            data: mediaQuery.copyWith(
+              padding: mediaQuery.padding.copyWith(
+                bottom: mediaQuery.padding.bottom + totalNavSpace,
+              ),
+            ),
+            child: PageView(
+              physics: const NeverScrollableScrollPhysics(),
+              controller: pageController,
+              onPageChanged: (index) {
+                setState(() => selectedIndex = index);
+              },
+              children: tabs.map((e) => e.page).toList(),
+            ),
           ),
           Positioned(
             left: 0,
@@ -54,9 +65,9 @@ class _MainScreenState extends State<MainScreen> {
             child: SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.all(10),
+                padding: EdgeInsets.all(navBarMargin),
                 child: Container(
-                  height: 60,
+                  height: navBarHeight,
                   decoration: BoxDecoration(
                     color: Colors.white70,
                     borderRadius: BorderRadius.circular(25),

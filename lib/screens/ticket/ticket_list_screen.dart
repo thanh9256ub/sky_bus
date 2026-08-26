@@ -109,11 +109,7 @@ class _TicketListScreenState extends State<TicketListScreen> {
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            summaryBar(),
-            listTickets(),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.11 - 20),
-          ],
+          children: [summaryBar(), listTickets()],
         ),
       ),
     );

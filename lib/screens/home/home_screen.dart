@@ -524,9 +524,6 @@ class _HomeScreenState extends State<HomeScreen>
       builder: (context, scrollController) {
         final matrixPrice = getSelectedMatrixPrice();
         return Container(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height * 0.1 - 20,
-          ),
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -680,8 +677,13 @@ class _HomeScreenState extends State<HomeScreen>
   Widget buildListItem(ScrollController scrollController) {
     return Expanded(
       child: ListView.builder(
+        padding: EdgeInsets.only(
+          top: 0,
+          bottom: MediaQuery.of(context).size.height * 0.01,
+          left: 16,
+          right: 16,
+        ),
         controller: scrollController,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         itemCount: selectedBusLine!.placeMarks.length,
         itemBuilder: (context, index) {
           final place = selectedBusLine!.placeMarks[index];

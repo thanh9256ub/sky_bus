@@ -85,34 +85,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // sectionTitle("Tài khoản"),
-                      // SizedBox(height: 10),
-                      // settingsGroup([
-                      //   settingsTile(
-                      //     title: "Đổi mật khẩu",
-                      //     icon: Icons.lock_outline_rounded,
-                      //     iconColor: Color(0xFF4C6EF5),
-                      //     onTap: () {
-                      //       showToast(
-                      //         "Tính năng đang phát triển",
-                      //         ToastificationType.error,
-                      //       );
-                      //     },
-                      //   ),
-                      // ]),
-                      // SizedBox(height: 24),
                       sectionTitle("Tuỳ chọn"),
                       SizedBox(height: 10),
                       settingsGroup([
-                        // settingsSwitchTile(
-                        //   title: "Chế độ tối",
-                        //   icon: Icons.dark_mode_outlined,
-                        //   iconColor: Color(0xFF495057),
-                        //   value: darkModeEnabled,
-                        //   onChanged: (value) {
-                        //     setState(() => darkModeEnabled = value);
-                        //   },
-                        // ),
                         settingsTile(
                           title: "Ngôn ngữ",
                           icon: Icons.language_rounded,

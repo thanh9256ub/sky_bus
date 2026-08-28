@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:skysoft_bus/screens/profile/card_screen.dart';
 import 'package:skysoft_bus/screens/profile/infomation_user_screen.dart';
 import 'package:skysoft_bus/screens/roots/login_screen.dart';
 import 'package:skysoft_bus/utils/string_utils.dart';
@@ -39,6 +40,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ).push(MaterialPageRoute(builder: (context) => SettingsScreen()));
   }
 
+  void pushToCardScreen() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => CardScreen()));
+  }
+
   void pushToAppInfoScreen() {
     Navigator.of(
       context,
@@ -72,6 +79,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           icon: Icons.person_outline_rounded,
                           iconColor: Color(0xFF4C6EF5),
                           onTap: pushToScreen,
+                        ),
+                        SizedBox(height: 12),
+                        profileFeature(
+                          "Kiểm tra thẻ",
+                          icon: Icons.card_membership,
+                          iconColor: secondaryColor,
+                          onTap: pushToCardScreen,
                         ),
                         SizedBox(height: 12),
                         profileFeature(

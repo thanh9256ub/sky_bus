@@ -77,10 +77,21 @@ class BusService {
     String url = "$baseUrl/rest/app/passenger/listTickets";
     try {
       final response = await httpService.post(url);
-      log(jsonEncode(response));
       return TicketListResponse.fromJson(response);
     } on Exception catch (e) {
       return TicketListResponse("FAIL", e.toString());
+    }
+  }
+
+  Future<BusCardResponse> getCard(String cardNo) async {
+    String url = "$baseUrl/rest/bus/getCard";
+    try {
+      log("req:$cardNo");
+      final response = await httpService.post(url, body: {F_CARD_NO: cardNo});
+      log("response:${jsonEncode(response)}");
+      return BusCardResponse.fromJson(response);
+    } on Exception catch (e) {
+      return BusCardResponse("FAIL", e.toString());
     }
   }
 }

@@ -518,12 +518,17 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget mainContent() {
+    final screenHeight = MediaQuery.of(context).size.height;
     final bottomInset = MediaQuery.of(context).padding.bottom;
+    final maxSize = ((screenHeight - bottomInset) / screenHeight).clamp(
+      0.5,
+      0.95,
+    );
     return DraggableScrollableSheet(
       controller: sheetController,
       initialChildSize: 0.32,
       minChildSize: 0.32,
-      maxChildSize: 0.82,
+      maxChildSize: maxSize,
       snap: true,
       snapSizes: [0.32, 0.82],
       builder: (context, scrollController) {

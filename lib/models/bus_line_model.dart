@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:latlong2/latlong.dart';
 import 'package:skysoft_bus/models/action_result.dart';
 
@@ -129,13 +131,6 @@ class Place {
 
     response.granted = json[F_GRANTED] ?? false;
     response.origGranted = response.granted;
-
-    // response.gpsDate =
-    //      DateFormat(DATE_TIME_TZ_FORMAT).parseUTC(json[F_GPS_DATE]);
-
-    // response.updateDate =
-    //      DateFormat(DATE_TIME_TZ_FORMAT).parseUTC(json[F_UPDATE_DATE]);
-
     return response;
   }
 }
@@ -250,5 +245,155 @@ class Matrix {
     };
 
     return map;
+  }
+}
+
+class BusCard {
+  String id = "";
+  String cardNo = "";
+  String fullName = "";
+  String idCardNo = "";
+  String phoneNo = "";
+  String email = "";
+  DateTime? expireDate;
+  bool valid = false;
+  bool locked = false;
+  bool prepaid = false;
+  bool requirePhoto = false;
+  double balanceAmount = 0;
+  int discountPercent = 0;
+  int priorityID = 0;
+  String priorityDescription = "Thẻ thường";
+  DateTime? endDiscountDate;
+  String token = "";
+  Uint8List avatar = Uint8List(0);
+  DateTime? avatarDate;
+  String avatarMd5 = "";
+  String note = "";
+  List<RechargeItem> rechargeItems = [];
+  List<RechargeItem> prepaidRechargeItems = [];
+
+  BusCard();
+
+  factory BusCard.fromJson(Map<String, dynamic> json) {
+    BusCard response = BusCard();
+
+    response.id = nvl(json[F_ID]);
+    response.cardNo = nvl(nvl(json[F_CARD_NO]));
+    response.fullName = nvl(json[F_FULL_NAME]);
+    response.phoneNo = nvl(json[F_PHONE_NO]);
+    response.idCardNo = nvl(json[F_ID_CARD_NO]);
+    response.valid = json[F_VALID] ?? false;
+    response.locked = json[F_LOCKED] ?? false;
+    response.token = nvl(json[F_TOKEN]);
+    response.email = nvl(json[F_EMAIL]);
+    response.expireDate = nvl(json[F_EXPIRE_DATE]).parseTz;
+    response.avatarDate = nvl(json[F_AVATAR_DATE]).parseTz;
+    response.avatarMd5 = nvl(json[F_AVATAR_MD5]);
+
+    num balanceAmount = json[F_BALANCE_AMOUNT] ?? 0;
+    response.balanceAmount = balanceAmount.toDouble();
+
+    response.prepaid = json[F_PREPAID] ?? false;
+    response.requirePhoto = json[F_REQUIRE_PHOTO] ?? false;
+    response.discountPercent = json[F_DISCOUNT_PERCENT] ?? 0;
+    response.endDiscountDate = nvl(json[F_END_DISCOUNT_DATE]).parseTz;
+    response.priorityID = json[F_PRIORITY_ID] ?? 0;
+    response.priorityDescription = nvl(json[F_PRIORITY_DESCRIPTION]);
+    response.note = nvl(json[F_NOTE]);
+
+    if (json[F_RECHARGES] != null) {
+      response.rechargeItems = (json[F_RECHARGES] as List)
+          .map((e) => RechargeItem.fromJson(e))
+          .toList();
+    }
+
+    if (json[F_PREPAID_RECHARGES] != null) {
+      response.prepaidRechargeItems = (json[F_PREPAID_RECHARGES] as List)
+          .map((e) => RechargeItem.fromJson(e))
+          .toList();
+    }
+
+    return response;
+  }
+}
+
+class RechargeItem {
+  int rechargeID = 0;
+  String id = "";
+  DateTime? createDate;
+  DateTime? fromDate;
+  DateTime? toDate;
+  String creator = "";
+  String note = "";
+  String token = "";
+  String type = "";
+  String cardNo = "";
+  String phoneNo = "";
+  String fullName = "";
+  double amount = 0;
+  int balanceAmount = 0;
+  int totalAmount = 0;
+  int discountPercent = 0;
+  int paidAmount = 0;
+  bool prepaid = false;
+  bool locked = false;
+  List<Matrix> matrixes = [];
+
+  RechargeItem();
+
+  factory RechargeItem.fromJson(Map<String, dynamic> json) {
+    RechargeItem response = RechargeItem();
+
+    response.rechargeID = json[F_RECHARGE_ID] ?? 0;
+    response.createDate = nvl(json[F_CREATE_DATE]).parseTz;
+    response.fromDate = nvl(json[F_FROM_DATE]).parseTz;
+    response.toDate = nvl(json[F_TO_DATE]).parseTz;
+    response.creator = nvl(json[F_CREATOR]);
+    response.note = nvl(json[F_NOTE]);
+    response.type = nvl(json[F_TYPE]);
+    response.cardNo = nvl(json[F_CARD_NO]);
+    response.phoneNo = nvl(json[F_PHONE_NO]);
+    response.fullName = nvl(json[F_FULL_NAME]);
+    response.locked = json[F_LOCKED] ?? false;
+    response.prepaid = json[F_PREPAID] ?? false;
+    response.totalAmount = json[F_TOTAL_AMOUNT] ?? 0;
+    num amount = json[F_AMOUNT] ?? 0;
+    response.amount = amount.toDouble();
+    response.discountPercent = json[F_DISCOUNT_PERCENT] ?? 0;
+    response.paidAmount = json[F_PAID_AMOUNT] ?? 0;
+
+    if (json[F_MATRIX_PRICES] != null) {
+      response.matrixes = (json[F_MATRIX_PRICES] as List)
+          .map((e) => Matrix.fromMTicketJson(e))
+          .toList();
+    }
+
+    return response;
+  }
+}
+
+class BusCardResponse extends ActionResult {
+  BusCard busCard = BusCard();
+
+  BusCardResponse(super.errorCode, super.errorMessage);
+
+  factory BusCardResponse.fromJson(Map<String, dynamic> json) {
+    BusCardResponse response = BusCardResponse(
+      nvl(json[F_ERROR_CODE]),
+      nvl(json[F_ERROR_MESSAGE]),
+    );
+
+    if (response.errorMessage.isNotEmpty) {
+      return response;
+    }
+
+    var busCard = json[F_BUS_CARD];
+
+    if (busCard != null) {
+      response.busCard = BusCard.fromJson(busCard);
+    }
+
+    return response;
   }
 }

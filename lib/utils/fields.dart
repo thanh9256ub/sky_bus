@@ -280,6 +280,7 @@ const String F_LINE_TYPE = "lineType";
 const String F_INCLUDE_MATRIX = "includeMatrix";
 const String F_SCHEDULES = "schedules";
 const String F_EXPIRE_DATE = "expireDate";
+const String F_BUS_CARD = "busCard";
 
 //ticket
 const String F_CHARGE_ID = "chargeID";

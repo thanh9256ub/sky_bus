@@ -30,22 +30,24 @@ class _TicketListScreenState extends State<TicketListScreen> {
     final response = await service.listTickets();
     if (response.errorMessage.isEmpty) {
       filteredTickets = response.tickets;
-      setState(() {
-        filteredTickets.sort(
-          (a, b) => (b.createDate!).compareTo(a.createDate!),
-        );
-        totalCount = filteredTickets.length;
-        inputCount = filteredTickets
-            .where((t) => t.state == Ticket.STATE_INPUT)
-            .length;
-        paidCount = filteredTickets
-            .where((t) => t.state == Ticket.STATE_PAID)
-            .length;
-        usedCount = filteredTickets
-            .where((t) => t.state == Ticket.STATE_USED)
-            .length;
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          filteredTickets.sort(
+            (a, b) => (b.createDate!).compareTo(a.createDate!),
+          );
+          totalCount = filteredTickets.length;
+          inputCount = filteredTickets
+              .where((t) => t.state == Ticket.STATE_INPUT)
+              .length;
+          paidCount = filteredTickets
+              .where((t) => t.state == Ticket.STATE_PAID)
+              .length;
+          usedCount = filteredTickets
+              .where((t) => t.state == Ticket.STATE_USED)
+              .length;
+          isLoading = false;
+        });
+      }
     } else {
       setState(() => isLoading = false);
       showToast(response.errorMessage, ToastificationType.error);

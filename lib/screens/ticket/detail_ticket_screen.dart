@@ -125,29 +125,12 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
             "Chi tiết vé",
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
           ),
-          leading: Padding(
-            padding: EdgeInsets.all(10),
-            child: Material(
-              color: Colors.white38,
-              shape: CircleBorder(),
-              elevation: 3,
-              shadowColor: Colors.black.withValues(alpha: 0.15),
-              child: InkWell(
-                customBorder: CircleBorder(),
-                onTap: () {
-                  widget.onChange();
-                  Navigator.of(context).pop();
-                },
-                child: Padding(
-                  padding: EdgeInsets.all(10),
-                  child: Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 18,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+          leading: IconButton(
+            onPressed: () {
+              widget.onChange();
+              Navigator.of(context).pop();
+            },
+            icon: Icon(Icons.arrow_back, color: Colors.white),
           ),
         ),
         body: SafeArea(
@@ -188,7 +171,7 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 qrListView(),
                 // paymentQR(),
               ],
@@ -442,17 +425,9 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
         border: Border.all(
           color: item.usedDate != null ? Colors.red.shade300 : secondaryColor,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade100,
-            blurRadius: 8,
-            blurStyle: BlurStyle.outer,
-            offset: const Offset(0, 3),
-          ),
-        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -484,7 +459,7 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
                       Visibility(
                         visible: item.usedDate != null,
                         child: Container(
-                          padding: const EdgeInsets.all(10),
+                          padding: EdgeInsets.all(10),
                           width: 150,
                           height: 150,
                           alignment: Alignment.center,
@@ -502,12 +477,12 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                         horizontal: 10,
                         vertical: 5,
                       ),

@@ -49,7 +49,7 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
         );
       }
     } else {
-      showToast("Thêm vé không thành công", ToastificationType.error);
+      showToast(response.errorMessage, ToastificationType.error);
     }
   }
 

@@ -1,0 +1,77 @@
+{
+  "project_info": {
+    "project_number": "134067773327",
+    "firebase_url": "https://skysoft-gps-tracking.firebaseio.com",
+    "project_id": "skysoft-gps-tracking",
+    "storage_bucket": "skysoft-gps-tracking.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:134067773327:android:f92cf684b38620f28a35fa",
+        "android_client_info": {
+          "package_name": "com.skysoft.go"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBASAniIHJuhKdYwbbg0FMHY2qLXHRxKN4"
+        },
+        {
+          "current_key": "AIzaSyBJQOSZiZpp4vx25AQdgOHvacX60F6NiZ4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:134067773327:android:920db2c4637f1bb9",
+        "android_client_info": {
+          "package_name": "com.skysoft.gps"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBASAniIHJuhKdYwbbg0FMHY2qLXHRxKN4"
+        },
+        {
+          "current_key": "AIzaSyBJQOSZiZpp4vx25AQdgOHvacX60F6NiZ4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:134067773327:android:95ec3dd0ecd1c6608a35fa",
+        "android_client_info": {
+          "package_name": "com.skysoft.skybus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBASAniIHJuhKdYwbbg0FMHY2qLXHRxKN4"
+        },
+        {
+          "current_key": "AIzaSyBJQOSZiZpp4vx25AQdgOHvacX60F6NiZ4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

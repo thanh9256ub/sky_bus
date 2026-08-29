@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:developer';
-
 import 'package:skysoft_bus/models/ticket_model.dart';
 
 import '../models/action_result.dart';
@@ -86,9 +83,7 @@ class BusService {
   Future<BusCardResponse> getCard(String cardNo) async {
     String url = "$baseUrl/rest/bus/getCard";
     try {
-      log("req:$cardNo");
       final response = await httpService.post(url, body: {F_CARD_NO: cardNo});
-      log("response:${jsonEncode(response)}");
       return BusCardResponse.fromJson(response);
     } on Exception catch (e) {
       return BusCardResponse("FAIL", e.toString());

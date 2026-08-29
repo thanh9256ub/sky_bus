@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import '../models/login_model.dart';
 import '../utils/fields.dart';
 import '../utils/global.dart';
@@ -27,9 +30,12 @@ class AdminService {
   Future<ActiveResponse> activatePassenger(ActiveRequest requestModel) async {
     String url = "$baseUrl/rest/app/passenger/activatePassenger";
     try {
+      log("req:${jsonEncode(requestModel)}");
       final response = await httpService.post(url, body: requestModel.toJson());
+      log("res:${jsonEncode(response)}");
       return await ActiveResponse.fromJson(response);
     } on Exception catch (e) {
+      log(e.toString());
       return ActiveResponse("FAIL", e.toString());
     }
   }

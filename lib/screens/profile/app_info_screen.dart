@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:skysoft_bus/utils/global.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -46,7 +48,10 @@ class AppInfoScreen extends StatelessWidget {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(
+            Platform.isIOS ? Icons.arrow_back_ios_new : Icons.arrow_back,
+            color: Colors.white,
+          ),
         ),
       ),
       body: SingleChildScrollView(

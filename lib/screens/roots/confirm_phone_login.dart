@@ -1,15 +1,23 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
 import 'package:skysoft_bus/screens/roots/main_screen.dart';
 import 'package:skysoft_bus/utils/fields.dart';
 import 'package:skysoft_bus/utils/global.dart';
+import 'package:skysoft_bus/utils/string_utils.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../models/login_model.dart';
 import '../../service/admin_service.dart';
 
 class ConfirmPhoneLogin extends StatefulWidget {
-  const ConfirmPhoneLogin({super.key});
+  final String verificationId;
+  final int resendCode;
+  const ConfirmPhoneLogin({
+    super.key,
+    required this.resendCode,
+    required this.verificationId,
+  });
 
   @override
   State<ConfirmPhoneLogin> createState() => _ConfirmPhoneLoginState();
@@ -21,16 +29,36 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
   AdminService service = AdminService();
   ActiveRequest request = ActiveRequest();
 
-  bool isResending = false;
+  Future<void> verifyOTP(String smsCode) async {
+    if (widget.verificationId.isEmpty) return;
+    try {
+      PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: widget.verificationId,
+        smsCode: smsCode,
+      );
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithCredential(credential);
+      if (userCredential.user != null) {
+        String? tokenOTP = await userCredential.user!.getIdToken();
+        String? uid = userCredential.user!.uid;
+        request.tokenID = nvl(tokenOTP);
+        request.uid = nvl(uid);
+        await activatePassenger(smsCode);
+      } else {
+        showToast("Lỗi thông tin user", ToastificationType.error);
+      }
+    } on FirebaseAuthException catch (e) {
+      showToast(nvl(e.message), ToastificationType.error);
+    }
+  }
 
-  Future<void> activatePassenger(String activeKey) async {
+  Future<void> activatePassenger(String smsCode) async {
     request.accountID = loginRequest.accountID;
-    request.activeKey = activeKey;
     request.deviceID = loginRequest.deviceID;
-
+    request.activeKey = smsCode;
     final response = await service.activatePassenger(request);
     if (response.errorMessage.isEmpty) {
-      loginRequest.authenKey = activeKey;
+      loginRequest.authenKey = smsCode;
       await saveData(F_SECURE_KEY, response.secureKey);
       login();
     } else {
@@ -192,32 +220,9 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
                     }
                     return null;
                   },
-                  onCompleted: activatePassenger,
+                  onCompleted: verifyOTP,
                 ),
                 SizedBox(height: 28),
-                SizedBox(
-                  height: 56,
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: login,
-                    style: ElevatedButton.styleFrom(
-                      elevation: 0,
-                      backgroundColor: secondaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Text(
-                      "Xác nhận",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 5),
               ],
             ),
           ),

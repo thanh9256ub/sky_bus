@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../utils/global.dart';
@@ -24,27 +26,13 @@ class InformationUserScreen extends StatelessWidget {
           "Thông tin cá nhân",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
-        leading: Padding(
-          padding: EdgeInsets.all(10),
-          child: Material(
-            color: Colors.white38,
-            shape: CircleBorder(),
-            elevation: 3,
-            shadowColor: Colors.black.withValues(alpha: 0.15),
-            child: InkWell(
-              customBorder: CircleBorder(),
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: Padding(
-                padding: EdgeInsets.all(10),
-                child: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 18,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+        leading: IconButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          icon: Icon(
+            Platform.isIOS ? Icons.arrow_back_ios_new : Icons.arrow_back,
+            color: Colors.white,
           ),
         ),
       ),

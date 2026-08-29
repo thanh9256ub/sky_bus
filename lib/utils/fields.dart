@@ -45,6 +45,7 @@ const String F_ACTIVE_KEY = "activeKey";
 const String F_SECURE_KEY = "secureKey";
 const String F_UID = "uid";
 const String F_SESSION_ID = "sessionID";
+const String F_SMS_CODE = "smsCode";
 
 // admin
 const String F_OLD_PASSWORD = "oldPassword";

@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
@@ -24,7 +24,6 @@ class _CardScreenState extends State<CardScreen> {
   String cardNo = "";
   void initNFC() async {
     NFCAvailability availability = await FlutterNfcKit.nfcAvailability;
-    log("NFC availability: $availability");
     if (availability == NFCAvailability.available) {
       FlutterNfcKit.tagStream.listen((tag) {
         if (tag.type == NFCTagType.iso15693) {
@@ -82,7 +81,10 @@ class _CardScreenState extends State<CardScreen> {
             onPressed: () {
               Navigator.of(context).pop();
             },
-            icon: Icon(Icons.arrow_back, color: Colors.white),
+            icon: Icon(
+              Platform.isIOS ? Icons.arrow_back_ios_new : Icons.arrow_back,
+              color: Colors.white,
+            ),
           ),
         ),
         body: busCard == null

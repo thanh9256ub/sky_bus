@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:skysoft_bus/screens/roots/confirm_phone_login.dart';
@@ -18,17 +21,42 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool passwordVisible = false;
   bool isLogin = false;
-  bool isLoginProcess = true;
   final _key = GlobalKey<FormState>();
+  String _verificationId = "";
+  int _resendToken = 0;
+
+  Future<void> sendOTP(String phoneNumber) async {
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: convertToInternationalPhoneNumber(phoneNumber),
+      timeout: Duration(seconds: 60),
+      verificationCompleted: (phoneAuthCredential) {},
+      verificationFailed: (error) {
+        log(nvl(error.message));
+        showToast(nvl(error.message), ToastificationType.error);
+      },
+      codeSent: (verificationId, forceResendingToken) {
+        _verificationId = verificationId;
+        log(forceResendingToken.toString());
+        _resendToken = forceResendingToken!;
+        pushToConfirm();
+      },
+      codeAutoRetrievalTimeout: (verificationId) {
+        _verificationId = verificationId;
+      },
+    );
+  }
 
   void pushToConfirm() {
     if (!_key.currentState!.validate()) return;
-
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => ConfirmPhoneLogin()));
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ConfirmPhoneLogin(
+          verificationId: _verificationId,
+          resendCode: _resendToken,
+        ),
+      ),
+    );
   }
 
   void signUp() async {
@@ -37,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (response.errorMessage.isEmpty) {
       saveData(F_ACCOUNT_ID, response.accountID);
       loginRequest.accountID = response.accountID;
-      pushToConfirm();
+      sendOTP(signUpRequest.mobileNo);
     } else {
       final response = await service.reactivePassenger(
         signUpRequest.mobileNo,
@@ -47,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (response.errorMessage.isEmpty) {
         loginRequest.accountID = response.accountID;
-        pushToConfirm();
+        sendOTP(signUpRequest.mobileNo);
       }
     }
   }
@@ -62,17 +90,25 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (context) => const MainScreen()),
       );
     } else {
-      setState(() {
-        isLoginProcess = false;
-      });
       showToast(value.errorMessage, ToastificationType.error);
     }
   }
 
-  @override
-  void dispose() {
-    isLoginProcess = false;
-    super.dispose();
+  String convertToInternationalPhoneNumber(
+    String phoneNumber, {
+    String defaultCountryCode = '+84',
+  }) {
+    phoneNumber = phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+
+    if (phoneNumber.startsWith('+')) {
+      return phoneNumber;
+    }
+
+    if (phoneNumber.startsWith('0')) {
+      return defaultCountryCode + phoneNumber.substring(1);
+    }
+
+    return defaultCountryCode + phoneNumber;
   }
 
   @override

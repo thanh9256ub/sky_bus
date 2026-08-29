@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:screenshot/screenshot.dart';
@@ -37,7 +39,10 @@ class _TicketPaymentScreenState extends State<TicketPaymentScreen> {
           title: Text("Thanh toán", style: TextStyle(color: Colors.white)),
           leading: IconButton(
             onPressed: pushToHomeScreen,
-            icon: Icon(Icons.arrow_back, color: Colors.white),
+            icon: Icon(
+              Platform.isIOS ? Icons.arrow_back_ios_new : Icons.arrow_back,
+              color: Colors.white,
+            ),
           ),
           centerTitle: true,
         ),

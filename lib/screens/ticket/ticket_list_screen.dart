@@ -77,7 +77,7 @@ class _TicketListScreenState extends State<TicketListScreen> {
     if (state == Ticket.STATE_PAID) {
       return Color(0xFF2E7D32);
     } else if (state == Ticket.STATE_USED) {
-      return Colors.grey.shade500;
+      return Colors.red.shade400;
     } else {
       return secondaryColor;
     }
@@ -108,69 +108,60 @@ class _TicketListScreenState extends State<TicketListScreen> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
-      body: SafeArea(
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [summaryBar(), listTickets()],
+          children: [summaryBar(), SizedBox(height: 10), listTickets()],
         ),
       ),
     );
   }
 
   Widget summaryBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.shade100,
-              blurRadius: 8,
-              blurStyle: BlurStyle.outer,
-              offset: const Offset(0, 3),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: secondaryColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(25),
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: secondaryColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Icon(
-                Icons.confirmation_number_rounded,
-                size: 18,
-                color: secondaryColor,
-              ),
+            child: Icon(
+              Icons.confirmation_number_rounded,
+              size: 18,
+              color: secondaryColor,
             ),
-            const SizedBox(width: 5),
-            Text(
-              "Tổng vé",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            "Tổng vé",
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
             ),
-            Spacer(),
-            Text(
-              "$totalCount vé",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: secondaryColor,
-              ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Spacer(),
+          Text(
+            "$totalCount vé",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: secondaryColor,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -191,7 +182,6 @@ class _TicketListScreenState extends State<TicketListScreen> {
               backgroundColor: Colors.white,
               onRefresh: () async => getListTicket(),
               child: ListView.separated(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                 itemCount: filteredTickets.length,
                 separatorBuilder: (context, index) =>
                     const SizedBox(height: 12),
@@ -216,14 +206,16 @@ class _TicketListScreenState extends State<TicketListScreen> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: usedTicketCount == ticket.slots.length
+              ? Colors.grey.shade200
+              : Colors.white,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade300),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.shade400,
+              color: Colors.grey.shade300,
               blurRadius: 10,
               blurStyle: BlurStyle.outer,
-              offset: Offset(0, 4),
             ),
           ],
         ),

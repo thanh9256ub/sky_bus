@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -11,7 +12,6 @@ import 'package:toastification/toastification.dart';
 import '../../utils/global.dart';
 import '../home/ticket_payment_screen.dart';
 import '../widgets/ticket_divider.dart';
-import '../widgets/ticket_qr_widget.dart';
 
 class DetailTicketScreen extends StatefulWidget {
   final Ticket ticket;
@@ -130,52 +130,50 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
               widget.onChange();
               Navigator.of(context).pop();
             },
-            icon: Icon(Icons.arrow_back, color: Colors.white),
+            icon: Icon(
+              Platform.isIOS ? Icons.arrow_back_ios_new : Icons.arrow_back,
+              color: Colors.white,
+            ),
           ),
         ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ticketCard(ticket!),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.qr_code_rounded,
-                          size: 18,
-                          color: Colors.grey.shade700,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          "Danh sách vé (${slots.length})",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade800,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      "Đã dùng $usedTicketCount/${slots.length}",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade500,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ticketCard(ticket!),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.qr_code_rounded,
+                        size: 18,
+                        color: Colors.grey.shade700,
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12),
-                qrListView(),
-                // paymentQR(),
-              ],
-            ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Danh sách vé (${slots.length})",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    "Đã dùng $usedTicketCount/${slots.length}",
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12),
+              qrListView(),
+              // paymentQR(),
+            ],
           ),
         ),
       ),
@@ -449,11 +447,9 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
                     children: [
                       Opacity(
                         opacity: item.usedDate == null ? 1 : 0.2,
-                        child: RepaintBoundary(
-                          child: TicketQrWidget(
-                            key: ValueKey(item.token),
-                            token: item.token,
-                          ),
+                        child: QrImageView(
+                          data: item.token,
+                          version: QrVersions.auto,
                         ),
                       ),
                       Visibility(

@@ -108,19 +108,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(10),
-          child: ElevatedButton(
-            onPressed: logout,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade50,
-              elevation: 1,
-              shape: RoundedRectangleBorder(
-                side: BorderSide(color: Colors.red),
-                borderRadius: BorderRadius.circular(15),
+          child: Visibility(
+            visible: loginResponse.fullName.isNotEmpty,
+            child: ElevatedButton(
+              onPressed: logout,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade50,
+                elevation: 1,
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(color: Colors.red),
+                  borderRadius: BorderRadius.circular(15),
+                ),
               ),
-            ),
-            child: Text(
-              "Đăng xuất",
-              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              child: Text(
+                "Đăng xuất",
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
         ),

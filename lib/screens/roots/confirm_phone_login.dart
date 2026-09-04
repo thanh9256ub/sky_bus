@@ -33,7 +33,7 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
 
   Future<void> verifyOTP(String smsCode) async {
     if (widget.verificationId.isEmpty) return;
-
+    setState(() => isLoading = true);
     try {
       PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: widget.verificationId,
@@ -47,16 +47,18 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
           String? uid = userCredential.user!.uid;
           request.tokenID = nvl(tokenOTP);
           request.uid = nvl(uid);
-          setState(() => isLoading = true);
+
           await activatePassenger(smsCode);
-          setState(() => isLoading = false);
         }
       } else {
         showToast("Lỗi thông tin user", ToastificationType.error);
       }
     } on FirebaseAuthException catch (e) {
-      setState(() => isLoading = false);
       showToast(nvl(e.message), ToastificationType.error);
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 

@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:developer';
-
 import '../models/login_model.dart';
 import '../utils/fields.dart';
 import '../utils/global.dart';
@@ -20,9 +17,7 @@ class AdminService {
   Future<SignupResponse> signup(SignupRequest requestModel) async {
     String url = "$baseUrl/rest/app/passenger/signup";
     try {
-      log("sign up req:${jsonEncode(requestModel)}");
       final response = await httpService.post(url, body: requestModel.toJson());
-      log("sign up response:${jsonEncode(response)}");
       return SignupResponse.fromJson(response);
     } on Exception catch (e) {
       return SignupResponse("FAIL", e.toString());
@@ -32,12 +27,9 @@ class AdminService {
   Future<ActiveResponse> activatePassenger(ActiveRequest requestModel) async {
     String url = "$baseUrl/rest/app/passenger/activatePassenger";
     try {
-      log("req:${jsonEncode(requestModel)}");
       final response = await httpService.post(url, body: requestModel.toJson());
-      log("res:${jsonEncode(response)}");
       return await ActiveResponse.fromJson(response);
     } on Exception catch (e) {
-      log(e.toString());
       return ActiveResponse("FAIL", e.toString());
     }
   }
@@ -57,7 +49,6 @@ class AdminService {
         F_LANGUAGE: language,
       };
       final response = await httpService.post(url, body: map);
-      log("reactive res:${jsonEncode(response)}");
       return SignupResponse.fromJson(response);
     } on Exception catch (e) {
       return SignupResponse("FAIL", e.toString());

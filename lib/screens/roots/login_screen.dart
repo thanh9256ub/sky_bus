@@ -32,6 +32,10 @@ class _LoginScreenState extends State<LoginScreen> {
       timeout: Duration(seconds: 60),
       verificationCompleted: (phoneAuthCredential) {},
       verificationFailed: (error) {
+        if (mounted) {
+          setState(() => isLoading = false);
+        }
+
         showToast(
           error.code == 'too-many-requests'
               ? "Tạm thời bị chặn do gửi quá nhiều yêu cầu. Vui lòng thử lại sau."
@@ -42,6 +46,9 @@ class _LoginScreenState extends State<LoginScreen> {
       codeSent: (verificationId, forceResendingToken) {
         _verificationId = verificationId;
         _resendToken = forceResendingToken!;
+        if (mounted) {
+          setState(() => isLoading = false);
+        }
         pushToConfirm();
       },
       codeAutoRetrievalTimeout: (verificationId) {},
@@ -79,9 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.errorMessage.isEmpty) {
         loginRequest.accountID = response.accountID;
         sendOTP(signUpRequest.mobileNo);
-        setState(() => isLoading = false);
       } else {
-        setState(() => isLoading = false);
         showToast(response.errorMessage, ToastificationType.error);
       }
     }
@@ -91,11 +96,12 @@ class _LoginScreenState extends State<LoginScreen> {
     if (value.errorMessage.isEmpty) {
       loginResponse = value;
 
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
-      );
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+        );
+      }
     } else {
       showToast(value.errorMessage, ToastificationType.error);
     }

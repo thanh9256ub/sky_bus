@@ -37,6 +37,15 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
+	<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>app-1-134067773327-ios-9de6c7e9953fc9738a35fa</string>
+				</array>
+			</dict>
+		</array>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>

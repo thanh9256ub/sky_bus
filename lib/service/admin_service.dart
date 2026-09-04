@@ -20,7 +20,9 @@ class AdminService {
   Future<SignupResponse> signup(SignupRequest requestModel) async {
     String url = "$baseUrl/rest/app/passenger/signup";
     try {
+      log("sign up req:${jsonEncode(requestModel)}");
       final response = await httpService.post(url, body: requestModel.toJson());
+      log("sign up response:${jsonEncode(response)}");
       return SignupResponse.fromJson(response);
     } on Exception catch (e) {
       return SignupResponse("FAIL", e.toString());
@@ -55,6 +57,7 @@ class AdminService {
         F_LANGUAGE: language,
       };
       final response = await httpService.post(url, body: map);
+      log("reactive res:${jsonEncode(response)}");
       return SignupResponse.fromJson(response);
     } on Exception catch (e) {
       return SignupResponse("FAIL", e.toString());

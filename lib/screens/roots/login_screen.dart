@@ -1,9 +1,8 @@
-import 'dart:developer';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:skysoft_bus/screens/roots/confirm_phone_login.dart';
+import 'package:skysoft_bus/screens/widgets/loading_screen.dart';
 import 'package:skysoft_bus/utils/fields.dart';
 import 'package:skysoft_bus/utils/global.dart';
 import 'package:toastification/toastification.dart';
@@ -25,6 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _key = GlobalKey<FormState>();
   String _verificationId = "";
   int _resendToken = 0;
+  bool isLoading = false;
 
   Future<void> sendOTP(String phoneNumber) async {
     await FirebaseAuth.instance.verifyPhoneNumber(
@@ -32,24 +32,25 @@ class _LoginScreenState extends State<LoginScreen> {
       timeout: Duration(seconds: 60),
       verificationCompleted: (phoneAuthCredential) {},
       verificationFailed: (error) {
-        log(nvl(error.message));
-        showToast(nvl(error.message), ToastificationType.error);
+        showToast(
+          error.code == 'too-many-requests'
+              ? "Tạm thời bị chặn do gửi quá nhiều yêu cầu. Vui lòng thử lại sau."
+              : nvl(error.message),
+          ToastificationType.error,
+        );
       },
       codeSent: (verificationId, forceResendingToken) {
         _verificationId = verificationId;
-        log(forceResendingToken.toString());
         _resendToken = forceResendingToken!;
         pushToConfirm();
       },
-      codeAutoRetrievalTimeout: (verificationId) {
-        _verificationId = verificationId;
-      },
+      codeAutoRetrievalTimeout: (verificationId) {},
     );
   }
 
   void pushToConfirm() {
     if (!_key.currentState!.validate()) return;
-    Navigator.of(context).push(
+    Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (context) => ConfirmPhoneLogin(
           verificationId: _verificationId,
@@ -60,12 +61,14 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void signUp() async {
+    setState(() => isLoading = true);
     AdminService service = AdminService();
     final response = await service.signup(signUpRequest);
     if (response.errorMessage.isEmpty) {
       saveData(F_ACCOUNT_ID, response.accountID);
       loginRequest.accountID = response.accountID;
       sendOTP(signUpRequest.mobileNo);
+      setState(() => isLoading = false);
     } else {
       final response = await service.reactivePassenger(
         signUpRequest.mobileNo,
@@ -76,6 +79,10 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.errorMessage.isEmpty) {
         loginRequest.accountID = response.accountID;
         sendOTP(signUpRequest.mobileNo);
+        setState(() => isLoading = false);
+      } else {
+        setState(() => isLoading = false);
+        showToast(response.errorMessage, ToastificationType.error);
       }
     }
   }
@@ -113,52 +120,58 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              secondaryColor.withValues(alpha: 0.08),
-              Colors.white,
-              Colors.white,
-            ],
+    return LoadingOverlay(
+      visible: isLoading,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                secondaryColor.withValues(alpha: 0.08),
+                Colors.white,
+                Colors.white,
+              ],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 5),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight - 120,
+          child: SafeArea(
+            child: Stack(
+              children: [
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 5,
                       ),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: 420),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _buildHeader(),
-                              SizedBox(height: 25),
-                              _buildCard(),
-                              SizedBox(height: 20),
-                            ],
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight - 120,
+                        ),
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: 420),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _buildHeader(),
+                                SizedBox(height: 25),
+                                _buildCard(),
+                                SizedBox(height: 20),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-              _buildBackButton(),
-            ],
+                    );
+                  },
+                ),
+                _buildBackButton(),
+              ],
+            ),
           ),
         ),
       ),

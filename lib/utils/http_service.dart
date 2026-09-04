@@ -106,7 +106,7 @@ class GeneralApiService {
             if (kDebugMode) {
               print(statusCode);
             }
-            throw Exception("Error while fetching data");
+            throw Exception("HTTP $statusCode: $res");
           }
         });
   }

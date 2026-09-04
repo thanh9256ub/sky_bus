@@ -456,23 +456,19 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               Expanded(
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(25),
                   onTap: openBusLineListScreen,
                   child: Container(
-                    height: 45,
+                    height: 50,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(25),
                       border: Border.all(color: Colors.grey.shade400),
-                      boxShadow: [
-                        BoxShadow(blurRadius: 10, color: Colors.black12),
-                      ],
                     ),
                     child: Row(
                       children: [
                         SizedBox(width: 16),
                         Container(
-                          padding: EdgeInsets.all(5),
+                          padding: EdgeInsets.all(6),
                           decoration: BoxDecoration(
                             color: secondaryColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(25),
@@ -504,11 +500,18 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
               ),
-              FloatingActionButton.small(
-                heroTag: "gps_button",
-                backgroundColor: Colors.white,
-                onPressed: getCurrentLocation,
-                child: Icon(Icons.my_location, color: Colors.blue),
+              InkWell(
+                onTap: getCurrentLocation,
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 5),
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey.shade400),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Icon(Icons.my_location, color: Colors.blue),
+                ),
               ),
             ],
           ),
@@ -552,8 +555,7 @@ class _HomeScreenState extends State<HomeScreen>
                     sheetController.jumpTo(newSize.clamp(0.32, 0.82));
                   },
                   onVerticalDragEnd: (details) {
-                    const flickVelocityThreshold =
-                        300.0; // px/s, càng nhỏ càng nhạy
+                    const flickVelocityThreshold = 300.0;
                     final velocity = details.primaryVelocity ?? 0;
 
                     double target;

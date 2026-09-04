@@ -20,9 +20,6 @@ class _TicketListScreenState extends State<TicketListScreen> {
   bool isLoading = true;
 
   int totalCount = 0;
-  int inputCount = 0;
-  int paidCount = 0;
-  int usedCount = 0;
 
   void getListTicket() async {
     setState(() => isLoading = true);
@@ -36,15 +33,6 @@ class _TicketListScreenState extends State<TicketListScreen> {
             (a, b) => (b.createDate!).compareTo(a.createDate!),
           );
           totalCount = filteredTickets.length;
-          inputCount = filteredTickets
-              .where((t) => t.state == Ticket.STATE_INPUT)
-              .length;
-          paidCount = filteredTickets
-              .where((t) => t.state == Ticket.STATE_PAID)
-              .length;
-          usedCount = filteredTickets
-              .where((t) => t.state == Ticket.STATE_USED)
-              .length;
           isLoading = false;
         });
       }

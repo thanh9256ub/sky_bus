@@ -353,63 +353,63 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
   }
 
   Widget qrListView() {
-    // final isUnpaid = widget.ticket.state == Ticket.STATE_INPUT;
+    final isUnpaid = widget.ticket.state == Ticket.STATE_INPUT;
 
-    // return Stack(
-    //   alignment: Alignment.center,
-    //   children: [
-    //     Opacity(
-    //       opacity: isUnpaid ? 0.2 : 1,
-    //       child: IgnorePointer(
-    //         ignoring: isUnpaid,
-    //         child: SizedBox(
-    //           height: MediaQuery.of(context).size.height * 0.25,
-    //           child: ListView.separated(
-    //             shrinkWrap: true,
-    //             scrollDirection: Axis.horizontal,
-    //             itemCount: slots.length,
-    //             separatorBuilder: (context, index) => const SizedBox(width: 10),
-    //             itemBuilder: (context, index) {
-    //               return qrItemTile(slots[index], index);
-    //             },
-    //           ),
-    //         ),
-    //       ),
-    //     ),
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Opacity(
+          opacity: isUnpaid ? 0.2 : 1,
+          child: IgnorePointer(
+            ignoring: isUnpaid,
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.25,
+              child: ListView.separated(
+                shrinkWrap: true,
+                scrollDirection: Axis.horizontal,
+                itemCount: slots.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 10),
+                itemBuilder: (context, index) {
+                  return qrItemTile(slots[index], index);
+                },
+              ),
+            ),
+          ),
+        ),
 
-    //     if (isUnpaid)
-    //       Container(
-    //         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-    //         decoration: BoxDecoration(
-    //           color: Colors.white,
-    //           borderRadius: BorderRadius.circular(12),
-    //         ),
-    //         child: Row(
-    //           mainAxisSize: MainAxisSize.min,
-    //           children: [
-    //             Icon(Icons.lock_outline),
-    //             SizedBox(width: 8),
-    //             Text(
-    //               "Thanh toán để sử dụng vé",
-    //               style: TextStyle(fontWeight: FontWeight.w600),
-    //             ),
-    //           ],
-    //         ),
-    //       ),
-    //   ],
-    // );
-    return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.25,
-      child: ListView.separated(
-        shrinkWrap: true,
-        scrollDirection: Axis.horizontal,
-        itemCount: slots.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 10),
-        itemBuilder: (context, index) {
-          return qrItemTile(slots[index], index);
-        },
-      ),
+        if (isUnpaid)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.lock_outline),
+                SizedBox(width: 8),
+                Text(
+                  "Thanh toán để sử dụng vé",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
+    // return SizedBox(
+    //   height: MediaQuery.of(context).size.height * 0.25,
+    //   child: ListView.separated(
+    //     shrinkWrap: true,
+    //     scrollDirection: Axis.horizontal,
+    //     itemCount: slots.length,
+    //     separatorBuilder: (context, index) => const SizedBox(width: 10),
+    //     itemBuilder: (context, index) {
+    //       return qrItemTile(slots[index], index);
+    //     },
+    //   ),
+    // );
   }
 
   Widget qrItemTile(SlotTicket item, int index) {

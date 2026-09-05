@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:skysoft_bus/models/ticket_model.dart';
 import 'package:skysoft_bus/screens/ticket/detail_ticket_screen.dart';
 import 'package:skysoft_bus/utils/date_utils.dart';
+import 'package:toastification/toastification.dart';
 
 import '../../service/bus_service.dart';
 import '../../utils/global.dart';
@@ -38,6 +39,9 @@ class _TicketListScreenState extends State<TicketListScreen> {
     } else {
       if (mounted) {
         setState(() => isLoading = false);
+      }
+      if (loginResponse.fullName.isNotEmpty) {
+        showToast(response.errorMessage, ToastificationType.error);
       }
     }
   }

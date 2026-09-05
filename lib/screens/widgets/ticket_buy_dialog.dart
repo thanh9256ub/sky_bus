@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:skysoft_bus/models/bus_line_model.dart';
 import 'package:skysoft_bus/models/ticket_model.dart';
+import 'package:skysoft_bus/screens/roots/login_screen.dart';
 import 'package:skysoft_bus/service/bus_service.dart';
 import 'package:toastification/toastification.dart';
 
@@ -53,54 +54,109 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
     }
   }
 
+  void pushToLogin() {
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (context) => LoginScreen()));
+  }
+
   void showConfirmTicket() async {
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: Text("Xác nhận đặt vé"),
-          content: Text(
-            "Bạn có chắc chắn muốn đặt $quantity vé với tổng tiền "
-            "${((widget.matrix.price * quantity * 1000)).formatThousand()}đ không?",
-          ),
-          actions: [
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              label: Text(
-                "Hủy",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey,
-                foregroundColor: Colors.white,
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+    if (loginResponse.fullName.isNotEmpty) {
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            title: Text("Xác nhận đặt vé"),
+            content: Text(
+              "Bạn có chắc chắn muốn đặt $quantity vé với tổng tiền "
+              "${((widget.matrix.price * quantity * 1000)).formatThousand()}đ không?",
+            ),
+            actions: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                label: Text(
+                  "Hủy",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey,
+                  foregroundColor: Colors.white,
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
               ),
-            ),
-            ElevatedButton.icon(
-              onPressed: addNewTicket,
-              label: Text(
-                "Xác nhận",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+              ElevatedButton.icon(
+                onPressed: addNewTicket,
+                label: Text(
+                  "Xác nhận",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
               ),
+            ],
+          );
+        },
+      );
+    } else {
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            title: Text("Thông báo"),
+            content: Text(
+              "Bạn chưa đăng ký tài khoản. Vui lòng đăng kí để đặt vé",
             ),
-          ],
-        );
-      },
-    );
+            actions: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                label: Text(
+                  "Hủy",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey,
+                  foregroundColor: Colors.white,
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: pushToLogin,
+                label: Text(
+                  "Đăng kí",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   @override

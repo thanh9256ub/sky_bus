@@ -213,7 +213,6 @@ class _LoginScreenState extends State<LoginScreen> {
         Image.asset("assets/images/logo_skybus.png", height: 65),
         SizedBox(height: 20),
         Text(
-          // isLogin ? "Chào mừng trở lại" :
           "Tạo tài khoản mới",
           style: TextStyle(
             fontSize: 22,
@@ -223,8 +222,6 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         SizedBox(height: 6),
         Text(
-          // isLogin
-          //     ? "Đăng nhập để tiếp tục sử dụng dịch vụ"   :
           "Điền thông tin bên dưới để bắt đầu",
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
@@ -249,13 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          selectType(),
-          SizedBox(height: 24),
-          formLogin(),
-          SizedBox(height: 24),
-          _buildSubmitButton(),
-        ],
+        children: [formLogin(), SizedBox(height: 24), _buildSubmitButton()],
       ),
     );
   }
@@ -308,169 +299,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget selectType() {
-    return Container(
-      padding: EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          setState(() => isLogin = false);
-        },
-        child: AnimatedContainer(
-          duration: Duration(milliseconds: 250),
-          curve: Curves.easeOutCubic,
-          height: 44,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: !isLogin ? secondaryColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: !isLogin
-                ? [
-                    BoxShadow(
-                      color: secondaryColor.withValues(alpha: 0.3),
-                      blurRadius: 10,
-                      offset: Offset(0, 4),
-                    ),
-                  ]
-                : [],
-          ),
-          child: AnimatedDefaultTextStyle(
-            duration: Duration(milliseconds: 250),
-            style: TextStyle(
-              color: !isLogin ? Colors.white : Colors.black87,
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-            ),
-            child: Text("Đăng ký"),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Widget formLogin() {
-  //   return Form(
-  //     key: _key,
-  //     child: AnimatedSwitcher(
-  //       duration: const Duration(milliseconds: 250),
-  //       transitionBuilder: (child, animation) => FadeTransition(
-  //         opacity: animation,
-  //         child: SizeTransition(
-  //           sizeFactor: animation,
-  //           axis: Axis.vertical,
-  //           child: child,
-  //         ),
-  //       ),
-  //       child: isLogin
-  //           ? Column(
-  //               key: const ValueKey('login'),
-  //               children: [
-  //                 TextFormField(
-  //                   decoration: _fieldDecoration(
-  //                     hint: "Nhập số điện thoại",
-  //                     icon: Icons.call_outlined,
-  //                   ),
-  //                   keyboardType: TextInputType.phone,
-  //                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-  //                   onTapOutside: (_) {
-  //                     FocusManager.instance.primaryFocus?.unfocus();
-  //                   },
-  //                   validator: (value) {
-  //                     if (value == null || value.isEmpty) {
-  //                       return 'Vui lòng nhập số điện thoại';
-  //                     } else if (!isValidPhoneNumber(value)) {
-  //                       return "Sai định dạng số điện thoại";
-  //                     } else {
-  //                       return null;
-  //                     }
-  //                   },
-  //                   onChanged: (value) {
-  //                     setState(() {
-  //                       signUpRequest.mobileNo = value;
-  //                     });
-  //                   },
-  //                 ),
-  //               ],
-  //             )
-  //           : Column(
-  //               key: const ValueKey('signup'),
-  //               children: [
-  //                 TextFormField(
-  //                   decoration: _fieldDecoration(
-  //                     hint: "Nhập họ và tên",
-  //                     icon: Icons.person_outline_rounded,
-  //                   ),
-  //                   onTapOutside: (_) {
-  //                     FocusManager.instance.primaryFocus?.unfocus();
-  //                   },
-  //                   validator: (value) {
-  //                     if (value == null || value.isEmpty) {
-  //                       return 'Vui lòng nhập họ và tên';
-  //                     }
-  //                     return null;
-  //                   },
-  //                   onChanged: (value) {
-  //                     setState(() {
-  //                       signUpRequest.fullName = value;
-  //                     });
-  //                   },
-  //                 ),
-  //                 const SizedBox(height: 16),
-  //                 TextFormField(
-  //                   decoration: _fieldDecoration(
-  //                     hint: "Nhập số điện thoại",
-  //                     icon: Icons.call_outlined,
-  //                   ),
-  //                   keyboardType: TextInputType.phone,
-  //                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-  //                   onTapOutside: (_) {
-  //                     FocusManager.instance.primaryFocus?.unfocus();
-  //                   },
-  //                   validator: (value) {
-  //                     if (value == null || value.isEmpty) {
-  //                       return 'Vui lòng nhập số điện thoại';
-  //                     } else if (!isValidPhoneNumber(value)) {
-  //                       return "Sai định dạng số điện thoại";
-  //                     } else {
-  //                       return null;
-  //                     }
-  //                   },
-  //                   onChanged: (value) {
-  //                     setState(() {
-  //                       signUpRequest.mobileNo = value;
-  //                     });
-  //                   },
-  //                 ),
-  //                 const SizedBox(height: 16),
-  //                 TextFormField(
-  //                   decoration: _fieldDecoration(
-  //                     hint: "Nhập email",
-  //                     icon: Icons.email_outlined,
-  //                   ),
-  //                   onTapOutside: (_) {
-  //                     FocusManager.instance.primaryFocus?.unfocus();
-  //                   },
-  //                   validator: (value) {
-  //                     if (value == null || value.isEmpty) {
-  //                       return 'Vui lòng nhập email';
-  //                     }
-  //                     return null;
-  //                   },
-  //                   onChanged: (value) {
-  //                     setState(() {
-  //                       signUpRequest.email = value;
-  //                     });
-  //                   },
-  //                 ),
-  //               ],
-  //             ),
-  //     ),
-  //   );
-  // }
   Widget formLogin() {
     return Form(
       key: _key,

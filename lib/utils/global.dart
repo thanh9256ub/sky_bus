@@ -27,6 +27,7 @@ final moneyFormat = NumberFormat("#,##0", "en_US");
 const Color LIGHT_GREY = Color.fromARGB(255, 228, 227, 227);
 
 void showToast(String msg, ToastificationType type) {
+  toastification.dismissAll();
   toastification.show(
     title: Text(msg),
     type: type,

@@ -35,10 +35,13 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           setState(() => isLoading = false);
         }
-
         showToast(
           error.code == 'too-many-requests'
-              ? "Tạm thời bị chặn do gửi quá nhiều yêu cầu. Vui lòng thử lại sau."
+              ? 'Tạm thời bị chặn do gửi quá nhiều yêu cầu. Vui lòng thử lại sau.'
+              : error.code == 'invalid-verification-code'
+              ? 'Mã OTP không chính xác.'
+              : error.code == 'session-expired'
+              ? 'Mã OTP đã hết hạn. Vui lòng yêu cầu mã mới.'
               : nvl(error.message),
           ToastificationType.error,
         );

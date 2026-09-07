@@ -60,103 +60,53 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
     ).pushReplacement(MaterialPageRoute(builder: (context) => LoginScreen()));
   }
 
-  void showConfirmTicket() async {
-    if (loginResponse.fullName.isNotEmpty) {
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            backgroundColor: Colors.white,
-            title: Text("Xác nhận đặt vé"),
-            content: Text(
-              "Bạn có chắc chắn muốn đặt $quantity vé với tổng tiền "
-              "${((widget.matrix.price * quantity * 1000)).formatThousand()}đ không?",
+  void showSignInDialog() async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Text("Thông báo"),
+          content: Text(
+            "Bạn chưa đăng ký tài khoản. Vui lòng đăng kí để đặt vé",
+          ),
+          actions: [
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              label: Text(
+                "Hủy",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey,
+                foregroundColor: Colors.white,
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
             ),
-            actions: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                label: Text(
-                  "Hủy",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey,
-                  foregroundColor: Colors.white,
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
+            ElevatedButton.icon(
+              onPressed: pushToLogin,
+              label: Text(
+                "Đăng kí",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              ElevatedButton.icon(
-                onPressed: addNewTicket,
-                label: Text(
-                  "Xác nhận",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            backgroundColor: Colors.white,
-            title: Text("Thông báo"),
-            content: Text(
-              "Bạn chưa đăng ký tài khoản. Vui lòng đăng kí để đặt vé",
             ),
-            actions: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                label: Text(
-                  "Hủy",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey,
-                  foregroundColor: Colors.white,
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-              ),
-              ElevatedButton.icon(
-                onPressed: pushToLogin,
-                label: Text(
-                  "Đăng kí",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      );
-    }
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -355,23 +305,41 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
   Widget confirmBtn() {
     return Row(
       children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: showConfirmTicket,
-            label: Text(
-              "Xác nhận",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+        loginResponse.fullName.isNotEmpty
+            ? Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: addNewTicket,
+                  label: Text(
+                    "Xác nhận",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              )
+            : Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: showSignInDialog,
+                  label: Text(
+                    "Xác nhận",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ),
-        ),
         SizedBox(width: 10),
         Expanded(
           child: ElevatedButton.icon(

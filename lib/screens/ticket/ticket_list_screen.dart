@@ -25,6 +25,7 @@ class _TicketListScreenState extends State<TicketListScreen> {
     setState(() => isLoading = true);
     BusService service = BusService();
     final response = await service.listTickets();
+    if (mounted) setState(() => isLoading = false);
     if (response.errorMessage.isEmpty) {
       filteredTickets = response.tickets;
       if (mounted) {
@@ -33,15 +34,14 @@ class _TicketListScreenState extends State<TicketListScreen> {
             (a, b) => (b.createDate!).compareTo(a.createDate!),
           );
           totalCount = filteredTickets.length;
-          isLoading = false;
         });
       }
     } else {
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
       if (loginResponse.fullName.isNotEmpty) {
-        showToast(response.errorMessage, ToastificationType.error);
+        showToast(
+          "Không có kết nối mạng. Vui lòng kiểm tra lại internet.",
+          ToastificationType.error,
+        );
       }
     }
   }

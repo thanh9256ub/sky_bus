@@ -59,7 +59,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void pushToConfirm() {
-    if (!_key.currentState!.validate()) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (context) => ConfirmPhoneLogin(
@@ -71,14 +70,15 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void signUp() async {
+    if (!_key.currentState!.validate()) return;
     setState(() => isLoading = true);
     AdminService service = AdminService();
     final response = await service.signup(signUpRequest);
+    setState(() => isLoading = false);
     if (response.errorMessage.isEmpty) {
       saveData(F_ACCOUNT_ID, response.accountID);
       loginRequest.accountID = response.accountID;
       sendOTP(signUpRequest.mobileNo);
-      setState(() => isLoading = false);
     } else {
       final response = await service.reactivePassenger(
         signUpRequest.mobileNo,
@@ -372,12 +372,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               onTapOutside: (_) {
                 FocusManager.instance.primaryFocus?.unfocus();
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Vui lòng nhập email';
-                }
-                return null;
               },
               onChanged: (value) {
                 setState(() {

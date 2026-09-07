@@ -172,7 +172,7 @@ class _DetailTicketScreenState extends State<DetailTicketScreen> {
               ),
               SizedBox(height: 12),
               qrListView(),
-              // paymentQR(),
+              paymentQR(),
             ],
           ),
         ),

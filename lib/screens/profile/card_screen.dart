@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -23,47 +22,43 @@ class _CardScreenState extends State<CardScreen> {
   bool isRequesting = false;
   BusCard? busCard;
   String cardNo = "";
-  StreamSubscription? _nfcSubscription;
 
-  // void initNFC() async {
-  //   NFCAvailability availability = await FlutterNfcKit.nfcAvailability;
-  //   if (availability == NFCAvailability.available) {
-  //     _nfcSubscription?.cancel();
-  //     _nfcSubscription = FlutterNfcKit.tagStream.listen((tag) async {
-  //       if (tag.type == NFCTagType.iso15693) {
-  //         getCard(tag.id);
-  //         await FlutterNfcKit.finish();
-  //       }
-  //     });
-  //   } else {
-  //     showToast(
-  //       "Thiết bị không hỗ trợ hoặc chưa bật NFC",
-  //       ToastificationType.error,
-  //     );
-  //   }
-  // }
   void initNFC() async {
+    NFCAvailability availability = await FlutterNfcKit.nfcAvailability;
+    if (availability == NFCAvailability.available) {
+      FlutterNfcKit.tagStream.listen((tag) async {
+        if (tag.type == NFCTagType.iso15693) {
+          getCard(tag.id);
+          await FlutterNfcKit.finish();
+        }
+      });
+    } else {
+      showToast(
+        "Thiết bị không hỗ trợ hoặc chưa bật NFC",
+        ToastificationType.error,
+      );
+    }
+  }
+
+  void pollNfc() async {
     NFCAvailability availability = await FlutterNfcKit.nfcAvailability;
     if (availability != NFCAvailability.available) {
       showToast(
         "Thiết bị không hỗ trợ hoặc chưa bật NFC",
         ToastificationType.error,
       );
-      return;
     }
     try {
-      final tag = await FlutterNfcKit.poll(
-        timeout: const Duration(seconds: 20),
-        iosMultipleTagMessage: "Phát hiện nhiều thẻ, vui lòng thử lại",
-        iosAlertMessage: "Đưa điện thoại lại gần thẻ",
+      NFCTag tag = await FlutterNfcKit.poll(
+        timeout: Duration(seconds: 20),
+        iosAlertMessage: "Đưa thẻ lại gần để quẹt",
       );
-
       if (tag.type == NFCTagType.iso15693) {
         getCard(tag.id);
-        await FlutterNfcKit.finish(iosAlertMessage: "Đã đọc xong thẻ");
+        await FlutterNfcKit.finish();
       } else {
-        await FlutterNfcKit.finish(iosErrorMessage: "Không đúng loại thẻ");
-        showToast("Loại thẻ không hợp lệ", ToastificationType.error);
+        await FlutterNfcKit.finish();
+        showToast("Thẻ không hợp lệ", ToastificationType.error);
       }
     } catch (e) {
       await FlutterNfcKit.finish(iosErrorMessage: "Đọc thẻ thất bại");
@@ -104,7 +99,6 @@ class _CardScreenState extends State<CardScreen> {
 
   @override
   void dispose() {
-    _nfcSubscription?.cancel();
     cardNoController.dispose();
     super.dispose();
   }
@@ -146,7 +140,7 @@ class _CardScreenState extends State<CardScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       InkWell(
-                        onTap: initNFC,
+                        onTap: pollNfc,
                         child: Container(
                           padding: EdgeInsets.all(16),
                           decoration: BoxDecoration(

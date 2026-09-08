@@ -55,9 +55,9 @@
 	<string>Ứng dụng cần truy cập thư viện ảnh để lưu hình ảnh sau khi chỉnh sửa vào máy.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Ứng dụng cần truy cập thư viện ảnh để bạn có thể chọn và tải ảnh lên hệ thống.</string>
-	<key>UIApplicationSceneManifest</key>
 	<key>NFCReaderUsageDescription</key>
 	<string>Ứng dụng cần sử dụng NFC để đọc thông tin thẻ xe buýt.</string>
+	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>

@@ -7,8 +7,8 @@ import 'package:toastification/toastification.dart';
 
 import '../models/login_model.dart';
 
-// const String baseUrl = "https://dev.skysoft.vn";
-const String baseUrl = "https://tracking.skysoft.vn";
+const String baseUrl = "https://dev.skysoft.vn";
+// const String baseUrl = "https://tracking.skysoft.vn";
 const String skymapUrl = "https://maps.skysoft.vn";
 
 LoginRequest loginRequest = LoginRequest();

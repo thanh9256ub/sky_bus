@@ -310,3 +310,11 @@ String nfcHexToDecimal(String hex) {
 
   return decimal.toString().padLeft(10, '0');
 }
+
+String reverseNfcHexString(String hexString) {
+  if (hexString.isEmpty) return hexString;
+
+  final matches = RegExp(r'.{1,2}').allMatches(hexString);
+
+  return matches.map((m) => m.group(0)!).toList().reversed.join().toUpperCase();
+}

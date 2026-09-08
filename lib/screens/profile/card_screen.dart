@@ -8,6 +8,7 @@ import 'package:toastification/toastification.dart';
 
 import '../../models/bus_line_model.dart';
 import '../../utils/global.dart';
+import '../../utils/string_utils.dart';
 import '../widgets/loading_screen.dart';
 
 class CardScreen extends StatefulWidget {
@@ -54,7 +55,7 @@ class _CardScreenState extends State<CardScreen> {
         iosAlertMessage: "Đưa thẻ lại gần để quẹt",
       );
       if (tag.type == NFCTagType.iso15693) {
-        getCard(tag.id);
+        getCard(reverseNfcHexString(tag.id));
         await FlutterNfcKit.finish();
       } else {
         await FlutterNfcKit.finish();

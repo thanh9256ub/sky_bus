@@ -27,7 +27,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    tabs = pages.values.toList();
+    tabs = getPages().values.toList();
   }
 
   @override

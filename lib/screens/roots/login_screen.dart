@@ -20,7 +20,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool isLogin = false;
   final _key = GlobalKey<FormState>();
   String _verificationId = "";
   int _resendToken = 0;
@@ -258,7 +257,7 @@ class _LoginScreenState extends State<LoginScreen> {
       width: double.infinity,
       height: 52,
       child: ElevatedButton(
-        onPressed: isLogin ? pushToConfirm : signUp,
+        onPressed: signUp,
         style: ElevatedButton.styleFrom(
           backgroundColor: secondaryColor,
           foregroundColor: Colors.white,
@@ -266,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-        ).copyWith(shadowColor: WidgetStateProperty.all(Colors.transparent)),
+        ),
         child: Ink(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
@@ -286,8 +285,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Container(
             alignment: Alignment.center,
             child: Text(
-              // isLogin ? "ĐĂNG NHẬP" :
-              "ĐĂNG KÝ",
+              "XÁC NHẬN",
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -315,7 +313,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         child: Column(
-          key: const ValueKey('signup'),
           children: [
             TextFormField(
               decoration: _fieldDecoration(

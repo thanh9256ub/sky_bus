@@ -60,55 +60,6 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
     ).pushReplacement(MaterialPageRoute(builder: (context) => LoginScreen()));
   }
 
-  void showSignInDialog() async {
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: Text("Thông báo"),
-          content: Text(
-            "Bạn chưa đăng ký tài khoản. Vui lòng đăng kí để đặt vé",
-          ),
-          actions: [
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              label: Text(
-                "Hủy",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey,
-                foregroundColor: Colors.white,
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-            ),
-            ElevatedButton.icon(
-              onPressed: pushToLogin,
-              label: Text(
-                "Đăng kí",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   void initState() {
     super.initState();
@@ -131,10 +82,7 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
           child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: Colors.grey.shade200)),
-            ),
+            decoration: BoxDecoration(color: Colors.white),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -254,6 +202,64 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
                           ],
                         ),
                       ),
+                      SizedBox(height: 10),
+                      Visibility(
+                        visible: loginResponse.fullName.isEmpty,
+                        child: InkWell(
+                          onTap: pushToLogin,
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.symmetric(
+                              vertical: 10,
+                              horizontal: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.blue.shade200),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 18,
+                                  color: secondaryColor,
+                                ),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: RichText(
+                                    text: TextSpan(
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: secondaryColor,
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                          text: "Bạn chưa đăng ký tài khoản. ",
+                                        ),
+                                        TextSpan(
+                                          text: "Vui lòng đăng ký để đặt vé",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            decoration:
+                                                TextDecoration.underline,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.chevron_right,
+                                  size: 18,
+                                  color: secondaryColor,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                       SizedBox(height: 20),
                       confirmBtn(),
                     ],
@@ -305,41 +311,25 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
   Widget confirmBtn() {
     return Row(
       children: [
-        loginResponse.fullName.isNotEmpty
-            ? Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: addNewTicket,
-                  label: Text(
-                    "Xác nhận",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    elevation: 3,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                ),
-              )
-            : Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: showSignInDialog,
-                  label: Text(
-                    "Xác nhận",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    elevation: 3,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                ),
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: loginResponse.fullName.isNotEmpty
+                ? addNewTicket
+                : pushToLogin,
+            label: Text(
+              "Xác nhận",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
               ),
+            ),
+          ),
+        ),
         SizedBox(width: 10),
         Expanded(
           child: ElevatedButton.icon(

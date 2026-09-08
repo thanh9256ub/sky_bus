@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -22,14 +23,23 @@ class _CardScreenState extends State<CardScreen> {
   bool isRequesting = false;
   BusCard? busCard;
   String cardNo = "";
+  StreamSubscription? _nfcSubscription;
+
   void initNFC() async {
     NFCAvailability availability = await FlutterNfcKit.nfcAvailability;
     if (availability == NFCAvailability.available) {
-      FlutterNfcKit.tagStream.listen((tag) {
+      _nfcSubscription?.cancel();
+      _nfcSubscription = FlutterNfcKit.tagStream.listen((tag) async {
         if (tag.type == NFCTagType.iso15693) {
           getCard(tag.id);
+          await FlutterNfcKit.finish();
         }
       });
+    } else {
+      showToast(
+        "Thiết bị không hỗ trợ hoặc chưa bật NFC",
+        ToastificationType.error,
+      );
     }
   }
 
@@ -47,7 +57,9 @@ class _CardScreenState extends State<CardScreen> {
     });
     if (response.errorMessage.isEmpty) {
       if (response.busCard.cardNo.isNotEmpty) {
-        busCard = response.busCard;
+        setState(() {
+          busCard = response.busCard;
+        });
       } else {
         showToast("Không tìm thấy thẻ này", ToastificationType.error);
         return;
@@ -61,6 +73,13 @@ class _CardScreenState extends State<CardScreen> {
   void initState() {
     super.initState();
     initNFC();
+  }
+
+  @override
+  void dispose() {
+    _nfcSubscription?.cancel();
+    cardNoController.dispose();
+    super.dispose();
   }
 
   @override
@@ -99,21 +118,24 @@ class _CardScreenState extends State<CardScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: secondaryColor.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.wifi,
-                          color: secondaryColor,
-                          size: 40,
+                      InkWell(
+                        onTap: initNFC,
+                        child: Container(
+                          padding: EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: secondaryColor.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.wifi,
+                            color: secondaryColor,
+                            size: 40,
+                          ),
                         ),
                       ),
                       SizedBox(height: 10),
                       Text(
-                        "Vui lòng quẹt thẻ để kiểm tra \n hoặc \n Nhập mã thẻ ở dưới để xem",
+                        "Vui lòng ấn hình trên quẹt thẻ để kiểm tra \n hoặc \n Nhập mã thẻ ở dưới để xem",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.grey.shade400,

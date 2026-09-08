@@ -48,10 +48,9 @@ class _LoginScreenState extends State<LoginScreen> {
       },
       codeSent: (verificationId, forceResendingToken) {
         _verificationId = verificationId;
-        _resendToken = forceResendingToken!;
-        if (mounted) {
-          setState(() => isLoading = false);
-        }
+        _resendToken = forceResendingToken ?? 0;
+        if (!mounted) return;
+        setState(() => isLoading = false);
         pushToConfirm();
       },
       codeAutoRetrievalTimeout: (verificationId) {},

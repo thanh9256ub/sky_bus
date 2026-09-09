@@ -698,7 +698,7 @@ class _HomeScreenState extends State<HomeScreen>
           String distance = MapHelper.calculateDistance(
             currentLocation,
             LatLng(place.y, place.x),
-          ).toStringAsFixed(2);
+          ).toStringAsFixed(1);
           return IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -22,7 +22,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _key = GlobalKey<FormState>();
   String _verificationId = "";
-  int _resendToken = 0;
   bool isLoading = false;
 
   Future<void> sendOTP(String phoneNumber) async {
@@ -31,9 +30,6 @@ class _LoginScreenState extends State<LoginScreen> {
       timeout: Duration(seconds: 60),
       verificationCompleted: (phoneAuthCredential) {},
       verificationFailed: (error) {
-        if (mounted) {
-          setState(() => isLoading = false);
-        }
         showToast(
           error.code == 'too-many-requests'
               ? 'Tạm thời bị chặn do gửi quá nhiều yêu cầu. Vui lòng thử lại sau.'
@@ -47,9 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
       },
       codeSent: (verificationId, forceResendingToken) {
         _verificationId = verificationId;
-        _resendToken = forceResendingToken ?? 0;
-        if (!mounted) return;
-        setState(() => isLoading = false);
+        if (mounted) setState(() => isLoading = false);
         pushToConfirm();
       },
       codeAutoRetrievalTimeout: (verificationId) {},
@@ -59,20 +53,17 @@ class _LoginScreenState extends State<LoginScreen> {
   void pushToConfirm() {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => ConfirmPhoneLogin(
-          verificationId: _verificationId,
-          resendCode: _resendToken,
-        ),
+        builder: (context) =>
+            ConfirmPhoneLogin(verificationId: _verificationId),
       ),
     );
   }
 
   void signUp() async {
     if (!_key.currentState!.validate()) return;
-    setState(() => isLoading = true);
     AdminService service = AdminService();
+    setState(() => isLoading = true);
     final response = await service.signup(signUpRequest);
-    setState(() => isLoading = false);
     if (response.errorMessage.isEmpty) {
       saveData(F_ACCOUNT_ID, response.accountID);
       loginRequest.accountID = response.accountID;
@@ -89,6 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
         sendOTP(signUpRequest.mobileNo);
       } else {
         showToast(response.errorMessage, ToastificationType.error);
+        setState(() => isLoading = false);
       }
     }
   }

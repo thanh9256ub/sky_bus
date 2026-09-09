@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:skysoft_bus/service/bus_service.dart';
 import 'package:skysoft_bus/utils/date_utils.dart';
@@ -90,6 +91,11 @@ class _CardScreenState extends State<CardScreen> {
     } else {
       showToast(response.errorMessage, ToastificationType.error);
     }
+  }
+
+  void copyCardNo() async {
+    await Clipboard.setData(ClipboardData(text: busCard!.cardNo));
+    showToast("Copy thành công", ToastificationType.success);
   }
 
   @override
@@ -269,6 +275,10 @@ class _CardScreenState extends State<CardScreen> {
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.copy, size: 18, color: Colors.white),
+                          onPressed: copyCardNo,
                         ),
                       ],
                     ),

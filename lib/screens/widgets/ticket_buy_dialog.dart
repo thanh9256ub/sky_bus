@@ -33,24 +33,29 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
   TicketAddRequest ticketLine = TicketAddRequest();
 
   void addNewTicket() async {
-    ticketLine.lineID = widget.selectedLine.lineID;
-    ticketLine.fromPlaceID = widget.fromPlace.placeID;
-    ticketLine.toPlaceID = widget.toPlace.placeID;
-    ticketLine.quantity = quantity;
-    ticketLine.price = widget.matrix.price;
-    BusService service = BusService();
-    final response = await service.addNewTicket(ticketLine);
-    if (response.errorMessage.isEmpty) {
-      if (mounted) {
-        Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => TicketPaymentScreen(ticket: response.ticket),
-          ),
-          (route) => route.isFirst,
-        );
+    if (loginResponse.fullName.isNotEmpty) {
+      BusService service = BusService();
+      ticketLine.lineID = widget.selectedLine.lineID;
+      ticketLine.fromPlaceID = widget.fromPlace.placeID;
+      ticketLine.toPlaceID = widget.toPlace.placeID;
+      ticketLine.quantity = quantity;
+      ticketLine.price = widget.matrix.price;
+      final response = await service.addNewTicket(ticketLine);
+      if (response.errorMessage.isEmpty) {
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) =>
+                  TicketPaymentScreen(ticket: response.ticket),
+            ),
+            (route) => route.isFirst,
+          );
+        }
+      } else {
+        showToast(response.errorMessage, ToastificationType.error);
       }
     } else {
-      showToast(response.errorMessage, ToastificationType.error);
+      showToast("Vui lòng đăng nhập để đặt vé", ToastificationType.error);
     }
   }
 
@@ -215,16 +220,16 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
                               horizontal: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
+                              color: Colors.orange.shade50,
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.blue.shade200),
+                              border: Border.all(color: Colors.orange.shade200),
                             ),
                             child: Row(
                               children: [
                                 Icon(
                                   Icons.info_outline,
                                   size: 18,
-                                  color: secondaryColor,
+                                  color: Colors.orange.shade600,
                                 ),
                                 SizedBox(width: 8),
                                 Expanded(
@@ -232,7 +237,7 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
                                     text: TextSpan(
                                       style: TextStyle(
                                         fontSize: 13,
-                                        color: secondaryColor,
+                                        color: Colors.orange.shade600,
                                       ),
                                       children: [
                                         TextSpan(
@@ -253,7 +258,7 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
                                 Icon(
                                   Icons.chevron_right,
                                   size: 18,
-                                  color: secondaryColor,
+                                  color: Colors.orange.shade600,
                                 ),
                               ],
                             ),
@@ -313,9 +318,7 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
       children: [
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: loginResponse.fullName.isNotEmpty
-                ? addNewTicket
-                : pushToLogin,
+            onPressed: addNewTicket,
             label: Text(
               "Xác nhận",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

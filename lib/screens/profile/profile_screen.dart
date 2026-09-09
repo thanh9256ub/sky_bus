@@ -80,12 +80,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           iconColor: Color(0xFF4C6EF5),
                           onTap: pushToScreen,
                         ),
-                        SizedBox(height: 12),
-                        profileFeature(
-                          "Kiểm tra thẻ",
-                          icon: Icons.card_membership,
-                          iconColor: secondaryColor,
-                          onTap: pushToCardScreen,
+                        Visibility(
+                          visible: loginResponse.fullName.isNotEmpty,
+                          child: Column(
+                            children: [
+                              SizedBox(height: 12),
+                              profileFeature(
+                                "Kiểm tra thẻ",
+                                icon: Icons.card_membership,
+                                iconColor: secondaryColor,
+                                onTap: pushToCardScreen,
+                              ),
+                            ],
+                          ),
                         ),
                         SizedBox(height: 12),
                         profileFeature(

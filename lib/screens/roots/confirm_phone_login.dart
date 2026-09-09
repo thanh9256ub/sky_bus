@@ -13,12 +13,7 @@ import '../../service/admin_service.dart';
 
 class ConfirmPhoneLogin extends StatefulWidget {
   final String verificationId;
-  final int resendCode;
-  const ConfirmPhoneLogin({
-    super.key,
-    required this.resendCode,
-    required this.verificationId,
-  });
+  const ConfirmPhoneLogin({super.key, required this.verificationId});
 
   @override
   State<ConfirmPhoneLogin> createState() => _ConfirmPhoneLoginState();
@@ -29,6 +24,7 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
   PinTheme focusedPinTheme = PinTheme();
   AdminService service = AdminService();
   ActiveRequest request = ActiveRequest();
+  String validateMsg = "";
   bool isLoading = false;
 
   Future<void> verifyOTP(String smsCode) async {
@@ -53,12 +49,9 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
       } else {
         showToast("Lỗi thông tin user", ToastificationType.error);
       }
-    } on FirebaseAuthException catch (e) {
-      showToast(nvl(e.message), ToastificationType.error);
-    } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
+    } catch (e) {
+      if (mounted) setState(() => isLoading = false);
+      validateMsg = "Pin is incorrect";
     }
   }
 
@@ -73,7 +66,7 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
       login();
     } else {
       showToast(response.errorMessage, ToastificationType.error);
-      return;
+      setState(() => isLoading = false);
     }
   }
 
@@ -85,6 +78,7 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
       });
       await saveData(F_ACCOUNT_ID, loginRequest.accountID);
       if (mounted) {
+        setState(() => isLoading = false);
         showToast("Đăng nhập thành công", ToastificationType.success);
         Navigator.pushReplacement(
           context,
@@ -93,6 +87,7 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
       }
     } else {
       showToast(response.errorMessage, ToastificationType.error);
+      setState(() => isLoading = false);
     }
   }
 
@@ -224,15 +219,10 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
                     defaultPinTheme: defaultPinTheme,
                     focusedPinTheme: focusedPinTheme,
                     pinAnimationType: PinAnimationType.scale,
+                    hapticFeedbackType: HapticFeedbackType.lightImpact,
                     errorTextStyle: TextStyle(color: Colors.red, fontSize: 13),
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập mã OTP';
-                      }
-                      if (value.length < 6) {
-                        return 'Mã OTP phải gồm 6 số';
-                      }
-                      return null;
+                      return validateMsg.isNotEmpty ? validateMsg : null;
                     },
                     onCompleted: verifyOTP,
                   ),

@@ -2,6 +2,31 @@ import '../utils/fields.dart';
 import '../utils/string_utils.dart';
 import 'action_result.dart';
 
+enum MapLayerType {
+  skymap("Skymap", "https://maps.skysoft.vn/web_tile.jsp?c={x}&r={y}&z={z}"),
+  googleGM(
+    "Bản đồ Google",
+    "https://mt0.google.com/vt/&x={x}&y={y}&z={z}&hl=vi",
+  ),
+  googleGE(
+    "Bản đồ vệ tinh",
+    "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}&hl=vi",
+  );
+
+  const MapLayerType(this.name, this.url);
+
+  final String name;
+  final String url;
+
+  static MapLayerType? fromValue(String name) {
+    try {
+      return MapLayerType.values.firstWhere((e) => e.name == name);
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
 class PlaceMark {
   int placeID = 0;
   double x = 0;

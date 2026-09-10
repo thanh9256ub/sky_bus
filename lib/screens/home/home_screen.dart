@@ -10,6 +10,7 @@ import 'package:skysoft_bus/screens/home/busline_list_screen.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../models/bus_line_model.dart';
+import '../../models/place_model.dart';
 import '../../models/vehicle_model.dart';
 import '../../service/bus_service.dart';
 import '../../utils/global.dart';
@@ -28,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   bool get wantKeepAlive => true;
   LatLng currentLocation = LatLng(21.051873, 105.777787);
+  MapLayerType selectedMapLayer = MapLayerType.skymap;
   late final AnimatedMapController animatedMapController;
   final mapController = MapController();
   final popupController = PopupController();
@@ -142,6 +144,93 @@ class _HomeScreenState extends State<HomeScreen>
       showToast("Vui lòng chọn điểm đi và điểm đến", ToastificationType.error);
       return;
     }
+  }
+
+  void switchMap(MapLayerType value) async {
+    if (value == selectedMapLayer) return;
+    if (mounted) {
+      setState(() {
+        selectedMapLayer = value;
+      });
+      await searchNearBus();
+    }
+  }
+
+  void showPopupMenu(BuildContext context, TapDownDetails details) {
+    showMenu<String>(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      context: context,
+      position: RelativeRect.fromLTRB(
+        details.globalPosition.dx,
+        details.globalPosition.dy - 210,
+        details.globalPosition.dx,
+        details.globalPosition.dy,
+      ),
+      items: [
+        PopupMenuItem<String>(
+          onTap: () => switchMap(MapLayerType.skymap),
+          child: Row(
+            children: <Widget>[
+              SizedBox(
+                height: 32,
+                child: Image.asset(
+                  'assets/images/logo_32x32.png',
+                  fit: BoxFit.fitHeight,
+                ),
+              ),
+              SizedBox(width: 15.0),
+              Expanded(child: Text('Bản đồ Skymap')),
+              Visibility(
+                visible: selectedMapLayer == MapLayerType.skymap,
+                child: Icon(Icons.check, color: secondaryColor),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          onTap: () => switchMap(MapLayerType.googleGM),
+          child: Row(
+            children: <Widget>[
+              SizedBox(
+                height: 32,
+                child: Image.asset(
+                  'assets/images/default_mapicon.png',
+                  fit: BoxFit.fitHeight,
+                ),
+              ),
+              SizedBox(width: 15.0),
+              Expanded(child: Text('Bản đồ google')),
+              Visibility(
+                visible: selectedMapLayer == MapLayerType.googleGM,
+                child: Icon(Icons.check, color: secondaryColor),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          onTap: () => switchMap(MapLayerType.googleGE),
+          child: Row(
+            children: <Widget>[
+              SizedBox(
+                height: 32,
+                child: Image.asset(
+                  'assets/images/hybrid_mapicon.png',
+                  fit: BoxFit.fitHeight,
+                ),
+              ),
+              SizedBox(width: 15.0),
+              Expanded(child: Text('Bản đồ vệ tinh')),
+              Visibility(
+                visible: selectedMapLayer == MapLayerType.googleGE,
+                child: Icon(Icons.check, color: secondaryColor),
+              ),
+            ],
+          ),
+        ),
+      ],
+      elevation: 8.0,
+    );
   }
 
   void selectLine(BusLine busLine, {LatLng? focusPoint}) {
@@ -301,6 +390,7 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           mapWidget(),
           centerPointMap(),
+          layerMapWiget(),
           searchBusLine(),
           if (selectedBusLine != null) mainContent(),
         ],
@@ -331,7 +421,8 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         children: [
           TileLayer(
-            urlTemplate: '$skymapUrl/web_tile.jsp?c={x}&r={y}&z={z}',
+            key: ValueKey(selectedMapLayer.name),
+            urlTemplate: selectedMapLayer.url,
             userAgentPackageName: 'com.skysoft.sks_web',
           ),
           if (selectedBusLine != null && selectedBusLine!.wayPoints.length >= 2)
@@ -390,21 +481,6 @@ class _HomeScreenState extends State<HomeScreen>
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(
-                                  color: Color(line.color.toUnsigned(32)),
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Icon(
-                                Icons.directions_bus,
-                                color: Color(line.color.toUnsigned(32)),
-                                size: 18,
-                              ),
-                            ),
                             Visibility(
                               visible:
                                   mapController.camera.zoom >= 12 ||
@@ -420,6 +496,21 @@ class _HomeScreenState extends State<HomeScreen>
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                border: Border.all(
+                                  color: Color(line.color.toUnsigned(32)),
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Icon(
+                                Icons.directions_bus,
+                                color: Color(line.color.toUnsigned(32)),
+                                size: 18,
                               ),
                             ),
                           ],
@@ -443,6 +534,43 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  Widget layerMapWiget() {
+    return Positioned(
+      top: MediaQuery.of(context).size.height * 0.135,
+      right: 16,
+      child: Column(
+        children: [
+          InkWell(
+            onTap: getCurrentLocation,
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 5),
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: Colors.grey.shade400),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Icon(Icons.my_location, color: Colors.blue),
+            ),
+          ),
+          SizedBox(height: 10),
+          GestureDetector(
+            onTapDown: (details) => showPopupMenu(context, details),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: Colors.grey.shade400),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: const Icon(Icons.layers, color: Colors.green),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget searchBusLine() {
     return Positioned(
       top: MediaQuery.of(context).size.height * 0.02,
@@ -452,68 +580,49 @@ class _HomeScreenState extends State<HomeScreen>
         child: Material(
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(25),
-          child: Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  onTap: openBusLineListScreen,
-                  child: Container(
-                    height: 50,
+          child: InkWell(
+            onTap: openBusLineListScreen,
+            child: Container(
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: Colors.grey.shade400),
+              ),
+              child: Row(
+                children: [
+                  SizedBox(width: 16),
+                  Container(
+                    padding: EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: secondaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(25),
-                      border: Border.all(color: Colors.grey.shade400),
                     ),
-                    child: Row(
-                      children: [
-                        SizedBox(width: 16),
-                        Container(
-                          padding: EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: secondaryColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          child: Icon(Icons.search, color: secondaryColor),
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            selectedBusLine?.description ?? "Tìm kiếm tuyến xe",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.black,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                        if (selectedBusLine != null)
-                          IconButton(
-                            onPressed: clearSelectedBusLine,
-                            icon: const Icon(Icons.close),
-                          )
-                        else
-                          const SizedBox(width: 16),
-                      ],
+                    child: Icon(Icons.search, color: secondaryColor),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      selectedBusLine?.description ?? "Tìm kiếm tuyến xe",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.black,
+                        fontWeight: FontWeight.normal,
+                      ),
                     ),
                   ),
-                ),
+                  if (selectedBusLine != null)
+                    IconButton(
+                      onPressed: clearSelectedBusLine,
+                      icon: const Icon(Icons.close),
+                    )
+                  else
+                    const SizedBox(width: 16),
+                ],
               ),
-              InkWell(
-                onTap: getCurrentLocation,
-                child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 5),
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade400),
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  child: Icon(Icons.my_location, color: Colors.blue),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

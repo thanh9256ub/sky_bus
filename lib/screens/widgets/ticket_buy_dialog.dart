@@ -43,12 +43,11 @@ class _TicketBuyDialogState extends State<TicketBuyDialog> {
       final response = await service.addNewTicket(ticketLine);
       if (response.errorMessage.isEmpty) {
         if (mounted) {
-          Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+          Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) =>
                   TicketPaymentScreen(ticket: response.ticket),
             ),
-            (route) => route.isFirst,
           );
         }
       } else {

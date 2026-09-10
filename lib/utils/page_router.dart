@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:skysoft_bus/screens/home/home_screen.dart';
 import 'package:skysoft_bus/screens/profile/profile_screen.dart';
 import 'package:skysoft_bus/screens/ticket/ticket_list_screen.dart';
 import 'package:skysoft_bus/utils/global.dart';
 
 import '../models/tab_item.dart';
+import '../screens/home/home_screen.dart';
 import 'fields.dart';
 
 Map<String, TabItem> getPages() {

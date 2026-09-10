@@ -50,8 +50,12 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
         showToast("Lỗi thông tin user", ToastificationType.error);
       }
     } catch (e) {
-      if (mounted) setState(() => isLoading = false);
-      validateMsg = "Pin is incorrect";
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+          validateMsg = "Mã OTP không chính xác";
+        });
+      }
     }
   }
 

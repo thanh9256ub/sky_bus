@@ -24,7 +24,8 @@ class MapHelper {
   }
 
   static Future<bool> _executePermissionCheck() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
     if (!serviceEnabled) {
       return false;
     }
@@ -40,7 +41,9 @@ class MapHelper {
   }
 
   static Future<LatLng?> getCurrentLocation() async {
-    if (!await _checkPermission()) return null;
+    if (!await _checkPermission()) {
+      return null;
+    }
 
     if (currentLocation != null) {
       return currentLocation;
@@ -50,6 +53,7 @@ class MapHelper {
 
     if (lastKnown != null) {
       currentLocation = LatLng(lastKnown.latitude, lastKnown.longitude);
+
       return currentLocation;
     }
 
@@ -64,15 +68,14 @@ class MapHelper {
     return currentLocation;
   }
 
-  static void moveToLocation({
+  static Future<void> moveToLocation({
     required MapController mapController,
     AnimatedMapController? animatedController,
     required LatLng location,
     double zoom = 16,
-  }) {
-    if (animatedController != null &&
-        mapController.camera.nonRotatedSize.width > 0) {
-      animatedController.animateTo(
+  }) async {
+    if (animatedController != null) {
+      await animatedController.animateTo(
         dest: location,
         zoom: zoom,
         duration: const Duration(milliseconds: 1200),
@@ -83,14 +86,14 @@ class MapHelper {
     }
   }
 
-  static void moveToCurrentLocation({
+  static Future<void> moveToCurrentLocation({
     required MapController mapController,
     AnimatedMapController? animatedController,
     double zoom = 16,
-  }) {
+  }) async {
     if (currentLocation == null) return;
 
-    moveToLocation(
+    await moveToLocation(
       mapController: mapController,
       animatedController: animatedController,
       location: currentLocation!,
@@ -99,7 +102,7 @@ class MapHelper {
   }
 
   static double calculateDistance(LatLng start, LatLng end) {
-    double distanceInMeters = Geolocator.distanceBetween(
+    final double distanceInMeters = Geolocator.distanceBetween(
       start.latitude,
       start.longitude,
       end.latitude,

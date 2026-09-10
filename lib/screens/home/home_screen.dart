@@ -537,7 +537,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget layerMapWiget() {
     return Positioned(
       top: MediaQuery.of(context).size.height * 0.135,
-      right: 16,
+      right: 11,
       child: Column(
         children: [
           InkWell(

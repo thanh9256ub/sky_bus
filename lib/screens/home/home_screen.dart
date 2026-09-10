@@ -390,7 +390,6 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           mapWidget(),
           centerPointMap(),
-          layerMapWiget(),
           searchBusLine(),
           if (selectedBusLine != null) mainContent(),
         ],
@@ -534,42 +533,17 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget layerMapWiget() {
-    return Positioned(
-      top: MediaQuery.of(context).size.height * 0.135,
-      right: 11,
-      child: Column(
-        children: [
-          InkWell(
-            onTap: getCurrentLocation,
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 5),
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.grey.shade400),
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Icon(Icons.my_location, color: Colors.blue),
-            ),
-          ),
-          SizedBox(height: 10),
-          GestureDetector(
-            onTapDown: (details) => showPopupMenu(context, details),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.grey.shade400),
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: const Icon(Icons.layers, color: Colors.green),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget layerMapWiget() {
+  //   return Positioned(
+  //     top: MediaQuery.of(context).size.height * 0.135,
+  //     right: 11,
+  //     child: Column(
+  //       children: [
+
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget searchBusLine() {
     return Positioned(
@@ -580,49 +554,80 @@ class _HomeScreenState extends State<HomeScreen>
         child: Material(
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(25),
-          child: InkWell(
-            onTap: openBusLineListScreen,
-            child: Container(
-              height: 50,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(color: Colors.grey.shade400),
-              ),
-              child: Row(
-                children: [
-                  SizedBox(width: 16),
-                  Container(
-                    padding: EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: secondaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: Icon(Icons.search, color: secondaryColor),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              InkWell(
+                onTap: openBusLineListScreen,
+                child: Container(
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(25),
+                    border: Border.all(color: Colors.grey.shade400),
                   ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      selectedBusLine?.description ?? "Tìm kiếm tuyến xe",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.black,
-                        fontWeight: FontWeight.normal,
+                  child: Row(
+                    children: [
+                      SizedBox(width: 16),
+                      Container(
+                        padding: EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: secondaryColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        child: Icon(Icons.search, color: secondaryColor),
                       ),
-                    ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          selectedBusLine?.description ?? "Tìm kiếm tuyến xe",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.black,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      if (selectedBusLine != null)
+                        IconButton(
+                          onPressed: clearSelectedBusLine,
+                          icon: const Icon(Icons.close),
+                        )
+                      else
+                        const SizedBox(width: 16),
+                    ],
                   ),
-                  if (selectedBusLine != null)
-                    IconButton(
-                      onPressed: clearSelectedBusLine,
-                      icon: const Icon(Icons.close),
-                    )
-                  else
-                    const SizedBox(width: 16),
-                ],
+                ),
               ),
-            ),
+              SizedBox(height: 10),
+              GestureDetector(
+                onTap: getCurrentLocation,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey.shade400),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: const Icon(Icons.my_location, color: Colors.blue),
+                ),
+              ),
+              SizedBox(height: 10),
+              GestureDetector(
+                onTapDown: (details) => showPopupMenu(context, details),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey.shade400),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: const Icon(Icons.layers, color: Colors.green),
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -67,7 +67,6 @@ class _HomeScreenV2State extends State<HomeScreenV2>
   Timer? vehicleTimer;
   Timer? moveDebounce;
   bool skipNextPopClear = false;
-  bool showSkyMap = false;
 
   Set<Marker> placeMarkers = {};
   Set<Marker> vehicleMarkers = {};

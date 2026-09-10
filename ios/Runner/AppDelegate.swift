@@ -1,7 +1,7 @@
 import Flutter
 import UIKit
 import FirebaseCore
-
+import GoogleMaps
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   override func application(

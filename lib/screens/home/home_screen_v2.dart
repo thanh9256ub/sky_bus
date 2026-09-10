@@ -367,16 +367,6 @@ class _HomeScreenV2State extends State<HomeScreenV2>
     return result.isEmpty ? null : result.first;
   }
 
-  // ---------------------------------------------------------------------
-  // Xây dựng marker cho xe: MỖI xe tạo 2 Marker chồng cùng vị trí:
-  //  - marker "mũi tên" (xoay theo `v.direction`, icon cache theo màu trạng
-  //    thái xe -> rất ít bitmap khác nhau dù có nhiều xe).
-  //  - marker "biển số" (rotation luôn = 0 nên chữ luôn đứng thẳng, anchor
-  //    được tính sẵn để luôn nằm cố định ngay dưới mũi tên dù xe quay hướng
-  //    nào; icon cache theo biển số, chỉ vẽ lại khi xe đổi biển số).
-  // Cả 2 marker chỉ cần đổi `position` (và `rotation` cho marker mũi tên)
-  // mỗi lần cập nhật vị trí, không phải tạo lại BitmapDescriptor.
-  // ---------------------------------------------------------------------
   Future<void> rebuildVehicleMarkers() async {
     final List<Vehicle> vehicles = nearVehicles;
     final Set<Marker> markers = {};
@@ -411,6 +401,7 @@ class _HomeScreenV2State extends State<HomeScreenV2>
         ),
       );
     }
+
     VehiclePlateCache.instance.evictExcept(vehicles.map((v) => v.plateNo));
 
     if (!mounted) return;
@@ -419,20 +410,6 @@ class _HomeScreenV2State extends State<HomeScreenV2>
     });
   }
 
-  // ---------------------------------------------------------------------
-  // Xây dựng marker điểm dừng: icon được cache theo (màu tuyến, đã chọn hay
-  // chưa) nên dù có hàng trăm điểm dừng thuộc nhiều tuyến, số bitmap thực sự
-  // phải vẽ chỉ bằng số màu tuyến khác nhau x 2 (chọn/không chọn).
-  // ---------------------------------------------------------------------
-  // ---------------------------------------------------------------------
-  // Xây dựng marker điểm dừng.
-  // - Zoom < ngưỡng: chỉ hiện icon, không vẽ chữ (nhẹ, không cần toạ độ màn
-  //   hình).
-  // - Zoom >= ngưỡng: tính toạ độ màn hình của từng điểm, điểm nào đang được
-  //   chọn thì ưu tiên hiện chữ trước, sau đó lần lượt các điểm khác theo thứ
-  //   tự trong tuyến; điểm nào có vùng chữ đè lên vùng chữ đã "thắng" trước đó
-  //   thì bị ẩn chữ, chỉ còn icon (giống cơ chế tự ẩn nhãn của Google Maps).
-  // ---------------------------------------------------------------------
   Future<void> rebuildPlaceMarkers() async {
     final List<BusLine> linesToShow = selectedBusLine != null
         ? [selectedBusLine!]
@@ -474,7 +451,6 @@ class _HomeScreenV2State extends State<HomeScreenV2>
           final ScreenCoordinate sc = await controller.getScreenCoordinate(
             LatLng(place.y, place.x),
           );
-          // Ước lượng vùng chữ dựa trên độ dài mô tả, đặt ngay phía trên icon.
           final double approxWidth = (place.description.length * 7.0 + 20)
               .clamp(40, 150);
           final Rect labelRect = Rect.fromCenter(
@@ -537,23 +513,6 @@ class _HomeScreenV2State extends State<HomeScreenV2>
             .toList(),
         width: 4,
         color: Color(selectedBusLine!.color.toUnsigned(32)),
-      ),
-    };
-  }
-
-  Set<TileOverlay> get skyMapTileOverlays {
-    if (!showSkyMap) {
-      return {};
-    }
-
-    return {
-      TileOverlay(
-        tileOverlayId: const TileOverlayId('sky_map'),
-        tileProvider: skyMapTileProvider,
-        fadeIn: false,
-        transparency: 0.0,
-        visible: true,
-        zIndex: 100,
       ),
     };
   }

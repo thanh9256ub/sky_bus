@@ -137,7 +137,7 @@ class _CardScreenState extends State<CardScreen> {
         body: busCard == null
             ? Center(
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 24, horizontal: 24),
+                  padding: EdgeInsets.symmetric(vertical: 20, horizontal: 18),
                   margin: EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -163,15 +163,53 @@ class _CardScreenState extends State<CardScreen> {
                       ),
                       SizedBox(height: 10),
                       Text(
-                        "Vui lòng ấn hình trên quẹt thẻ để kiểm tra \n hoặc \n Nhập mã thẻ ở dưới để xem",
+                        Platform.isAndroid
+                            ? "Vui lòng quẹt thẻ để kiểm tra"
+                            : "Vui lòng ấn hình trên để quẹt thẻ",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.grey.shade400,
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 5),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Divider(
+                              thickness: 1,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "hoặc",
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Divider(
+                              thickness: 1,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 5),
+                      Text(
+                        " Nhập mã thẻ ở dưới để xem",
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
                       TextField(
                         controller: cardNoController,
                         decoration: InputDecoration(

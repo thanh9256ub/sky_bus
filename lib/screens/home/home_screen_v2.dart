@@ -1,48 +1,83 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_map_animations/flutter_map_animations.dart';
-import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:flutter/services.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart' as latlong;
 import 'package:skysoft_bus/screens/home/busline_list_screen.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../models/bus_line_model.dart';
-import '../../models/place_model.dart';
 import '../../models/vehicle_model.dart';
 import '../../service/bus_service.dart';
+import '../../utils/fields.dart';
 import '../../utils/global.dart';
+import '../../utils/image_utils.dart';
 import '../../utils/map_helper.dart';
+import '../../utils/sky_map_provider.dart';
 import '../widgets/ticket_buy_dialog.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomeScreenV2 extends StatefulWidget {
+  const HomeScreenV2({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreenV2> createState() => _HomeScreenV2State();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin, RouteAware {
+class _SkymapTileProvider implements TileProvider {
+  static const int width = 256;
+  static const int height = 256;
+
+  @override
+  Future<Tile> getTile(int x, int y, int? zoom) async {
+    String url = "$skymapUrl/web_tile.jsp?c=$x&r=$y&z=$zoom";
+
+    // String url = "https://tile.openstreetmap.org/$zoom/$x/$y.png";
+
+    try {
+      Uint8List byteData = (await NetworkAssetBundle(
+        Uri.parse(url),
+      ).load(url)).buffer.asUint8List();
+      return Tile(width, height, byteData);
+    } catch (e) {
+      return Tile(width, height, null);
+    }
+  }
+}
+
+class _HomeScreenV2State extends State<HomeScreenV2>
+    with AutomaticKeepAliveClientMixin, RouteAware {
   @override
   bool get wantKeepAlive => true;
-  LatLng currentLocation = LatLng(21.051873, 105.777787);
-  MapLayerType selectedMapLayer = MapLayerType.skymap;
-  late final AnimatedMapController animatedMapController;
-  final mapController = MapController();
-  final popupController = PopupController();
+  var _maptype = MapType.none;
+  LatLng currentLocation = const LatLng(21.051873, 105.777787);
+  double currentZoom = 16;
+  static const double _kPlaceLabelMinZoom = 12;
+  GoogleMapController? mapController;
   final searchController = TextEditingController();
   final sheetController = DraggableScrollableController();
   final _focusNode = FocusNode();
+  late final SkyMapTileProvider skyMapTileProvider;
+  TileOverlay? _tileOverlay;
   BusLine? selectedBusLine;
   List<BusLine> busLines = [];
   List<Vehicle> nearVehicles = [];
   List<int> selectedPlaceIds = [];
+
   Timer? vehicleTimer;
   Timer? moveDebounce;
   bool skipNextPopClear = false;
+  bool showSkyMap = false;
+
+  Set<Marker> placeMarkers = {};
+  Set<Marker> vehicleMarkers = {};
+  Marker? currentLocationMarker;
+
+  Set<Marker> get _allMarkers => {
+    ...placeMarkers,
+    ...vehicleMarkers,
+    ?currentLocationMarker,
+  };
 
   void getCurrentLocation() async {
     final location = await MapHelper.getCurrentLocation();
@@ -51,12 +86,16 @@ class _HomeScreenState extends State<HomeScreen>
       return;
     }
     setState(() {
-      currentLocation = location;
+      currentLocation = LatLng(location.latitude, location.longitude);
+      currentLocationMarker = Marker(
+        markerId: const MarkerId('current_location'),
+        position: currentLocation,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        anchor: const Offset(0.5, 0.5),
+      );
     });
-    MapHelper.moveToLocation(
-      mapController: mapController,
-      animatedController: animatedMapController,
-      location: currentLocation,
+    mapController?.animateCamera(
+      CameraUpdate.newLatLngZoom(currentLocation, 16),
     );
   }
 
@@ -75,51 +114,50 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  void clearSelectedBusLine() {
+  void clearSelectedBusLine() async {
     setState(() {
       selectedBusLine = null;
       selectedPlaceIds = [];
     });
+    rebuildPlaceMarkers();
   }
 
   void togglePlace(int placeId) {
     setState(() {
       if (selectedPlaceIds.contains(placeId)) {
         selectedPlaceIds.remove(placeId);
-        return;
       } else if (selectedPlaceIds.length < 2) {
         selectedPlaceIds.add(placeId);
-        return;
-      }
+      } else {
+        int? newIndex;
+        int? firstIndex;
+        int? secondIndex;
 
-      int? newIndex;
-      int? firstIndex;
-      int? secondIndex;
-
-      for (int i = 0; i < selectedBusLine!.placeMarks.length; i++) {
-        final id = selectedBusLine!.placeMarks[i].placeID;
-        if (id == placeId) {
-          newIndex = i;
-        } else if (id == selectedPlaceIds[0]) {
-          firstIndex = i;
-        } else if (id == selectedPlaceIds[1]) {
-          secondIndex = i;
+        for (int i = 0; i < selectedBusLine!.placeMarks.length; i++) {
+          final id = selectedBusLine!.placeMarks[i].placeID;
+          if (id == placeId) {
+            newIndex = i;
+          } else if (id == selectedPlaceIds[0]) {
+            firstIndex = i;
+          } else if (id == selectedPlaceIds[1]) {
+            secondIndex = i;
+          }
+        }
+        if (newIndex != null && firstIndex != null && secondIndex != null) {
+          final distanceToFirst = (newIndex - firstIndex).abs();
+          final distanceToSecond = (newIndex - secondIndex).abs();
+          if (distanceToFirst <= distanceToSecond) {
+            selectedPlaceIds[0] = placeId;
+          } else {
+            selectedPlaceIds[1] = placeId;
+          }
         }
       }
-      if (newIndex == null || firstIndex == null || secondIndex == null) {
-        return;
-      }
-      final distanceToFirst = (newIndex - firstIndex).abs();
-      final distanceToSecond = (newIndex - secondIndex).abs();
-      if (distanceToFirst <= distanceToSecond) {
-        selectedPlaceIds[0] = placeId;
-      } else {
-        selectedPlaceIds[1] = placeId;
-      }
     });
+    rebuildPlaceMarkers();
   }
 
-  Future<void> showDialogTicket(Matrix? matrix) async {
+  void showDialogTicket(Matrix? matrix) async {
     if (matrix == null) {
       showToast("Không tìm thấy giá vé", ToastificationType.error);
       return;
@@ -142,17 +180,68 @@ class _HomeScreenState extends State<HomeScreen>
       );
     } else {
       showToast("Vui lòng chọn điểm đi và điểm đến", ToastificationType.error);
-      return;
     }
   }
 
-  void switchMap(MapLayerType value) async {
-    if (value == selectedMapLayer) return;
+  void selectLine(BusLine busLine, {LatLng? focusPoint}) async {
+    setState(() {
+      selectedBusLine = busLine;
+      selectedPlaceIds = focusPoint == null
+          ? []
+          : (busLine.placeMarks
+                .where((p) => LatLng(p.y, p.x) == focusPoint)
+                .map((p) => p.placeID)
+                .toList());
+    });
+    rebuildPlaceMarkers();
+    LatLng target = currentLocation;
+    if (focusPoint != null) {
+      target = focusPoint;
+    } else if (busLine.startPoint != null) {
+      target = LatLng(
+        busLine.startPoint!.latitude,
+        busLine.startPoint!.longitude,
+      );
+    } else if (busLine.placeMarks.isNotEmpty) {
+      final first = busLine.placeMarks.first;
+      target = LatLng(first.y, first.x);
+    }
+
+    mapController?.animateCamera(CameraUpdate.newLatLngZoom(target, 16));
+  }
+
+  void switchMap(MapType value) {
     if (mounted) {
       setState(() {
-        selectedMapLayer = value;
+        _maptype = value;
+        saveData(F_MAP_TYPE, value.name);
+        if (value == MapType.none) {
+          _addTileOverlay();
+        } else {
+          _removeTileOverlay();
+        }
       });
-      await searchNearBus();
+    }
+  }
+
+  void _addTileOverlay() {
+    final TileOverlay tileOverlay = TileOverlay(
+      tileOverlayId: const TileOverlayId('skymap'),
+      tileProvider: _SkymapTileProvider(),
+      tileSize: 2048,
+    );
+    if (mounted) {
+      setState(() {
+        _tileOverlay = tileOverlay;
+      });
+    }
+  }
+
+  void _removeTileOverlay() {
+    if (mounted) {
+      setState(() {
+        _tileOverlay = null;
+      });
     }
   }
 
@@ -169,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       items: [
         PopupMenuItem<String>(
-          onTap: () => switchMap(MapLayerType.skymap),
+          onTap: () => switchMap(MapType.none),
           child: Row(
             children: <Widget>[
               SizedBox(
@@ -180,16 +269,12 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
               SizedBox(width: 15.0),
-              Expanded(child: Text('Bản đồ Skymap')),
-              Visibility(
-                visible: selectedMapLayer == MapLayerType.skymap,
-                child: Icon(Icons.check, color: secondaryColor),
-              ),
+              Text('Bản đồ Skymap'),
             ],
           ),
         ),
         PopupMenuItem<String>(
-          onTap: () => switchMap(MapLayerType.googleGM),
+          onTap: () => switchMap(MapType.normal),
           child: Row(
             children: <Widget>[
               SizedBox(
@@ -200,16 +285,12 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
               SizedBox(width: 15.0),
-              Expanded(child: Text('Bản đồ google')),
-              Visibility(
-                visible: selectedMapLayer == MapLayerType.googleGM,
-                child: Icon(Icons.check, color: secondaryColor),
-              ),
+              Text('Bản đồ google'),
             ],
           ),
         ),
         PopupMenuItem<String>(
-          onTap: () => switchMap(MapLayerType.googleGE),
+          onTap: () => switchMap(MapType.hybrid),
           child: Row(
             children: <Widget>[
               SizedBox(
@@ -220,11 +301,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
               SizedBox(width: 15.0),
-              Expanded(child: Text('Bản đồ vệ tinh')),
-              Visibility(
-                visible: selectedMapLayer == MapLayerType.googleGE,
-                child: Icon(Icons.check, color: secondaryColor),
-              ),
+              Text('Bản đồ vệ tinh'),
             ],
           ),
         ),
@@ -233,81 +310,36 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  void selectLine(BusLine busLine, {LatLng? focusPoint}) {
-    setState(() {
-      selectedBusLine = busLine;
-      selectedPlaceIds = [];
-    });
-
-    LatLng? target = focusPoint ?? busLine.startPoint;
-
-    if (target == null && busLine.placeMarks.isNotEmpty) {
-      final first = busLine.placeMarks.first;
-      target = LatLng(first.y, first.x);
-    }
-
-    if (target == null) return;
-
-    animatedMapController.animateTo(
-      dest: target,
-      zoom: 16,
-      duration: const Duration(milliseconds: 800),
-      curve: Curves.easeInOutCubic,
+  void searchNearBus() async {
+    final BusService busService = BusService();
+    final GoogleMapController? controller = mapController;
+    if (controller == null) return;
+    final LatLngBounds bounds = await controller.getVisibleRegion();
+    final LatLng center = LatLng(
+      (bounds.northeast.latitude + bounds.southwest.latitude) / 2,
+      (bounds.northeast.longitude + bounds.southwest.longitude) / 2,
     );
-  }
-
-  Future<void> searchNearBus() async {
-    BusService busService = BusService();
-    final center = mapController.camera.center;
     final response = await busService.searchNearVehicles(
       center.latitude,
       center.longitude,
     );
+    if (!mounted) return;
     if (response.errorMessage.isEmpty) {
-      if (mounted) {
-        setState(() {
-          nearVehicles = response.vehicles;
-        });
-      }
+      nearVehicles = response.vehicles;
+      await rebuildVehicleMarkers();
     } else {
       showToast(response.errorMessage, ToastificationType.error);
     }
   }
 
-  Marker createVehicleMarker(Vehicle e) {
-    return Marker(
-      point: LatLng(e.y, e.x),
-      width: 70,
-      height: 75,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            e.plateNo,
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-          ),
-          Transform.rotate(
-            angle: e.direction * math.pi / 180,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Icon(Icons.navigation, size: 32, color: Colors.black),
-                Icon(Icons.navigation, size: 26, color: getVehicleColor(e)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void getListBusLine() async {
-    BusService busService = BusService();
+    final BusService busService = BusService();
     final response = await busService.listBusLines();
     if (response.errorMessage.isEmpty && mounted) {
       setState(() {
         busLines = response.busLines;
       });
+      rebuildPlaceMarkers();
     } else {
       showToast(response.errorMessage, ToastificationType.error);
     }
@@ -332,21 +364,205 @@ class _HomeScreenState extends State<HomeScreen>
           (e.fromPlaceID == fromId && e.toPlaceID == toId) ||
           (e.fromPlaceID == toId && e.toPlaceID == fromId),
     );
-    if (result.isEmpty) {
-      return null;
-    } else {
-      return result.first;
+    return result.isEmpty ? null : result.first;
+  }
+
+  // ---------------------------------------------------------------------
+  // Xây dựng marker cho xe: MỖI xe tạo 2 Marker chồng cùng vị trí:
+  //  - marker "mũi tên" (xoay theo `v.direction`, icon cache theo màu trạng
+  //    thái xe -> rất ít bitmap khác nhau dù có nhiều xe).
+  //  - marker "biển số" (rotation luôn = 0 nên chữ luôn đứng thẳng, anchor
+  //    được tính sẵn để luôn nằm cố định ngay dưới mũi tên dù xe quay hướng
+  //    nào; icon cache theo biển số, chỉ vẽ lại khi xe đổi biển số).
+  // Cả 2 marker chỉ cần đổi `position` (và `rotation` cho marker mũi tên)
+  // mỗi lần cập nhật vị trí, không phải tạo lại BitmapDescriptor.
+  // ---------------------------------------------------------------------
+  Future<void> rebuildVehicleMarkers() async {
+    final List<Vehicle> vehicles = nearVehicles;
+    final Set<Marker> markers = {};
+
+    for (final Vehicle v in vehicles) {
+      final LatLng position = LatLng(v.y, v.x);
+
+      final BitmapDescriptor arrowIcon = await VehicleArrowCache.instance
+          .getIcon(getVehicleColor(v));
+      markers.add(
+        Marker(
+          markerId: MarkerId('vehicle_arrow_${v.plateNo}'),
+          position: position,
+          icon: arrowIcon,
+          anchor: kVehicleArrowAnchor,
+          rotation: v.direction.toDouble(),
+          flat: true,
+        ),
+      );
+
+      final CachedVehiclePlate plate = await VehiclePlateCache.instance.getIcon(
+        v.plateNo,
+      );
+      markers.add(
+        Marker(
+          markerId: MarkerId('vehicle_label_${v.plateNo}'),
+          position: position,
+          icon: plate.descriptor,
+          anchor: plate.anchor,
+          rotation: 0,
+          flat: true,
+        ),
+      );
     }
+    VehiclePlateCache.instance.evictExcept(vehicles.map((v) => v.plateNo));
+
+    if (!mounted) return;
+    setState(() {
+      vehicleMarkers = markers;
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Xây dựng marker điểm dừng: icon được cache theo (màu tuyến, đã chọn hay
+  // chưa) nên dù có hàng trăm điểm dừng thuộc nhiều tuyến, số bitmap thực sự
+  // phải vẽ chỉ bằng số màu tuyến khác nhau x 2 (chọn/không chọn).
+  // ---------------------------------------------------------------------
+  // ---------------------------------------------------------------------
+  // Xây dựng marker điểm dừng.
+  // - Zoom < ngưỡng: chỉ hiện icon, không vẽ chữ (nhẹ, không cần toạ độ màn
+  //   hình).
+  // - Zoom >= ngưỡng: tính toạ độ màn hình của từng điểm, điểm nào đang được
+  //   chọn thì ưu tiên hiện chữ trước, sau đó lần lượt các điểm khác theo thứ
+  //   tự trong tuyến; điểm nào có vùng chữ đè lên vùng chữ đã "thắng" trước đó
+  //   thì bị ẩn chữ, chỉ còn icon (giống cơ chế tự ẩn nhãn của Google Maps).
+  // ---------------------------------------------------------------------
+  Future<void> rebuildPlaceMarkers() async {
+    final List<BusLine> linesToShow = selectedBusLine != null
+        ? [selectedBusLine!]
+        : busLines;
+
+    final List<({BusLine line, Place place})> candidates = [
+      for (final line in linesToShow)
+        for (final place in line.placeMarks) (line: line, place: place),
+    ];
+
+    if (candidates.isEmpty) {
+      if (!mounted) return;
+      setState(() => placeMarkers = {});
+      return;
+    }
+
+    // Điểm đang chọn ưu tiên giữ chữ trước.
+    candidates.sort((a, b) {
+      final aSelected = selectedPlaceIds.contains(a.place.placeID);
+      final bSelected = selectedPlaceIds.contains(b.place.placeID);
+      if (aSelected == bSelected) return 0;
+      return aSelected ? -1 : 1;
+    });
+
+    final bool zoomAllowsLabel = currentZoom >= _kPlaceLabelMinZoom;
+    final GoogleMapController? controller = mapController;
+    final List<Rect> acceptedLabelRects = [];
+    final Set<Marker> markers = {};
+
+    for (final candidate in candidates) {
+      final BusLine line = candidate.line;
+      final place = candidate.place;
+      final bool selected = selectedPlaceIds.contains(place.placeID);
+      final Color lineColor = Color(line.color.toUnsigned(32));
+
+      bool showLabel = false;
+      if (zoomAllowsLabel && controller != null) {
+        try {
+          final ScreenCoordinate sc = await controller.getScreenCoordinate(
+            LatLng(place.y, place.x),
+          );
+          // Ước lượng vùng chữ dựa trên độ dài mô tả, đặt ngay phía trên icon.
+          final double approxWidth = (place.description.length * 7.0 + 20)
+              .clamp(40, 150);
+          final Rect labelRect = Rect.fromCenter(
+            center: Offset(sc.x.toDouble(), sc.y.toDouble() - 24),
+            width: approxWidth,
+            height: 34,
+          );
+          if (!acceptedLabelRects.any((r) => r.overlaps(labelRect))) {
+            showLabel = true;
+            acceptedLabelRects.add(labelRect);
+          }
+        } catch (_) {
+          // Điểm nằm ngoài vùng nhìn thấy hoặc controller chưa sẵn sàng.
+          showLabel = false;
+        }
+      }
+
+      final CachedPlaceIcon placeIcon = await PlaceIconCache.instance.getIcon(
+        lineColor: lineColor,
+        selected: selected,
+        description: place.description,
+        showLabel: showLabel,
+      );
+
+      markers.add(
+        Marker(
+          markerId: MarkerId('place_${line.hashCode}_${place.placeID}'),
+          position: LatLng(place.y, place.x),
+          icon: placeIcon.descriptor,
+          anchor: placeIcon.anchor,
+          onTap: () {
+            if (selectedBusLine != line) {
+              selectLine(line, focusPoint: LatLng(place.y, place.x));
+              return;
+            }
+            togglePlace(place.placeID);
+            mapController?.animateCamera(
+              CameraUpdate.newLatLng(LatLng(place.y, place.x)),
+            );
+          },
+        ),
+      );
+    }
+
+    if (!mounted) return;
+    setState(() {
+      placeMarkers = markers;
+    });
+  }
+
+  Set<Polyline> get _polylines {
+    if (selectedBusLine == null || selectedBusLine!.wayPoints.length < 2) {
+      return {};
+    }
+    return {
+      Polyline(
+        polylineId: PolylineId('line_${selectedBusLine!.hashCode}'),
+        points: selectedBusLine!.wayPoints
+            .map((e) => LatLng(e.latitude, e.longitude))
+            .toList(),
+        width: 4,
+        color: Color(selectedBusLine!.color.toUnsigned(32)),
+      ),
+    };
+  }
+
+  Set<TileOverlay> get skyMapTileOverlays {
+    if (!showSkyMap) {
+      return {};
+    }
+
+    return {
+      TileOverlay(
+        tileOverlayId: const TileOverlayId('sky_map'),
+        tileProvider: skyMapTileProvider,
+        fadeIn: false,
+        transparency: 0.0,
+        visible: true,
+        zIndex: 100,
+      ),
+    };
   }
 
   @override
   void initState() {
     super.initState();
-    animatedMapController = AnimatedMapController(
-      vsync: this,
-      mapController: mapController,
-    );
-    vehicleTimer = Timer.periodic(Duration(seconds: 5), (timer) {
+    skyMapTileProvider = SkyMapTileProvider(baseUrl: skymapUrl);
+    vehicleTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       searchNearBus();
     });
     getCurrentLocation();
@@ -357,11 +573,12 @@ class _HomeScreenState extends State<HomeScreen>
   void dispose() {
     routeObserver.unsubscribe(this);
     vehicleTimer?.cancel();
+    moveDebounce?.cancel();
     searchController.dispose();
     _focusNode.dispose();
-    popupController.dispose();
-    mapController.dispose();
-    animatedMapController.dispose();
+    mapController?.dispose();
+    VehicleArrowCache.instance.clear();
+    VehiclePlateCache.instance.clear();
     super.dispose();
   }
 
@@ -383,12 +600,13 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final Set<TileOverlay> overlays = <TileOverlay>{?_tileOverlay};
     return Scaffold(
       backgroundColor: Colors.white,
       resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
-          mapWidget(),
+          mapWidget(overlays),
           centerPointMap(),
           searchBusLine(),
           if (selectedBusLine != null) mainContent(),
@@ -397,138 +615,45 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget mapWidget() {
-    return Positioned.fill(
-      child: FlutterMap(
-        mapController: mapController,
-        options: MapOptions(
-          initialCenter: currentLocation,
-          initialZoom: 16,
-          minZoom: 8,
-          maxZoom: 16,
-          interactionOptions: InteractionOptions(
-            flags:
-                InteractiveFlag.drag |
-                InteractiveFlag.pinchZoom |
-                InteractiveFlag.flingAnimation,
-          ),
-          onPositionChanged: (position, hasGesture) {
-            if (!hasGesture) return;
-            moveDebounce?.cancel();
-            moveDebounce = Timer(Duration(milliseconds: 1500), searchNearBus);
-          },
-        ),
-        children: [
-          TileLayer(
-            key: ValueKey(selectedMapLayer.name),
-            urlTemplate: selectedMapLayer.url,
-            userAgentPackageName: 'com.skysoft.sks_web',
-          ),
-          if (selectedBusLine != null && selectedBusLine!.wayPoints.length >= 2)
-            PolylineLayer(
-              polylines: [
-                Polyline(
-                  points: selectedBusLine!.wayPoints
-                      .map((e) => LatLng(e.latitude, e.longitude))
-                      .toList(),
-                  strokeWidth: 4,
-                  color: Color(selectedBusLine!.color.toUnsigned(32)),
-                ),
-              ],
-            ),
-          PopupMarkerLayer(
-            options: PopupMarkerLayerOptions(
-              markers: [
-                ...nearVehicles.map((e) => createVehicleMarker(e)),
-                Marker(
-                  point: currentLocation,
-                  width: 50,
-                  height: 50,
-                  child: Icon(Icons.location_on, color: Colors.blue, size: 24),
-                ),
-              ],
-              popupController: popupController,
-            ),
-          ),
-          MarkerLayer(
-            markers: (selectedBusLine != null ? [selectedBusLine!] : busLines)
-                .expand((line) {
-                  return line.placeMarks.map((place) {
-                    return Marker(
-                      point: LatLng(place.y, place.x),
-                      width: MediaQuery.of(context).size.width * 0.27,
-                      height: MediaQuery.of(context).size.height * 0.07,
-                      child: GestureDetector(
-                        onTap: () {
-                          if (selectedBusLine != line) {
-                            selectLine(
-                              line,
-                              focusPoint: LatLng(place.y, place.x),
-                            );
-                            setState(() {
-                              selectedPlaceIds = [place.placeID];
-                            });
-                            return;
-                          }
-                          togglePlace(place.placeID);
-                          MapHelper.moveToLocation(
-                            mapController: mapController,
-                            animatedController: animatedMapController,
-                            location: LatLng(place.y, place.x),
-                          );
-                        },
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Visibility(
-                              visible:
-                                  mapController.camera.zoom >= 12 ||
-                                  selectedBusLine != null,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 2),
-                                child: Text(
-                                  place.description,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(
-                                  color: Color(line.color.toUnsigned(32)),
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Icon(
-                                Icons.directions_bus,
-                                color: Color(line.color.toUnsigned(32)),
-                                size: 18,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  });
-                })
-                .toList(),
-          ),
-        ],
+  Widget centerPointMap() {
+    return const Positioned.fill(
+      child: IgnorePointer(
+        child: Center(child: Icon(Icons.add, color: Colors.red, size: 18)),
       ),
     );
   }
 
-  Widget centerPointMap() {
+  Widget mapWidget(Set<TileOverlay> overlays) {
     return Positioned.fill(
-      child: IgnorePointer(
-        child: Center(child: Icon(Icons.add, color: Colors.red, size: 18)),
+      child: GoogleMap(
+        initialCameraPosition: CameraPosition(
+          target: currentLocation,
+          zoom: 16,
+        ),
+        mapType: _maptype,
+        tileOverlays: overlays,
+        minMaxZoomPreference: const MinMaxZoomPreference(8, 18),
+        myLocationButtonEnabled: false,
+        myLocationEnabled: false,
+        zoomControlsEnabled: false,
+        rotateGesturesEnabled: false,
+        markers: _allMarkers,
+        polylines: _polylines,
+        onMapCreated: (controller) {
+          mapController = controller;
+          rebuildPlaceMarkers();
+        },
+        onCameraMove: (position) {
+          currentZoom = position.zoom;
+        },
+        onCameraIdle: () {
+          rebuildPlaceMarkers();
+          moveDebounce?.cancel();
+          moveDebounce = Timer(
+            const Duration(milliseconds: 1500),
+            searchNearBus,
+          );
+        },
       ),
     );
   }
@@ -635,7 +760,7 @@ class _HomeScreenState extends State<HomeScreen>
       minChildSize: 0.32,
       maxChildSize: maxSize,
       snap: true,
-      snapSizes: [0.32, 0.82],
+      snapSizes: const [0.32, 0.82],
       builder: (context, scrollController) {
         final matrixPrice = getSelectedMatrixPrice();
         return Container(
@@ -648,74 +773,44 @@ class _HomeScreenState extends State<HomeScreen>
           child: Column(
             children: [
               if (selectedBusLine!.placeMarks.isNotEmpty)
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onVerticalDragUpdate: (details) {
-                    final screenHeight = MediaQuery.of(context).size.height;
-                    final newSize =
-                        sheetController.size - details.delta.dy / screenHeight;
-                    sheetController.jumpTo(newSize.clamp(0.32, 0.82));
-                  },
-                  onVerticalDragEnd: (details) {
-                    const flickVelocityThreshold = 300.0;
-                    final velocity = details.primaryVelocity ?? 0;
-
-                    double target;
-                    if (velocity.abs() > flickVelocityThreshold) {
-                      target = velocity < 0 ? 0.82 : 0.32;
-                    } else {
-                      target = sheetController.size < 0.4 ? 0.32 : 0.82;
-                    }
-                    sheetController.animateTo(
-                      target,
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeOut,
-                    );
-                  },
-                  child: Column(
+                Container(
+                  margin: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: secondaryColor,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: secondaryColor.withValues(alpha: 0.35),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
                     children: [
-                      if (selectedBusLine!.placeMarks.isNotEmpty)
-                        Container(
-                          margin: const EdgeInsets.fromLTRB(16, 10, 16, 4),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: secondaryColor,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: secondaryColor.withValues(alpha: 0.35),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.alt_route_rounded,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  "${selectedBusLine!.placeMarks.first.description} → "
-                                  "${selectedBusLine!.placeMarks.last.description}",
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
+                      const Icon(
+                        Icons.alt_route_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "${selectedBusLine!.placeMarks.first.description} → "
+                          "${selectedBusLine!.placeMarks.last.description}",
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.white,
                           ),
                         ),
+                      ),
                     ],
                   ),
                 ),
@@ -728,9 +823,7 @@ class _HomeScreenState extends State<HomeScreen>
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {
-                        showDialogTicket(matrixPrice);
-                      },
+                      onPressed: () => showDialogTicket(matrixPrice),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: secondaryColor,
                         foregroundColor: Colors.white,
@@ -741,12 +834,11 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                       ),
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.confirmation_number_outlined),
-                          SizedBox(width: 10),
-                          Text(
+                          const Icon(Icons.confirmation_number_outlined),
+                          const SizedBox(width: 10),
+                          const Text(
                             "Đặt vé",
                             style: TextStyle(
                               fontSize: 16,
@@ -754,9 +846,9 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                           ),
                           if (matrixPrice != null) ...[
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Container(
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
                                 vertical: 4,
                               ),
@@ -766,7 +858,7 @@ class _HomeScreenState extends State<HomeScreen>
                               ),
                               child: Text(
                                 "${moneyFormat.format(matrixPrice.price)},000đ",
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -789,19 +881,22 @@ class _HomeScreenState extends State<HomeScreen>
   Widget buildListItem(ScrollController scrollController) {
     return Expanded(
       child: ListView.builder(
-        padding: EdgeInsets.only(top: 0, bottom: 12, left: 16, right: 16),
+        padding: const EdgeInsets.only(top: 0, bottom: 12, left: 16, right: 16),
         controller: scrollController,
         itemCount: selectedBusLine!.placeMarks.length,
+        // Giữ nguyên identity của item widget theo placeID để Flutter có thể
+        // tái sử dụng Element thay vì build lại toàn bộ hàng khi list scroll.
         itemBuilder: (context, index) {
           final place = selectedBusLine!.placeMarks[index];
           final isSelected = selectedPlaceIds.contains(place.placeID);
           final isFirst = index == 0;
           final isLast = index == selectedBusLine!.placeMarks.length - 1;
-          String distance = MapHelper.calculateDistance(
-            currentLocation,
-            LatLng(place.y, place.x),
+          final String distance = MapHelper.calculateDistance(
+            latlong.LatLng(currentLocation.latitude, currentLocation.longitude),
+            latlong.LatLng(place.y, place.x),
           ).toStringAsFixed(1);
           return IntrinsicHeight(
+            key: ValueKey(place.placeID),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -847,7 +942,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 Expanded(
                   child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(color: Colors.grey.shade300),
@@ -859,10 +954,10 @@ class _HomeScreenState extends State<HomeScreen>
                           child: InkWell(
                             borderRadius: BorderRadius.circular(10),
                             onTap: () {
-                              MapHelper.moveToLocation(
-                                mapController: mapController,
-                                animatedController: animatedMapController,
-                                location: LatLng(place.y, place.x),
+                              mapController?.animateCamera(
+                                CameraUpdate.newLatLng(
+                                  LatLng(place.y, place.x),
+                                ),
                               );
                               sheetController.animateTo(
                                 0.25,
@@ -920,7 +1015,10 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                         Text(
                           "$distance km",
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                          ),
                         ),
                         Transform.scale(
                           scale: 1.1,
@@ -930,9 +1028,7 @@ class _HomeScreenState extends State<HomeScreen>
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            onChanged: (value) {
-                              togglePlace(place.placeID);
-                            },
+                            onChanged: (value) => togglePlace(place.placeID),
                           ),
                         ),
                       ],

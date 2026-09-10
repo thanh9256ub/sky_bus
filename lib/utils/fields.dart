@@ -46,6 +46,7 @@ const String F_SECURE_KEY = "secureKey";
 const String F_UID = "uid";
 const String F_SESSION_ID = "sessionID";
 const String F_SMS_CODE = "smsCode";
+const String F_MAP_TYPE = "mapType";
 
 // admin
 const String F_OLD_PASSWORD = "oldPassword";

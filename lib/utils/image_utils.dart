@@ -70,7 +70,7 @@ TextPainter _markerTextPainter(
     style: TextStyle(
       fontSize: fontSize,
       fontWeight: FontWeight.bold,
-      color: textColor,
+      color: Colors.black87,
       shadows: const [
         Shadow(offset: Offset(-1.5, -1.5), color: Colors.white),
         Shadow(offset: Offset(1.5, -1.5), color: Colors.white),
@@ -141,8 +141,8 @@ Future<Uint8List> _createVehicleArrowBitmap(Color vehicleColor) async {
   final Canvas canvas = Canvas(recorder);
   final Offset center = Offset(box / 2, box / 2);
 
-  _paintIcon(canvas, Icons.navigation, 34 * kMarkerScale, Colors.black, center);
-  _paintIcon(canvas, Icons.navigation, 28 * kMarkerScale, vehicleColor, center);
+  _paintIcon(canvas, Icons.navigation, 28 * kMarkerScale, Colors.grey, center);
+  _paintIcon(canvas, Icons.navigation, 24 * kMarkerScale, vehicleColor, center);
 
   return _finishRecording(recorder, box.toInt(), box.toInt());
 }
@@ -179,7 +179,7 @@ Future<_PlateBitmap> _createVehiclePlateBitmap(
   // Anchor: điểm x luôn ở giữa; điểm y = paddingTop/canvasHeight, tức là vị
   // trí thực của xe nằm ngay tại mép trên vùng chữ (phần padding trong suốt
   // phía trên không hiển thị gì).
-  final Offset anchor = Offset(0.5, 0.5);
+  final Offset anchor = Offset(0.5, 0.6);
   return _PlateBitmap(bytes, anchor);
 }
 
@@ -316,7 +316,7 @@ class CachedPlaceIcon {
   CachedPlaceIcon(this.descriptor, this.anchor);
 }
 
-const double _kPlaceIconSize = 34.0;
+const double _kPlaceIconSize = 28.0;
 const double _kPlaceLabelMaxWidth = 150.0;
 const double _kPlaceLabelGapPx = 4.0 * kMarkerScale;
 
@@ -340,20 +340,14 @@ Future<CachedPlaceIcon> _createPlaceMarkerIconOnly({
   final Paint borderPaint = Paint()
     ..color = lineColor
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 2.0 * kMarkerScale;
+    ..strokeWidth = 1.2 * kMarkerScale;
 
-  canvas.drawShadow(
-    Path()..addOval(Rect.fromCircle(center: center, radius: radius - 1)),
-    Colors.black,
-    2.0,
-    false,
-  );
   canvas.drawCircle(center, radius - padding / 2, fillPaint);
   canvas.drawCircle(center, radius - padding / 2, borderPaint);
   _paintIcon(
     canvas,
     Icons.directions_bus,
-    18 * kMarkerScale,
+    _kPlaceIconSize * kMarkerScale * 0.64,
     selected ? Colors.white : lineColor,
     center,
   );

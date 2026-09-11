@@ -31,9 +31,6 @@ class _SkymapTileProvider implements TileProvider {
   @override
   Future<Tile> getTile(int x, int y, int? zoom) async {
     String url = "$skymapUrl/web_tile.jsp?c=$x&r=$y&z=$zoom";
-
-    // String url = "https://tile.openstreetmap.org/$zoom/$x/$y.png";
-
     try {
       Uint8List byteData = (await NetworkAssetBundle(
         Uri.parse(url),
@@ -52,7 +49,6 @@ class _HomeScreenV2State extends State<HomeScreenV2>
   var _maptype = MapType.none;
   LatLng currentLocation = const LatLng(21.051873, 105.777787);
   double currentZoom = 16;
-  static const double _kPlaceLabelMinZoom = 12;
   GoogleMapController? mapController;
   final searchController = TextEditingController();
   final sheetController = DraggableScrollableController();
@@ -70,13 +66,8 @@ class _HomeScreenV2State extends State<HomeScreenV2>
 
   Set<Marker> placeMarkers = {};
   Set<Marker> vehicleMarkers = {};
-  Marker? currentLocationMarker;
 
-  Set<Marker> get _allMarkers => {
-    ...placeMarkers,
-    ...vehicleMarkers,
-    ?currentLocationMarker,
-  };
+  Set<Marker> get _allMarkers => {...placeMarkers, ...vehicleMarkers};
 
   void getCurrentLocation() async {
     final location = await MapHelper.getCurrentLocation();
@@ -86,12 +77,6 @@ class _HomeScreenV2State extends State<HomeScreenV2>
     }
     setState(() {
       currentLocation = LatLng(location.latitude, location.longitude);
-      currentLocationMarker = Marker(
-        markerId: const MarkerId('current_location'),
-        position: currentLocation,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-        anchor: const Offset(0.5, 0.5),
-      );
     });
     mapController?.animateCamera(
       CameraUpdate.newLatLngZoom(currentLocation, 16),
@@ -209,39 +194,26 @@ class _HomeScreenV2State extends State<HomeScreenV2>
     mapController?.animateCamera(CameraUpdate.newLatLngZoom(target, 16));
   }
 
-  void switchMap(MapType value) {
-    if (mounted) {
-      setState(() {
-        _maptype = value;
-        saveData(F_MAP_TYPE, value.name);
-        if (value == MapType.none) {
-          _addTileOverlay();
-        } else {
-          _removeTileOverlay();
-        }
-      });
-    }
-  }
-
-  void _addTileOverlay() {
-    final TileOverlay tileOverlay = TileOverlay(
+  TileOverlay _createSkyMapOverlay() {
+    return TileOverlay(
       tileOverlayId: const TileOverlayId('skymap'),
       tileProvider: _SkymapTileProvider(),
-      tileSize: 2048,
+      tileSize: 256,
     );
-    if (mounted) {
-      setState(() {
-        _tileOverlay = tileOverlay;
-      });
-    }
   }
 
-  void _removeTileOverlay() {
-    if (mounted) {
-      setState(() {
+  void switchMap(MapType value) {
+    if (!mounted) return;
+
+    setState(() {
+      _maptype = value;
+      saveData(F_MAP_TYPE, value.name);
+      if (value == MapType.none) {
+        _tileOverlay ??= _createSkyMapOverlay();
+      } else {
         _tileOverlay = null;
-      });
-    }
+      }
+    });
   }
 
   void showPopupMenu(BuildContext context, TapDownDetails details) {
@@ -313,11 +285,6 @@ class _HomeScreenV2State extends State<HomeScreenV2>
     mapController = controller;
     mapController!.moveCamera(CameraUpdate.newLatLng(currentLocation));
     rebuildPlaceMarkers();
-
-    Future.delayed(const Duration(milliseconds: 200), () {
-      if (!mounted) return;
-      switchMap(_maptype);
-    });
   }
 
   void searchNearBus() async {
@@ -394,6 +361,7 @@ class _HomeScreenV2State extends State<HomeScreenV2>
           anchor: kVehicleArrowAnchor,
           rotation: v.direction.toDouble(),
           flat: true,
+          consumeTapEvents: true,
         ),
       );
 
@@ -408,6 +376,7 @@ class _HomeScreenV2State extends State<HomeScreenV2>
           anchor: plate.anchor,
           rotation: 0,
           flat: true,
+          consumeTapEvents: true,
         ),
       );
     }
@@ -444,7 +413,7 @@ class _HomeScreenV2State extends State<HomeScreenV2>
       return aSelected ? -1 : 1;
     });
 
-    final bool zoomAllowsLabel = currentZoom >= _kPlaceLabelMinZoom;
+    final bool zoomAllowsLabel = selectedBusLine != null || currentZoom >= 12;
     final GoogleMapController? controller = mapController;
     final List<Rect> acceptedLabelRects = [];
     final Set<Marker> markers = {};
@@ -473,7 +442,6 @@ class _HomeScreenV2State extends State<HomeScreenV2>
             acceptedLabelRects.add(labelRect);
           }
         } catch (_) {
-          // Điểm nằm ngoài vùng nhìn thấy hoặc controller chưa sẵn sàng.
           showLabel = false;
         }
       }
@@ -531,6 +499,7 @@ class _HomeScreenV2State extends State<HomeScreenV2>
   void initState() {
     super.initState();
     skyMapTileProvider = SkyMapTileProvider(baseUrl: skymapUrl);
+    _tileOverlay = _createSkyMapOverlay();
     vehicleTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       searchNearBus();
     });
@@ -549,21 +518,6 @@ class _HomeScreenV2State extends State<HomeScreenV2>
     VehicleArrowCache.instance.clear();
     VehiclePlateCache.instance.clear();
     super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    routeObserver.subscribe(this, ModalRoute.of(context) as PageRoute);
-  }
-
-  @override
-  void didPopNext() {
-    if (skipNextPopClear) {
-      skipNextPopClear = false;
-      return;
-    }
-    clearSelectedBusLine();
   }
 
   @override
@@ -603,7 +557,7 @@ class _HomeScreenV2State extends State<HomeScreenV2>
         tileOverlays: overlays,
         minMaxZoomPreference: const MinMaxZoomPreference(8, 18),
         myLocationButtonEnabled: false,
-        myLocationEnabled: false,
+        myLocationEnabled: true,
         zoomControlsEnabled: false,
         rotateGesturesEnabled: false,
         markers: _allMarkers,
@@ -680,19 +634,7 @@ class _HomeScreenV2State extends State<HomeScreenV2>
                   ),
                 ),
               ),
-              SizedBox(height: 10),
-              GestureDetector(
-                onTap: getCurrentLocation,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade400),
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  child: const Icon(Icons.my_location, color: Colors.blue),
-                ),
-              ),
+
               SizedBox(height: 10),
               GestureDetector(
                 onTapDown: (details) => showPopupMenu(context, details),
@@ -704,6 +646,19 @@ class _HomeScreenV2State extends State<HomeScreenV2>
                     borderRadius: BorderRadius.circular(25),
                   ),
                   child: const Icon(Icons.layers, color: Colors.green),
+                ),
+              ),
+              SizedBox(height: 10),
+              GestureDetector(
+                onTap: getCurrentLocation,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey.shade400),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: const Icon(Icons.my_location, color: Colors.blue),
                 ),
               ),
             ],

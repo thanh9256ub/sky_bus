@@ -1,6 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -66,39 +63,6 @@ class MapHelper {
     currentLocation = LatLng(pos.latitude, pos.longitude);
 
     return currentLocation;
-  }
-
-  static Future<void> moveToLocation({
-    required MapController mapController,
-    AnimatedMapController? animatedController,
-    required LatLng location,
-    double zoom = 16,
-  }) async {
-    if (animatedController != null) {
-      await animatedController.animateTo(
-        dest: location,
-        zoom: zoom,
-        duration: const Duration(milliseconds: 1200),
-        curve: Curves.easeInOutCubic,
-      );
-    } else {
-      mapController.move(location, zoom);
-    }
-  }
-
-  static Future<void> moveToCurrentLocation({
-    required MapController mapController,
-    AnimatedMapController? animatedController,
-    double zoom = 16,
-  }) async {
-    if (currentLocation == null) return;
-
-    await moveToLocation(
-      mapController: mapController,
-      animatedController: animatedController,
-      location: currentLocation!,
-      zoom: zoom,
-    );
   }
 
   static double calculateDistance(LatLng start, LatLng end) {

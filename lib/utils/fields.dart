@@ -47,7 +47,7 @@ const String F_UID = "uid";
 const String F_SESSION_ID = "sessionID";
 const String F_SMS_CODE = "smsCode";
 const String F_MAP_TYPE = "mapType";
-
+const String F_ENABLE_TRAFFIC = "enableTraffic";
 // admin
 const String F_OLD_PASSWORD = "oldPassword";
 const String F_NEW_PASSWORD = "newPassword";

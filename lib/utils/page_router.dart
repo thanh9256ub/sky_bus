@@ -4,7 +4,7 @@ import 'package:skysoft_bus/screens/ticket/ticket_list_screen.dart';
 import 'package:skysoft_bus/utils/global.dart';
 
 import '../models/tab_item.dart';
-import '../screens/home/home_screen_v2.dart';
+import '../screens/home/home_screen.dart';
 import 'fields.dart';
 
 Map<String, TabItem> getPages() {
@@ -13,7 +13,7 @@ Map<String, TabItem> getPages() {
       icon: Icons.explore,
       label: 'Trang chủ',
       module: "",
-      page: HomeScreenV2(),
+      page: HomeScreen(),
     ),
     if (loginResponse.fullName.isNotEmpty)
       TICKET_TAB: TabItem(

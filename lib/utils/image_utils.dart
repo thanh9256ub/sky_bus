@@ -21,29 +21,6 @@ const double kMarkerIconBox = 80.0;
 /// Tỉ lệ vẽ, phải khớp với imagePixelRatio khi tạo BitmapDescriptor.bytes.
 const double kMarkerScale = 3.0;
 
-// ---------------------------------------------------------------------------
-// Vehicle marker
-// ---------------------------------------------------------------------------
-//
-// Mỗi xe được vẽ bằng HAI Marker chồng lên cùng 1 vị trí (position) thay vì
-// một bitmap duy nhất:
-//   1. "arrow" - mũi tên hướng di chuyển, xoay theo `Marker.rotation`.
-//   2. "label" - biển số xe, KHÔNG xoay (rotation luôn = 0).
-// Lý do: `Marker.rotation` xoay toàn bộ bitmap của marker đó, nên nếu vẽ icon
-// + chữ chung 1 bitmap rồi set rotation thì chữ cũng bị xoay theo icon. Tách
-// làm 2 marker độc lập giúp: mũi tên xoay bình thường, còn biển số luôn đứng
-// thẳng và cố định ngay bên dưới icon dù xe quay hướng nào.
-//
-// Về hiệu năng: bitmap mũi tên chỉ phụ thuộc MÀU trạng thái xe (không phụ
-// thuộc plate) nên được cache theo màu - chỉ có vài chục màu khác nhau dù có
-// hàng trăm xe. Bitmap biển số cache theo plateNo, chỉ vẽ lại khi xe đổi biển
-// số (gần như không đổi). Khi xe di chuyển/đổi hướng, ta chỉ cập nhật
-// `position`/`rotation` của Marker, không tạo lại BitmapDescriptor nào.
-
-/// Kích thước hộp vẽ mũi tên xe (đã tăng so với bản trước để icon to, rõ hơn
-/// trên bản đồ). Dùng hằng số riêng, không dùng chung `kMarkerIconBox` để
-/// không ảnh hưởng tới các icon khác (avatar, custom marker...) đang dùng
-/// `kMarkerIconBox` = 80.
 const double _kVehicleArrowBox = 110.0;
 
 /// Điểm neo của icon mũi tên: luôn là tâm hộp vuông, xoay quanh chính nó.
@@ -264,14 +241,7 @@ class CachedVehiclePlate {
 
 // ---------------------------------------------------------------------------
 // Bus-stop (place) marker
-// ---------------------------------------------------------------------------
-//
-// Icon điểm dừng chỉ phụ thuộc vào (màu tuyến, có đang được chọn hay không),
-// KHÔNG phụ thuộc vào tên điểm dừng -> số lượng bitmap khác nhau thực tế rất
-// nhỏ (bằng số màu tuyến x 2) dù backend trả về hàng trăm điểm dừng thuộc
-// hàng chục tuyến xe. Mô tả điểm dừng được hiển thị qua `InfoWindow` khi
-// người dùng bấm vào marker, thay vì vẽ chữ trực tiếp lên bitmap, để tránh
-// phải tạo một bitmap riêng cho từng điểm dừng.
+// ---------------------------------------------------------------------------.
 
 class PlaceIconCache {
   PlaceIconCache._();
@@ -364,7 +334,6 @@ Future<CachedPlaceIcon> _createPlaceMarkerIconOnly({
   return CachedPlaceIcon(descriptor, const Offset(0.5, 0.5));
 }
 
-/// Vẽ chữ tên điểm dừng ở trên, icon tròn ở dưới.
 Future<CachedPlaceIcon> _createPlaceMarkerWithLabel({
   required Color lineColor,
   required bool selected,
@@ -379,7 +348,7 @@ Future<CachedPlaceIcon> _createPlaceMarkerWithLabel({
     style: TextStyle(
       fontSize: 35,
       fontWeight: FontWeight.w600,
-      color: selected ? lineColor : Colors.black87,
+      color: Colors.black87,
       shadows: const [
         Shadow(offset: Offset(-1, -1), color: Colors.white),
         Shadow(offset: Offset(1, -1), color: Colors.white),

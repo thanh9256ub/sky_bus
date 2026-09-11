@@ -20,6 +20,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     const storage = FlutterSecureStorage();
     storage.delete(key: F_ACCOUNT_ID);
     storage.delete(key: F_SECURE_KEY);
+    storage.delete(key: F_MAP_TYPE);
+    storage.delete(key: F_ENABLE_TRAFFIC);
     loginResponse = LoginResponse("", "");
     if (mounted) {
       showToast("Đăng xuất thành công", ToastificationType.success);

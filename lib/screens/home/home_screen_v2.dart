@@ -309,6 +309,17 @@ class _HomeScreenV2State extends State<HomeScreenV2>
     );
   }
 
+  void setMapController(GoogleMapController controller) async {
+    mapController = controller;
+    mapController!.moveCamera(CameraUpdate.newLatLng(currentLocation));
+    rebuildPlaceMarkers();
+
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (!mounted) return;
+      switchMap(_maptype);
+    });
+  }
+
   void searchNearBus() async {
     final BusService busService = BusService();
     final GoogleMapController? controller = mapController;
@@ -597,10 +608,7 @@ class _HomeScreenV2State extends State<HomeScreenV2>
         rotateGesturesEnabled: false,
         markers: _allMarkers,
         polylines: _polylines,
-        onMapCreated: (controller) {
-          mapController = controller;
-          rebuildPlaceMarkers();
-        },
+        onMapCreated: setMapController,
         onCameraMove: (position) {
           currentZoom = position.zoom;
         },

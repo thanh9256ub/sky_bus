@@ -85,12 +85,13 @@ class _HomeScreenState extends State<HomeScreen>
       showToast("Không thể lấy vị trí hiện tại", ToastificationType.error);
       return;
     }
+    final newLocation = LatLng(location.latitude, location.longitude);
     setState(() {
-      currentLocation = LatLng(location.latitude, location.longitude);
+      currentLocation = newLocation;
       locationReady = true;
     });
-    mapController?.animateCamera(
-      CameraUpdate.newLatLngZoom(currentLocation, 17),
+    await mapController?.animateCamera(
+      CameraUpdate.newLatLngZoom(currentLocation, 15),
     );
   }
 
@@ -619,7 +620,7 @@ class _HomeScreenState extends State<HomeScreen>
       child: GoogleMap(
         initialCameraPosition: CameraPosition(
           target: currentLocation,
-          zoom: 17,
+          zoom: 15,
         ),
         mapType: _maptype,
         tileOverlays: overlays,

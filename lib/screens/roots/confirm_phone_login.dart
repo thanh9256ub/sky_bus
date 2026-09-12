@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
@@ -26,6 +28,7 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
   ActiveRequest request = ActiveRequest();
   String validateMsg = "";
   bool isLoading = false;
+  String smsCode = "";
 
   Future<void> verifyOTP(String smsCode) async {
     if (widget.verificationId.isEmpty) return;
@@ -229,6 +232,34 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
                       return validateMsg.isNotEmpty ? validateMsg : null;
                     },
                     onCompleted: verifyOTP,
+                    onChanged: (value) {
+                      log(value);
+                      smsCode = value;
+                    },
+                  ),
+                  SizedBox(height: 28),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () => verifyOTP(smsCode),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: secondaryColor,
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide(color: Colors.blue),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                      child: Text(
+                        "Xác nhận",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
                   ),
                   SizedBox(height: 28),
                 ],

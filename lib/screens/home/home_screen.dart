@@ -27,14 +27,22 @@ class HomeScreen extends StatefulWidget {
 class _SkymapTileProvider implements TileProvider {
   static const int width = 256;
   static const int height = 256;
+  int? _activeZoom;
+
+  void setActiveZoom(int zoom) => _activeZoom = zoom;
 
   @override
   Future<Tile> getTile(int x, int y, int? zoom) async {
+    final requestedZoom = zoom;
     String url = "$skymapUrl/web_tile.jsp?c=$x&r=$y&z=$zoom";
     try {
       Uint8List byteData = (await NetworkAssetBundle(
         Uri.parse(url),
       ).load(url)).buffer.asUint8List();
+
+      if (_activeZoom != null && requestedZoom != _activeZoom) {
+        return Tile(width, height, null);
+      }
       return Tile(width, height, byteData);
     } catch (e) {
       return Tile(width, height, null);
@@ -46,20 +54,21 @@ class _HomeScreenState extends State<HomeScreen>
     with AutomaticKeepAliveClientMixin, RouteAware {
   @override
   bool get wantKeepAlive => true;
+  late final SkyMapTileProvider skyMapTileProvider;
   var _maptype = MapType.none;
   LatLng currentLocation = const LatLng(21.051873, 105.777787);
-  double currentZoom = 16;
+  double currentZoom = 17;
   GoogleMapController? mapController;
   final searchController = TextEditingController();
   final sheetController = DraggableScrollableController();
   final _focusNode = FocusNode();
-  late final SkyMapTileProvider skyMapTileProvider;
   TileOverlay? _tileOverlay;
   BusLine? selectedBusLine;
   List<BusLine> busLines = [];
   List<Vehicle> nearVehicles = [];
   List<int> selectedPlaceIds = [];
   bool enableTraffic = false;
+  bool locationReady = false;
 
   Timer? vehicleTimer;
   Timer? moveDebounce;
@@ -70,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Set<Marker> get _allMarkers => {...placeMarkers, ...vehicleMarkers};
 
-  void getCurrentLocation() async {
+  Future<void> getCurrentLocation() async {
     final location = await MapHelper.getCurrentLocation();
     if (location == null) {
       showToast("Không thể lấy vị trí hiện tại", ToastificationType.error);
@@ -78,9 +87,10 @@ class _HomeScreenState extends State<HomeScreen>
     }
     setState(() {
       currentLocation = LatLng(location.latitude, location.longitude);
+      locationReady = true;
     });
     mapController?.animateCamera(
-      CameraUpdate.newLatLngZoom(currentLocation, 16),
+      CameraUpdate.newLatLngZoom(currentLocation, 17),
     );
   }
 
@@ -175,12 +185,14 @@ class _HomeScreenState extends State<HomeScreen>
     setState(() {
       if (savedMapType != null) {
         _maptype = MapType.values.where((e) => e.name == savedMapType).first;
+      } else {
+        _maptype = MapType.normal;
       }
       enableTraffic = savedTraffic == 'true';
       if (_maptype == MapType.none) {
-        _tileOverlay ??= _createSkyMapOverlay();
+        addTileOverlay();
       } else {
-        _tileOverlay = null;
+        removeTileOverlay();
       }
     });
   }
@@ -209,27 +221,40 @@ class _HomeScreenState extends State<HomeScreen>
       target = LatLng(first.y, first.x);
     }
 
-    mapController?.animateCamera(CameraUpdate.newLatLngZoom(target, 16));
+    mapController?.animateCamera(CameraUpdate.newLatLngZoom(target, 17));
   }
 
-  TileOverlay _createSkyMapOverlay() {
-    return TileOverlay(
+  void addTileOverlay() {
+    final TileOverlay tileOverlay = TileOverlay(
       tileOverlayId: const TileOverlayId('skymap'),
       tileProvider: _SkymapTileProvider(),
-      tileSize: 256,
+      tileSize: 2048,
     );
+    if (mounted) {
+      setState(() {
+        _tileOverlay = tileOverlay;
+      });
+    }
+  }
+
+  void removeTileOverlay() {
+    if (mounted) {
+      setState(() {
+        _tileOverlay = null;
+      });
+    }
   }
 
   void switchMap(MapType value) {
-    if (!mounted) return;
-
     setState(() {
-      _maptype = value;
-      saveData(F_MAP_TYPE, value.name);
-      if (value == MapType.none) {
-        _tileOverlay ??= _createSkyMapOverlay();
-      } else {
-        _tileOverlay = null;
+      if (mounted) {
+        _maptype = value;
+        saveData(F_MAP_TYPE, value.name);
+        if (value == MapType.none) {
+          addTileOverlay();
+        } else {
+          removeTileOverlay();
+        }
       }
     });
   }
@@ -326,7 +351,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   void setMapController(GoogleMapController controller) async {
     mapController = controller;
-    mapController!.moveCamera(CameraUpdate.newLatLng(currentLocation));
+    await getCurrentLocation();
     rebuildPlaceMarkers();
   }
 
@@ -541,12 +566,12 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
+    _maptype = MapType.none;
     skyMapTileProvider = SkyMapTileProvider(baseUrl: skymapUrl);
     loadMapSettings();
     vehicleTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       searchNearBus();
     });
-    getCurrentLocation();
     getListBusLine();
   }
 
@@ -594,13 +619,13 @@ class _HomeScreenState extends State<HomeScreen>
       child: GoogleMap(
         initialCameraPosition: CameraPosition(
           target: currentLocation,
-          zoom: 15,
+          zoom: 17,
         ),
         mapType: _maptype,
         tileOverlays: overlays,
-        minMaxZoomPreference: MinMaxZoomPreference(8, 15),
+        minMaxZoomPreference: MinMaxZoomPreference(9, 17),
         myLocationButtonEnabled: false,
-        myLocationEnabled: true,
+        myLocationEnabled: locationReady,
         zoomControlsEnabled: false,
         rotateGesturesEnabled: false,
         trafficEnabled: enableTraffic,

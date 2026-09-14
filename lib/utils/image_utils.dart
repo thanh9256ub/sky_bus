@@ -334,23 +334,19 @@ Future<CachedPlaceIcon> _createPlaceMarkerWithLabel({
   required bool selected,
   required String description,
 }) async {
-  // ============================================================
-  // KÍCH THƯỚC THỰC TẾ CỦA MARKER
-  // ============================================================
-
   const double iconSize = 28.0;
   const double fontSize = 14.0;
   const double maxLabelWidth = 140.0;
   const double labelGap = 3.0;
 
-  // ============================================================
-  // TEXT
-  // ============================================================
+  const double scale = 2.0;
+
+  // ---------------- TEXT ----------------
 
   final TextSpan span = TextSpan(
     text: description,
     style: const TextStyle(
-      fontSize: fontSize,
+      fontSize: fontSize * scale,
       fontWeight: FontWeight.w600,
       color: Colors.black87,
       shadows: [
@@ -370,32 +366,30 @@ Future<CachedPlaceIcon> _createPlaceMarkerWithLabel({
     ellipsis: '…',
   );
 
-  tp.layout(maxWidth: maxLabelWidth);
+  tp.layout(maxWidth: maxLabelWidth * scale);
 
-  // ============================================================
-  // CANVAS
-  // ============================================================
+  // ---------------- CANVAS ----------------
 
-  final double canvasWidth = (tp.width > iconSize ? tp.width : iconSize) + 8;
+  final double iconSizePx = iconSize * scale;
+  final double labelGapPx = labelGap * scale;
 
-  final double canvasHeight = tp.height + labelGap + iconSize + 4;
+  final double canvasWidth =
+      ((tp.width > iconSizePx ? tp.width : iconSizePx) + 8 * scale);
+
+  final double canvasHeight = tp.height + labelGapPx + iconSizePx + 4 * scale;
 
   final ui.PictureRecorder recorder = ui.PictureRecorder();
   final Canvas canvas = Canvas(recorder);
 
-  // ============================================================
-  // TEXT
-  // ============================================================
+  // ---------------- TEXT ----------------
 
   tp.paint(canvas, Offset((canvasWidth - tp.width) / 2, 0));
 
-  // ============================================================
-  // ICON
-  // ============================================================
+  // ---------------- ICON ----------------
 
-  final double iconRadius = iconSize / 2;
+  final double iconRadius = iconSizePx / 2;
 
-  final double iconCenterY = tp.height + labelGap + iconRadius;
+  final double iconCenterY = tp.height + labelGapPx + iconRadius;
 
   final Offset iconCenter = Offset(canvasWidth / 2, iconCenterY);
 
@@ -403,37 +397,34 @@ Future<CachedPlaceIcon> _createPlaceMarkerWithLabel({
     ..color = selected ? lineColor : Colors.white
     ..style = PaintingStyle.fill;
 
-  const double borderWidth = 0.7;
-  const double circleRadius = 12.5;
-
   final Paint borderPaint = Paint()
     ..color = lineColor
     ..style = PaintingStyle.stroke
-    ..strokeWidth = borderWidth;
+    ..strokeWidth = 0.7 * scale;
 
+  // Shadow
   canvas.drawShadow(
-    Path()..addOval(Rect.fromCircle(center: iconCenter, radius: circleRadius)),
+    Path()..addOval(Rect.fromCircle(center: iconCenter, radius: 12.5 * scale)),
     Colors.black,
-    0.8,
+    0.8 * scale,
     false,
   );
 
-  canvas.drawCircle(iconCenter, circleRadius, fillPaint);
+  // Circle
+  canvas.drawCircle(iconCenter, 12.5 * scale, fillPaint);
 
-  canvas.drawCircle(iconCenter, circleRadius, borderPaint);
+  canvas.drawCircle(iconCenter, 12.5 * scale, borderPaint);
 
   // Bus icon
   _paintIcon(
     canvas,
     Icons.directions_bus,
-    18,
+    17 * scale,
     selected ? Colors.white : lineColor,
     iconCenter,
   );
 
-  // ============================================================
-  // BITMAP
-  // ============================================================
+  // ---------------- BITMAP ----------------
 
   final Uint8List bytes = await _finishRecording(
     recorder,
@@ -441,13 +432,13 @@ Future<CachedPlaceIcon> _createPlaceMarkerWithLabel({
     canvasHeight.ceil(),
   );
 
-  // QUAN TRỌNG:
-  // Không truyền imagePixelRatio ở đây.
-  final BitmapDescriptor descriptor = BitmapDescriptor.bytes(bytes);
+  // Quan trọng: bitmap 2x nhưng hiển thị theo kích thước logical.
+  final BitmapDescriptor descriptor = BitmapDescriptor.bytes(
+    bytes,
+    imagePixelRatio: scale,
+  );
 
-  // ============================================================
-  // ANCHOR
-  // ============================================================
+  // ---------------- ANCHOR ----------------
 
   final Offset anchor = Offset(0.5, iconCenterY / canvasHeight);
 

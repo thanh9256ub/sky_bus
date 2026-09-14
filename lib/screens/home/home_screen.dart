@@ -67,6 +67,7 @@ class _HomeScreenState extends State<HomeScreen>
   List<BusLine> busLines = [];
   List<Vehicle> nearVehicles = [];
   List<int> selectedPlaceIds = [];
+  int lastMarkerZoom = -1;
   bool enableTraffic = false;
   bool locationReady = false;
 
@@ -501,7 +502,7 @@ class _HomeScreenState extends State<HomeScreen>
 
       markers.add(
         Marker(
-          markerId: MarkerId('place_${line.hashCode}_${place.placeID}'),
+          markerId: MarkerId('place_${line.lineID}_${place.placeID}'),
           position: LatLng(place.y, place.x),
           icon: placeIcon.descriptor,
           anchor: placeIcon.anchor,
@@ -615,7 +616,11 @@ class _HomeScreenState extends State<HomeScreen>
           currentZoom = position.zoom;
         },
         onCameraIdle: () {
-          rebuildPlaceMarkers();
+          final currentLevel = currentZoom.floor();
+          if (currentLevel != lastMarkerZoom) {
+            lastMarkerZoom = currentLevel;
+            rebuildPlaceMarkers();
+          }
           moveDebounce?.cancel();
           moveDebounce = Timer(
             const Duration(milliseconds: 1500),

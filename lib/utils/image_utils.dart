@@ -430,8 +430,8 @@ Future<CachedPlaceIcon> _createPlaceMarkerWithLabel({
   final BitmapDescriptor descriptor = BitmapDescriptor.bytes(
     bytes,
     imagePixelRatio: kMarkerScale,
-    width: _kPlaceIconSize,
-    height: _kPlaceIconSize,
+    width: canvasWidth.ceil() / kMarkerScale,
+    height: canvasHeight.ceil() / kMarkerScale,
   );
 
   final Offset anchor = Offset(0.5, iconCenterY / canvasHeight);

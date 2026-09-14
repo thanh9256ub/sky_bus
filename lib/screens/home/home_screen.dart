@@ -497,10 +497,11 @@ class _HomeScreenState extends State<HomeScreen>
         description: place.description,
         showLabel: showLabel,
       );
-
+      final String markerKey =
+          'place_${line.lineID}_${place.placeID}_${showLabel}_$selected';
       markers.add(
         Marker(
-          markerId: MarkerId('place_${line.lineID}_${place.placeID}'),
+          markerId: MarkerId(markerKey),
           position: LatLng(place.y, place.x),
           icon: placeIcon.descriptor,
           anchor: placeIcon.anchor,

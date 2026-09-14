@@ -68,6 +68,8 @@ class _HomeScreenState extends State<HomeScreen>
   List<Vehicle> nearVehicles = [];
   List<int> selectedPlaceIds = [];
   int lastMarkerZoom = -1;
+  int placeMarkerBuildId = 0;
+  bool isBuildingPlaceMarkers = false;
   bool enableTraffic = false;
   bool locationReady = false;
 
@@ -460,6 +462,8 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> rebuildPlaceMarkers() async {
+    final int buildId = ++placeMarkerBuildId;
+
     final List<BusLine> linesToShow = selectedBusLine != null
         ? [selectedBusLine!]
         : busLines;
@@ -470,28 +474,48 @@ class _HomeScreenState extends State<HomeScreen>
     ];
 
     if (candidates.isEmpty) {
-      if (!mounted) return;
-      setState(() => placeMarkers = {});
+      if (!mounted || buildId != placeMarkerBuildId) return;
+
+      setState(() {
+        placeMarkers = {};
+      });
+
       return;
     }
 
-    // Điểm đang chọn ưu tiên giữ chữ trước.
+    // Điểm được chọn luôn ưu tiên.
     candidates.sort((a, b) {
-      final aSelected = selectedPlaceIds.contains(a.place.placeID);
-      final bSelected = selectedPlaceIds.contains(b.place.placeID);
-      if (aSelected == bSelected) return 0;
+      final bool aSelected = selectedPlaceIds.contains(a.place.placeID);
+      final bool bSelected = selectedPlaceIds.contains(b.place.placeID);
+
+      if (aSelected == bSelected) {
+        return 0;
+      }
+
       return aSelected ? -1 : 1;
     });
 
     final Set<Marker> markers = {};
 
-    for (final candidate in candidates) {
-      final BusLine line = candidate.line;
-      final place = candidate.place;
-      final bool selected = selectedPlaceIds.contains(place.placeID);
-      final Color lineColor = Color(line.color.toUnsigned(32));
+    final int zoomLevel = currentZoom.floor();
 
-      final bool showLabel = selectedBusLine != null || currentZoom >= 13;
+    // Zoom nhỏ thì không hiện label.
+    // Khi đã chọn tuyến thì luôn hiện label.
+    final bool showLabel = selectedBusLine != null || zoomLevel >= 13;
+
+    for (final candidate in candidates) {
+      // Nếu trong lúc await đã có một lần rebuild mới
+      // thì bỏ luôn kết quả của lần cũ.
+      if (buildId != placeMarkerBuildId) {
+        return;
+      }
+
+      final BusLine line = candidate.line;
+      final Place place = candidate.place;
+
+      final bool selected = selectedPlaceIds.contains(place.placeID);
+
+      final Color lineColor = Color(line.color.toUnsigned(32));
 
       final CachedPlaceIcon placeIcon = await PlaceIconCache.instance.getIcon(
         lineColor: lineColor,
@@ -500,18 +524,33 @@ class _HomeScreenState extends State<HomeScreen>
         showLabel: showLabel,
       );
 
+      // Sau await phải kiểm tra lại.
+      if (!mounted || buildId != placeMarkerBuildId) {
+        return;
+      }
+
       markers.add(
         Marker(
           markerId: MarkerId('place_${line.lineID}_${place.placeID}'),
           position: LatLng(place.y, place.x),
+
+          // QUAN TRỌNG:
+          // dùng custom icon thật sự
           icon: placeIcon.descriptor,
+
+          // anchor phải đi cùng chính icon này
           anchor: placeIcon.anchor,
+
+          flat: false,
+
           onTap: () {
             if (selectedBusLine != line) {
               selectLine(line, focusPoint: LatLng(place.y, place.x));
               return;
             }
+
             togglePlace(place.placeID);
+
             mapController?.animateCamera(
               CameraUpdate.newLatLng(LatLng(place.y, place.x)),
             );
@@ -520,7 +559,11 @@ class _HomeScreenState extends State<HomeScreen>
       );
     }
 
-    if (!mounted) return;
+    // Không cho build cũ ghi đè build mới.
+    if (!mounted || buildId != placeMarkerBuildId) {
+      return;
+    }
+
     setState(() {
       placeMarkers = markers;
     });

@@ -482,9 +482,6 @@ class _HomeScreenState extends State<HomeScreen>
       return aSelected ? -1 : 1;
     });
 
-    final bool zoomAllowsLabel = selectedBusLine != null || currentZoom >= 12;
-    final GoogleMapController? controller = mapController;
-    final List<Rect> acceptedLabelRects = [];
     final Set<Marker> markers = {};
 
     for (final candidate in candidates) {
@@ -493,27 +490,7 @@ class _HomeScreenState extends State<HomeScreen>
       final bool selected = selectedPlaceIds.contains(place.placeID);
       final Color lineColor = Color(line.color.toUnsigned(32));
 
-      bool showLabel = false;
-      if (zoomAllowsLabel && controller != null) {
-        try {
-          final ScreenCoordinate sc = await controller.getScreenCoordinate(
-            LatLng(place.y, place.x),
-          );
-          final double approxWidth = (place.description.length * 7.0 + 20)
-              .clamp(40, 150);
-          final Rect labelRect = Rect.fromCenter(
-            center: Offset(sc.x.toDouble(), sc.y.toDouble() - 24),
-            width: approxWidth,
-            height: 34,
-          );
-          if (!acceptedLabelRects.any((r) => r.overlaps(labelRect))) {
-            showLabel = true;
-            acceptedLabelRects.add(labelRect);
-          }
-        } catch (_) {
-          showLabel = false;
-        }
-      }
+      final bool showLabel = selectedBusLine != null || currentZoom >= 13;
 
       final CachedPlaceIcon placeIcon = await PlaceIconCache.instance.getIcon(
         lineColor: lineColor,
@@ -601,7 +578,7 @@ class _HomeScreenState extends State<HomeScreen>
           mapWidget(overlays),
           centerPointMap(),
           searchBusLine(),
-          featureMap(),
+          featureInMap(),
           if (selectedBusLine != null) mainContent(),
         ],
       ),
@@ -707,9 +684,9 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget featureMap() {
+  Widget featureInMap() {
     return Positioned(
-      top: MediaQuery.of(context).size.height * 0.13,
+      top: MediaQuery.of(context).size.height * 0.15,
       right: 16,
       child: Material(
         color: Colors.transparent,

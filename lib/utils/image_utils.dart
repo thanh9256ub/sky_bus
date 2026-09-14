@@ -19,8 +19,8 @@ Future<Uint8List> resizeImage(Uint8List image, int width) async {
 const double kMarkerIconBox = 80.0;
 
 /// Tỉ lệ vẽ, phải khớp với imagePixelRatio khi tạo BitmapDescriptor.bytes.
-const double kMarkerScale = 3.0;
-
+const double kMarkerScale = 2.0;
+const double kPlaceMarkerScale = 1.0;
 const double _kVehicleArrowBox = 110.0;
 
 /// Điểm neo của icon mũi tên: luôn là tâm hộp vuông, xoay quanh chính nó.
@@ -39,7 +39,7 @@ const double _kVehicleLabelWidth = 170.0;
 TextPainter _markerTextPainter(
   String text,
   Color textColor, {
-  double fontSize = 32,
+  double fontSize = 24,
   double maxWidth = _kVehicleLabelWidth - 8,
 }) {
   TextSpan span = TextSpan(
@@ -287,8 +287,6 @@ class CachedPlaceIcon {
 }
 
 const double _kPlaceIconSize = 28.0;
-const double _kPlaceLabelMaxWidth = 150.0;
-const double _kPlaceLabelGapPx = 4.0 * kMarkerScale;
 
 /// Vẽ vòng tròn màu tuyến + icon xe buýt, không có chữ. Dùng khi zoom xa
 /// hoặc khi nhãn bị đè bởi điểm khác gần đó.
@@ -296,8 +294,8 @@ Future<CachedPlaceIcon> _createPlaceMarkerIconOnly({
   required Color lineColor,
   required bool selected,
 }) async {
-  final double size = _kPlaceIconSize * kMarkerScale;
-  final double padding = 3.0 * kMarkerScale;
+  final double size = _kPlaceIconSize;
+  final double padding = 3.0;
   final double radius = size / 2;
 
   final ui.PictureRecorder recorder = ui.PictureRecorder();
@@ -317,7 +315,7 @@ Future<CachedPlaceIcon> _createPlaceMarkerIconOnly({
   _paintIcon(
     canvas,
     Icons.directions_bus,
-    _kPlaceIconSize * kMarkerScale * 0.64,
+    _kPlaceIconSize * 0.64,
     selected ? Colors.white : lineColor,
     center,
   );
@@ -327,10 +325,7 @@ Future<CachedPlaceIcon> _createPlaceMarkerIconOnly({
     size.toInt(),
     size.toInt(),
   );
-  final BitmapDescriptor descriptor = BitmapDescriptor.bytes(
-    bytes,
-    imagePixelRatio: kMarkerScale,
-  );
+  final BitmapDescriptor descriptor = BitmapDescriptor.bytes(bytes);
   return CachedPlaceIcon(descriptor, const Offset(0.5, 0.5));
 }
 
@@ -339,17 +334,26 @@ Future<CachedPlaceIcon> _createPlaceMarkerWithLabel({
   required bool selected,
   required String description,
 }) async {
-  final double iconSize = _kPlaceIconSize * kMarkerScale;
-  final double iconPadding = 3.0 * kMarkerScale;
-  final double iconRadius = iconSize / 2;
+  // ============================================================
+  // KÍCH THƯỚC THỰC TẾ CỦA MARKER
+  // ============================================================
+
+  const double iconSize = 28.0;
+  const double fontSize = 14.0;
+  const double maxLabelWidth = 140.0;
+  const double labelGap = 3.0;
+
+  // ============================================================
+  // TEXT
+  // ============================================================
 
   final TextSpan span = TextSpan(
     text: description,
-    style: TextStyle(
-      fontSize: 35,
+    style: const TextStyle(
+      fontSize: fontSize,
       fontWeight: FontWeight.w600,
       color: Colors.black87,
-      shadows: const [
+      shadows: [
         Shadow(offset: Offset(-1, -1), color: Colors.white),
         Shadow(offset: Offset(1, -1), color: Colors.white),
         Shadow(offset: Offset(1, 1), color: Colors.white),
@@ -357,6 +361,7 @@ Future<CachedPlaceIcon> _createPlaceMarkerWithLabel({
       ],
     ),
   );
+
   final TextPainter tp = TextPainter(
     text: span,
     textAlign: TextAlign.center,
@@ -364,61 +369,90 @@ Future<CachedPlaceIcon> _createPlaceMarkerWithLabel({
     maxLines: 2,
     ellipsis: '…',
   );
-  tp.layout(maxWidth: _kPlaceLabelMaxWidth * kMarkerScale);
 
-  final double canvasWidth =
-      (tp.width > iconSize ? tp.width : iconSize) + 8 * kMarkerScale;
-  final double canvasHeight =
-      tp.height + _kPlaceLabelGapPx + iconSize + 4 * kMarkerScale;
+  tp.layout(maxWidth: maxLabelWidth);
+
+  // ============================================================
+  // CANVAS
+  // ============================================================
+
+  final double canvasWidth = (tp.width > iconSize ? tp.width : iconSize) + 8;
+
+  final double canvasHeight = tp.height + labelGap + iconSize + 4;
 
   final ui.PictureRecorder recorder = ui.PictureRecorder();
   final Canvas canvas = Canvas(recorder);
 
+  // ============================================================
+  // TEXT
+  // ============================================================
+
   tp.paint(canvas, Offset((canvasWidth - tp.width) / 2, 0));
 
-  final double iconCenterY = tp.height + _kPlaceLabelGapPx + iconRadius;
+  // ============================================================
+  // ICON
+  // ============================================================
+
+  final double iconRadius = iconSize / 2;
+
+  final double iconCenterY = tp.height + labelGap + iconRadius;
+
   final Offset iconCenter = Offset(canvasWidth / 2, iconCenterY);
 
   final Paint fillPaint = Paint()
     ..color = selected ? lineColor : Colors.white
     ..style = PaintingStyle.fill;
+
+  const double borderWidth = 0.7;
+  const double circleRadius = 12.5;
+
   final Paint borderPaint = Paint()
     ..color = lineColor
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 2.0 * kMarkerScale;
+    ..strokeWidth = borderWidth;
 
   canvas.drawShadow(
-    Path()
-      ..addOval(Rect.fromCircle(center: iconCenter, radius: iconRadius - 1)),
+    Path()..addOval(Rect.fromCircle(center: iconCenter, radius: circleRadius)),
     Colors.black,
-    2.0,
+    0.8,
     false,
   );
-  canvas.drawCircle(iconCenter, iconRadius - iconPadding / 2, fillPaint);
-  canvas.drawCircle(iconCenter, iconRadius - iconPadding / 2, borderPaint);
+
+  canvas.drawCircle(iconCenter, circleRadius, fillPaint);
+
+  canvas.drawCircle(iconCenter, circleRadius, borderPaint);
+
+  // Bus icon
   _paintIcon(
     canvas,
     Icons.directions_bus,
-    18 * kMarkerScale,
+    18,
     selected ? Colors.white : lineColor,
     iconCenter,
   );
 
+  // ============================================================
+  // BITMAP
+  // ============================================================
+
   final Uint8List bytes = await _finishRecording(
     recorder,
-    canvasWidth.toInt(),
-    canvasHeight.toInt(),
-  );
-  final BitmapDescriptor descriptor = BitmapDescriptor.bytes(
-    bytes,
-    imagePixelRatio: kMarkerScale,
+    canvasWidth.ceil(),
+    canvasHeight.ceil(),
   );
 
-  return CachedPlaceIcon(descriptor, Offset(0.5, iconCenterY / canvasHeight));
+  // QUAN TRỌNG:
+  // Không truyền imagePixelRatio ở đây.
+  final BitmapDescriptor descriptor = BitmapDescriptor.bytes(bytes);
+
+  // ============================================================
+  // ANCHOR
+  // ============================================================
+
+  final Offset anchor = Offset(0.5, iconCenterY / canvasHeight);
+
+  return CachedPlaceIcon(descriptor, anchor);
 }
-// ---------------------------------------------------------------------------
-// Các hàm khác giữ nguyên như bản gốc
-// ---------------------------------------------------------------------------
 
 Future<Uint8List> createCustomMarkerBitmap(
   Uint8List bytes,

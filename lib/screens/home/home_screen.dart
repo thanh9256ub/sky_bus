@@ -709,7 +709,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget featureMap() {
     return Positioned(
-      top: MediaQuery.of(context).size.height * 0.15,
+      top: MediaQuery.of(context).size.height * 0.13,
       right: 16,
       child: Material(
         color: Colors.transparent,
@@ -721,26 +721,28 @@ class _HomeScreenState extends State<HomeScreen>
             GestureDetector(
               onTapDown: (details) => showPopupMenu(context, details),
               child: Container(
-                padding: const EdgeInsets.all(12),
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   border: Border.all(color: Colors.grey.shade400),
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child: const Icon(Icons.layers, color: Colors.green),
+                child: Icon(Icons.layers, color: Colors.green, size: 20),
               ),
             ),
             SizedBox(height: 10),
             GestureDetector(
               onTap: getCurrentLocation,
               child: Container(
-                padding: const EdgeInsets.all(12),
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   border: Border.all(color: Colors.grey.shade400),
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child: const Icon(Icons.my_location, color: Colors.blue),
+                child: Icon(Icons.my_location, color: Colors.blue, size: 20),
               ),
             ),
           ],

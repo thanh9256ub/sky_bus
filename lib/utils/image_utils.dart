@@ -327,7 +327,9 @@ Future<CachedPlaceIcon> _createPlaceMarkerIconOnly({
   );
   final BitmapDescriptor descriptor = BitmapDescriptor.bytes(
     bytes,
-    imagePixelRatio: kMarkerScale, // <-- thêm dòng này
+    imagePixelRatio: kMarkerScale,
+    width: _kPlaceIconSize,
+    height: _kPlaceIconSize,
   );
   return CachedPlaceIcon(descriptor, const Offset(0.5, 0.5));
 }
@@ -427,7 +429,9 @@ Future<CachedPlaceIcon> _createPlaceMarkerWithLabel({
 
   final BitmapDescriptor descriptor = BitmapDescriptor.bytes(
     bytes,
-    imagePixelRatio: kMarkerScale, // <-- thêm dòng này
+    imagePixelRatio: kMarkerScale,
+    width: _kPlaceIconSize,
+    height: _kPlaceIconSize,
   );
 
   final Offset anchor = Offset(0.5, iconCenterY / canvasHeight);

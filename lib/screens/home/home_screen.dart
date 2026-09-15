@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -68,6 +67,7 @@ class _HomeScreenState extends State<HomeScreen>
   List<BusLine> busLines = [];
   List<Vehicle> nearVehicles = [];
   List<int> selectedPlaceIds = [];
+  bool nearBusError = false;
   bool enableTraffic = false;
   bool locationReady = false;
 
@@ -371,14 +371,19 @@ class _HomeScreenState extends State<HomeScreen>
       center.longitude,
     );
     if (response.errorMessage.isEmpty) {
+      nearBusError = false;
       if (mounted) {
-        log("vào dây");
         nearVehicles = response.vehicles;
-        await rebuildVehicleMarkers();
+        rebuildVehicleMarkers();
       }
     } else {
-      log(response.errorMessage);
-      showToast(response.errorMessage, ToastificationType.error);
+      if (!nearBusError) {
+        nearBusError = true;
+        showToast(
+          "Lỗi lấy vị trí các xe đang di chuyển",
+          ToastificationType.error,
+        );
+      }
     }
   }
 
@@ -547,7 +552,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   void startVehicleTimer() {
     vehicleTimer?.cancel();
-    log("bật");
     vehicleTimer = Timer.periodic(
       const Duration(seconds: 5),
       (_) => searchNearBus(),
@@ -555,7 +559,6 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void stopVehicleTimer() {
-    log("tắt");
     vehicleTimer?.cancel();
     vehicleTimer = null;
   }
@@ -614,19 +617,17 @@ class _HomeScreenState extends State<HomeScreen>
       body: Stack(
         children: [
           mapWidget(overlays),
-          centerPointMap(),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Center(
+                child: Icon(Icons.add, color: Colors.red, size: 18),
+              ),
+            ),
+          ),
           searchBusLine(),
           featureInMap(),
           if (selectedBusLine != null) mainContent(),
         ],
-      ),
-    );
-  }
-
-  Widget centerPointMap() {
-    return const Positioned.fill(
-      child: IgnorePointer(
-        child: Center(child: Icon(Icons.add, color: Colors.red, size: 18)),
       ),
     );
   }
@@ -655,10 +656,7 @@ class _HomeScreenState extends State<HomeScreen>
         onCameraIdle: () {
           rebuildPlaceMarkers();
           moveDebounce?.cancel();
-          moveDebounce = Timer(
-            const Duration(milliseconds: 1500),
-            searchNearBus,
-          );
+          moveDebounce = Timer(Duration(milliseconds: 1500), searchNearBus);
         },
       ),
     );

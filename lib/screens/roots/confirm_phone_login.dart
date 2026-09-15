@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
@@ -233,7 +231,6 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
                     },
                     onCompleted: verifyOTP,
                     onChanged: (value) {
-                      log(value);
                       smsCode = value;
                     },
                   ),

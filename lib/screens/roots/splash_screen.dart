@@ -192,7 +192,7 @@ class _SplashScreenState extends State<SplashScreen> {
     } catch (e) {
       isRetry = false;
       loginRequest.reconnect = false;
-      if (mounted) pushToMainScreen;
+      if (mounted) pushToMainScreen();
     }
   }
 
@@ -209,10 +209,10 @@ class _SplashScreenState extends State<SplashScreen> {
     if (value.errorMessage.isEmpty) {
       loginResponse = value;
       await saveData(F_FIREBASE_TOKEN, nvl(signUpRequest.authenByFirebase));
-      if (mounted) pushToMainScreen;
+      if (mounted) pushToMainScreen();
     } else {
       loginRequest.reconnect = false;
-      if (mounted) pushToMainScreen;
+      if (mounted) pushToMainScreen();
     }
   }
 

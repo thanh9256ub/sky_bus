@@ -1,8 +1,4 @@
-import 'dart:async';
-
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:skysoft_bus/screens/roots/splash_screen.dart';
 import 'package:skysoft_bus/utils/global.dart';
 
 import '../../models/tab_item.dart';
@@ -20,11 +16,6 @@ class _MainScreenState extends State<MainScreen> {
   List<TabItem> tabs = [];
   late PageController pageController = PageController();
 
-  final Connectivity connectivity = Connectivity();
-  StreamSubscription<List<ConnectivityResult>>? connectivitySub;
-  bool isNoInternetDialogShowing = false;
-  bool wasOffline = false;
-
   void changePage(int index) {
     if (selectedIndex == index) return;
     setState(() {
@@ -33,89 +24,10 @@ class _MainScreenState extends State<MainScreen> {
     pageController.jumpToPage(index);
   }
 
-  Future<void> checkInitialConnectivity() async {
-    final result = await connectivity.checkConnectivity();
-    _handleConnectivityChange(result);
-  }
-
-  void _handleConnectivityChange(List<ConnectivityResult> result) {
-    final bool hasConnection =
-        !result.contains(ConnectivityResult.none) && result.isNotEmpty;
-
-    if (!hasConnection) {
-      wasOffline = true;
-      _showNoInternetDialog();
-    } else {
-      _dismissNoInternetDialog();
-
-      if (wasOffline) {
-        wasOffline = false;
-        _reloadApp();
-      }
-    }
-  }
-
-  Future<void> _reloadApp() async {
-    if (loginResponse.fullName.isEmpty) {
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => SplashScreen()),
-          (route) => false,
-        );
-      }
-    }
-  }
-
-  void _showNoInternetDialog() {
-    if (isNoInternetDialogShowing || !mounted) return;
-    isNoInternetDialogShowing = true;
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return PopScope(
-          canPop: false,
-          child: AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: const Row(
-              children: [
-                Icon(Icons.wifi_off, color: Colors.redAccent),
-                SizedBox(width: 10),
-                Text("Đang kết nối..."),
-              ],
-            ),
-            content: const Text(
-              "Vui lòng kiểm tra kết nối Wi-Fi hoặc dữ liệu di động của bạn và thử lại.",
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _dismissNoInternetDialog() {
-    if (!isNoInternetDialogShowing || !mounted) return;
-    isNoInternetDialogShowing = false;
-    Navigator.of(context, rootNavigator: true).pop();
-  }
-
   @override
   void initState() {
     super.initState();
     tabs = getPages().values.toList();
-    checkInitialConnectivity();
-    connectivitySub = connectivity.onConnectivityChanged.listen(
-      _handleConnectivityChange,
-    );
-  }
-
-  @override
-  void dispose() {
-    connectivitySub?.cancel();
-    super.dispose();
   }
 
   @override

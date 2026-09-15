@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:crypto/crypto.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
@@ -24,11 +25,23 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   static final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+  final Connectivity _connectivity = Connectivity();
+  StreamSubscription<List<ConnectivityResult>>? _connSub;
+
+  bool _hasError = false; // true khi mất mạng, hiện UI lỗi
+  bool _isRetrying = false;
+
   @override
   void initState() {
     super.initState();
     initPlatformState();
     startApp();
+  }
+
+  @override
+  void dispose() {
+    _connSub?.cancel();
+    super.dispose();
   }
 
   void initPlatformState() async {
@@ -115,9 +128,52 @@ class _SplashScreenState extends State<SplashScreen> {
     };
   }
 
+  /// Hàm riêng: kiểm tra thiết bị có đang kết nối mạng hay không.
+  Future<bool> _hasInternetConnection() async {
+    final result = await _connectivity.checkConnectivity();
+    return !result.contains(ConnectivityResult.none) && result.isNotEmpty;
+  }
+
+  /// Lắng nghe khi mạng có trở lại để tự động thử lại.
+  void _listenForReconnect() {
+    _connSub?.cancel();
+    _connSub = _connectivity.onConnectivityChanged.listen((result) {
+      final hasConnection =
+          !result.contains(ConnectivityResult.none) && result.isNotEmpty;
+      if (hasConnection && _hasError && !_isRetrying) {
+        _connSub?.cancel();
+        startApp();
+      }
+    });
+  }
+
   Future<void> startApp() async {
+    if (!mounted) return;
+    setState(() {
+      _isRetrying = true;
+      _hasError = false;
+    });
+
+    // Kiểm tra mạng TRƯỚC TIÊN, áp dụng cho cả trường hợp chưa từng đăng nhập
+    final hasNetwork = await _hasInternetConnection();
+    if (!hasNetwork) {
+      _handleConnectionError();
+      return;
+    }
+
     final accountID = await readData(F_ACCOUNT_ID);
-    if (nvl(accountID).isNotEmpty) {
+    if (nvl(accountID).isEmpty) {
+      await Future.delayed(const Duration(seconds: 2));
+      if (!mounted) return;
+      _isRetrying = false;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainScreen()),
+      );
+      return;
+    }
+
+    try {
       loginRequest.accountID = accountID!;
       String time = DateTime.now().millisecondsSinceEpoch.toString();
       String? sercureKey = await readData(F_SECURE_KEY);
@@ -126,17 +182,34 @@ class _SplashScreenState extends State<SplashScreen> {
       String authenKey = md5.convert(utf8.encode(rawKey)).toString();
       loginRequest.time = time;
       loginRequest.authenKey = authenKey;
+
       AdminService service = AdminService();
       final response = await service.login(loginRequest);
+      _isRetrying = false;
       await processLoginResult(response);
-    } else {
-      await Future.delayed(const Duration(seconds: 2));
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
-      );
+    } on SocketException {
+      _handleConnectionError();
+    } on TimeoutException {
+      _handleConnectionError();
+    } catch (e) {
+      _isRetrying = false;
+      loginRequest.reconnect = false;
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+        );
+      }
     }
+  }
+
+  void _handleConnectionError() {
+    _isRetrying = false;
+    if (!mounted) return;
+    setState(() {
+      _hasError = true;
+    });
+    _listenForReconnect();
   }
 
   Future<void> processLoginResult(LoginResponse value) async {
@@ -151,10 +224,12 @@ class _SplashScreenState extends State<SplashScreen> {
       }
     } else {
       loginRequest.reconnect = false;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
-      );
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+        );
+      }
     }
   }
 
@@ -172,10 +247,17 @@ class _SplashScreenState extends State<SplashScreen> {
                 fit: BoxFit.contain,
               ),
             ),
-            Container(
-              margin: const EdgeInsets.all(30),
-              child: const CircularProgressIndicator.adaptive(),
-            ),
+            const SizedBox(height: 30),
+            _hasError
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 40),
+                    child: Text(
+                      "Lỗi kết nối mạng",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 15, color: Colors.black87),
+                    ),
+                  )
+                : const CircularProgressIndicator.adaptive(),
           ],
         ),
       ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -51,7 +52,7 @@ class _SkymapTileProvider implements TileProvider {
 }
 
 class _HomeScreenState extends State<HomeScreen>
-    with AutomaticKeepAliveClientMixin, RouteAware {
+    with AutomaticKeepAliveClientMixin, RouteAware, WidgetsBindingObserver {
   @override
   bool get wantKeepAlive => true;
   late final SkyMapTileProvider skyMapTileProvider;
@@ -369,11 +370,14 @@ class _HomeScreenState extends State<HomeScreen>
       center.latitude,
       center.longitude,
     );
-    if (!mounted) return;
     if (response.errorMessage.isEmpty) {
-      nearVehicles = response.vehicles;
-      await rebuildVehicleMarkers();
+      if (mounted) {
+        log("vào dây");
+        nearVehicles = response.vehicles;
+        await rebuildVehicleMarkers();
+      }
     } else {
+      log(response.errorMessage);
       showToast(response.errorMessage, ToastificationType.error);
     }
   }
@@ -541,9 +545,25 @@ class _HomeScreenState extends State<HomeScreen>
     };
   }
 
+  void startVehicleTimer() {
+    vehicleTimer?.cancel();
+    log("bật");
+    vehicleTimer = Timer.periodic(
+      const Duration(seconds: 5),
+      (_) => searchNearBus(),
+    );
+  }
+
+  void stopVehicleTimer() {
+    log("tắt");
+    vehicleTimer?.cancel();
+    vehicleTimer = null;
+  }
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _maptype = MapType.none;
     skyMapTileProvider = SkyMapTileProvider(baseUrl: skymapUrl);
     loadMapSettings();
@@ -555,6 +575,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
     vehicleTimer?.cancel();
     moveDebounce?.cancel();
@@ -564,6 +585,23 @@ class _HomeScreenState extends State<HomeScreen>
     VehicleArrowCache.instance.clear();
     VehiclePlateCache.instance.clear();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        startVehicleTimer();
+        searchNearBus();
+        break;
+
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.detached:
+        stopVehicleTimer();
+        break;
+    }
   }
 
   @override

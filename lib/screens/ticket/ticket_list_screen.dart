@@ -6,6 +6,7 @@ import 'package:toastification/toastification.dart';
 
 import '../../service/bus_service.dart';
 import '../../utils/global.dart';
+import '../../utils/string_utils.dart';
 
 class TicketListScreen extends StatefulWidget {
   const TicketListScreen({super.key});
@@ -25,7 +26,7 @@ class _TicketListScreenState extends State<TicketListScreen> {
     setState(() => isLoading = true);
     BusService service = BusService();
     final response = await service.listTickets();
-    if (mounted) setState(() => isLoading = false);
+    setState(() => isLoading = false);
     if (response.errorMessage.isEmpty) {
       filteredTickets = response.tickets;
       if (mounted) {
@@ -37,12 +38,7 @@ class _TicketListScreenState extends State<TicketListScreen> {
         });
       }
     } else {
-      if (loginResponse.fullName.isNotEmpty) {
-        showToast(
-          "Không có kết nối mạng. Vui lòng kiểm tra lại internet.",
-          ToastificationType.error,
-        );
-      }
+      showToast(response.errorMessage, ToastificationType.error);
     }
   }
 
@@ -354,7 +350,7 @@ class _TicketListScreenState extends State<TicketListScreen> {
                     ],
                   ),
                   Text(
-                    "${moneyFormat.format(ticket.price * ticket.quantity * 1000)} đ",
+                    "${(ticket.price * ticket.quantity * 1000).formatThousand()} đ",
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,

@@ -204,3 +204,20 @@ extension TextTimeOnInt on int {
     }
   }
 }
+
+String convertToInternationalPhoneNumber(
+  String phoneNumber, {
+  String defaultCountryCode = '+84',
+}) {
+  phoneNumber = phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+
+  if (phoneNumber.startsWith('+')) {
+    return phoneNumber;
+  }
+
+  if (phoneNumber.startsWith('0')) {
+    return defaultCountryCode + phoneNumber.substring(1);
+  }
+
+  return defaultCountryCode + phoneNumber;
+}

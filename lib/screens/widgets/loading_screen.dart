@@ -9,7 +9,7 @@ class LoadingOverlay extends StatelessWidget {
     super.key,
     required this.visible,
     required this.child,
-    this.textLoad = "Đang tải",
+    this.textLoad = "",
   });
 
   @override

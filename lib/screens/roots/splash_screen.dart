@@ -208,7 +208,6 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> processLoginResult(LoginResponse value) async {
     if (value.errorMessage.isEmpty) {
       loginResponse = value;
-      await saveData(F_FIREBASE_TOKEN, nvl(signUpRequest.authenByFirebase));
       if (mounted) pushToMainScreen();
     } else {
       loginRequest.reconnect = false;
@@ -219,6 +218,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -226,13 +226,13 @@ class _SplashScreenState extends State<SplashScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 50),
               child: Image.asset(
-                "assets/images/skysoft_logo_ok_h80.png",
+                "assets/images/logo_skybus.png",
                 fit: BoxFit.contain,
               ),
             ),
             const SizedBox(height: 30),
             hasError
-                ? const Padding(
+                ? Padding(
                     padding: EdgeInsets.symmetric(horizontal: 40),
                     child: Text(
                       "Lỗi kết nối mạng",
@@ -240,7 +240,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       style: TextStyle(fontSize: 15, color: Colors.black87),
                     ),
                   )
-                : const CircularProgressIndicator.adaptive(),
+                : CircularProgressIndicator(color: secondaryColor),
           ],
         ),
       ),

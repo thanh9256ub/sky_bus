@@ -8,23 +8,6 @@ import '../utils/global.dart';
 import '../utils/http_service.dart';
 
 class BusService {
-  Future<BusLineResponse> listECheckBusLines(
-    int type,
-    bool includeMatrix,
-  ) async {
-    Map<String, dynamic> map = {
-      F_LINE_TYPE: type,
-      F_INCLUDE_MATRIX: includeMatrix,
-    };
-    String url = "$baseUrl/rest/app/listECheckBusLines";
-    try {
-      final response = await httpService.post(url, body: map);
-      return BusLineResponse.fromJson(response);
-    } on Exception catch (e) {
-      return BusLineResponse("FAIL", e.toString());
-    }
-  }
-
   Future<BusLineResponse> listBusLines() async {
     String url = "$baseUrl/rest/bus/listBusLines";
     try {
@@ -37,11 +20,16 @@ class BusService {
 
   Future<VehicleResponse> searchNearVehicles(
     double latitude,
-    double longitude,
-  ) async {
+    double longitude, {
+    int? lineID,
+  }) async {
     String url = "$baseUrl/rest/bus/searchNearVehicles";
     try {
-      Map<String, dynamic> map = {F_Y: latitude, F_X: longitude};
+      Map<String, dynamic> map = {
+        F_Y: latitude,
+        F_X: longitude,
+        F_LINE_ID: lineID,
+      };
       final response = await httpService.post(url, body: map);
       return VehicleResponse.fromJson(response);
     } on Exception catch (e) {

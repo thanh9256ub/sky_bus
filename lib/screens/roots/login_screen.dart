@@ -9,6 +9,7 @@ import 'package:toastification/toastification.dart';
 
 import '../../models/login_model.dart';
 import '../../service/admin_service.dart';
+import '../../utils/date_utils.dart';
 import '../../utils/string_utils.dart';
 import 'main_screen.dart';
 
@@ -100,23 +101,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  String convertToInternationalPhoneNumber(
-    String phoneNumber, {
-    String defaultCountryCode = '+84',
-  }) {
-    phoneNumber = phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), '');
-
-    if (phoneNumber.startsWith('+')) {
-      return phoneNumber;
-    }
-
-    if (phoneNumber.startsWith('0')) {
-      return defaultCountryCode + phoneNumber.substring(1);
-    }
-
-    return defaultCountryCode + phoneNumber;
-  }
-
   @override
   Widget build(BuildContext context) {
     return LoadingOverlay(
@@ -156,9 +140,58 @@ class _LoginScreenState extends State<LoginScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                _buildHeader(),
+                                Column(
+                                  children: [
+                                    Image.asset(
+                                      "assets/images/logo_skybus.png",
+                                      height: 65,
+                                    ),
+                                    SizedBox(height: 20),
+                                    Text(
+                                      "Tạo tài khoản mới",
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1A1D29),
+                                      ),
+                                    ),
+                                    SizedBox(height: 6),
+                                    Text(
+                                      "Điền thông tin bên dưới để bắt đầu",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 SizedBox(height: 25),
-                                _buildCard(),
+                                Container(
+                                  padding: EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(24),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
+                                        blurRadius: 30,
+                                        offset: const Offset(0, 12),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      formLogin(),
+                                      SizedBox(height: 24),
+                                      _buildSubmitButton(),
+                                    ],
+                                  ),
+                                ),
                                 SizedBox(height: 20),
                               ],
                             ),
@@ -168,78 +201,30 @@ class _LoginScreenState extends State<LoginScreen> {
                     );
                   },
                 ),
-                _buildBackButton(),
+                Positioned(
+                  top: 8,
+                  left: 16,
+                  child: Material(
+                    color: Colors.white38,
+                    shape: CircleBorder(),
+                    elevation: 3,
+                    shadowColor: Colors.black.withValues(alpha: 0.15),
+                    child: InkWell(
+                      customBorder: CircleBorder(),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildBackButton() {
-    return Positioned(
-      top: 8,
-      left: 16,
-      child: Material(
-        color: Colors.white38,
-        shape: CircleBorder(),
-        elevation: 3,
-        shadowColor: Colors.black.withValues(alpha: 0.15),
-        child: InkWell(
-          customBorder: CircleBorder(),
-          onTap: () {
-            Navigator.of(context).pop();
-          },
-          child: Padding(
-            padding: EdgeInsets.all(10),
-            child: Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Column(
-      children: [
-        Image.asset("assets/images/logo_skybus.png", height: 65),
-        SizedBox(height: 20),
-        Text(
-          "Tạo tài khoản mới",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1A1D29),
-          ),
-        ),
-        SizedBox(height: 6),
-        Text(
-          "Điền thông tin bên dưới để bắt đầu",
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCard() {
-    return Container(
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 30,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [formLogin(), SizedBox(height: 24), _buildSubmitButton()],
       ),
     );
   }
@@ -311,9 +296,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 hint: "Nhập họ và tên",
                 icon: Icons.person_outline_rounded,
               ),
-              onTapOutside: (_) {
-                FocusManager.instance.primaryFocus?.unfocus();
-              },
+
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Vui lòng nhập họ và tên';
@@ -325,8 +308,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   signUpRequest.fullName = value;
                 });
               },
+              onTapOutside: (_) {
+                FocusManager.instance.primaryFocus?.unfocus();
+              },
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             TextFormField(
               decoration: _fieldDecoration(
                 hint: "Nhập số điện thoại",
@@ -334,9 +320,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               keyboardType: TextInputType.phone,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              onTapOutside: (_) {
-                FocusManager.instance.primaryFocus?.unfocus();
-              },
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Vui lòng nhập số điện thoại';
@@ -351,6 +334,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   signUpRequest.mobileNo = value;
                 });
               },
+              onTapOutside: (_) {
+                FocusManager.instance.primaryFocus?.unfocus();
+              },
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -358,13 +344,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 hint: "Nhập email",
                 icon: Icons.email_outlined,
               ),
-              onTapOutside: (_) {
-                FocusManager.instance.primaryFocus?.unfocus();
-              },
               onChanged: (value) {
                 setState(() {
                   signUpRequest.email = value;
                 });
+              },
+              onTapOutside: (_) {
+                FocusManager.instance.primaryFocus?.unfocus();
               },
             ),
           ],

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong2/latlong.dart' as latlong;
 import 'package:skysoft_bus/screens/home/busline_list_screen.dart';
@@ -15,6 +14,7 @@ import '../../utils/global.dart';
 import '../../utils/image_utils.dart';
 import '../../utils/map_helper.dart';
 import '../../utils/sky_map_provider.dart';
+import '../../utils/string_utils.dart';
 import '../widgets/ticket_buy_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -22,32 +22,6 @@ class HomeScreen extends StatefulWidget {
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _SkymapTileProvider implements TileProvider {
-  static const int width = 256;
-  static const int height = 256;
-  int? _activeZoom;
-
-  void setActiveZoom(int zoom) => _activeZoom = zoom;
-
-  @override
-  Future<Tile> getTile(int x, int y, int? zoom) async {
-    final requestedZoom = zoom;
-    String url = "$skymapUrl/web_tile.jsp?c=$x&r=$y&z=$zoom";
-    try {
-      Uint8List byteData = (await NetworkAssetBundle(
-        Uri.parse(url),
-      ).load(url)).buffer.asUint8List();
-
-      if (_activeZoom != null && requestedZoom != _activeZoom) {
-        return Tile(width, height, null);
-      }
-      return Tile(width, height, byteData);
-    } catch (e) {
-      return Tile(width, height, null);
-    }
-  }
 }
 
 class _HomeScreenState extends State<HomeScreen>
@@ -73,7 +47,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   Timer? vehicleTimer;
   Timer? moveDebounce;
-  bool skipNextPopClear = false;
 
   Set<Marker> placeMarkers = {};
   Set<Marker> vehicleMarkers = {};
@@ -103,7 +76,6 @@ class _HomeScreenState extends State<HomeScreen>
           busLines: busLines,
           selectedBusLine: selectedBusLine,
           onChanged: (value) {
-            skipNextPopClear = true;
             selectLine(value);
           },
         ),
@@ -226,10 +198,24 @@ class _HomeScreenState extends State<HomeScreen>
     mapController?.animateCamera(CameraUpdate.newLatLngZoom(target, 17));
   }
 
+  void switchMap(MapType value) {
+    setState(() {
+      if (mounted) {
+        _maptype = value;
+        saveData(F_MAP_TYPE, value.name);
+        if (value == MapType.none) {
+          addTileOverlay();
+        } else {
+          removeTileOverlay();
+        }
+      }
+    });
+  }
+
   void addTileOverlay() {
     final TileOverlay tileOverlay = TileOverlay(
       tileOverlayId: const TileOverlayId('skymap'),
-      tileProvider: _SkymapTileProvider(),
+      tileProvider: SkyMapTileProvider(baseUrl: skymapUrl),
       tileSize: 2048,
     );
     if (mounted) {
@@ -245,20 +231,6 @@ class _HomeScreenState extends State<HomeScreen>
         _tileOverlay = null;
       });
     }
-  }
-
-  void switchMap(MapType value) {
-    setState(() {
-      if (mounted) {
-        _maptype = value;
-        saveData(F_MAP_TYPE, value.name);
-        if (value == MapType.none) {
-          addTileOverlay();
-        } else {
-          removeTileOverlay();
-        }
-      }
-    });
   }
 
   void showPopupMenu(BuildContext context, TapDownDetails details) {
@@ -357,23 +329,26 @@ class _HomeScreenState extends State<HomeScreen>
     rebuildPlaceMarkers();
   }
 
-  void searchNearBus() async {
-    final BusService busService = BusService();
-    final GoogleMapController? controller = mapController;
+  void searchNearVehicles() async {
+    BusService busService = BusService();
+    GoogleMapController? controller = mapController;
     if (controller == null) return;
-    final LatLngBounds bounds = await controller.getVisibleRegion();
-    final LatLng center = LatLng(
+    LatLngBounds bounds = await controller.getVisibleRegion();
+    LatLng center = LatLng(
       (bounds.northeast.latitude + bounds.southwest.latitude) / 2,
       (bounds.northeast.longitude + bounds.southwest.longitude) / 2,
     );
     final response = await busService.searchNearVehicles(
       center.latitude,
       center.longitude,
+      lineID: selectedBusLine?.lineID,
     );
     if (response.errorMessage.isEmpty) {
       nearBusError = false;
       if (mounted) {
-        nearVehicles = response.vehicles;
+        setState(() {
+          nearVehicles = response.vehicles;
+        });
         rebuildVehicleMarkers();
       }
     } else {
@@ -468,11 +443,11 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> rebuildPlaceMarkers() async {
-    final List<BusLine> linesToShow = selectedBusLine != null
+    List<BusLine> linesToShow = selectedBusLine != null
         ? [selectedBusLine!]
         : busLines;
 
-    final List<({BusLine line, Place place})> candidates = [
+    List<({BusLine line, Place place})> candidates = [
       for (final line in linesToShow)
         for (final place in line.placeMarks) (line: line, place: place),
     ];
@@ -498,7 +473,7 @@ class _HomeScreenState extends State<HomeScreen>
       final bool selected = selectedPlaceIds.contains(place.placeID);
       final Color lineColor = Color(line.color.toUnsigned(32));
 
-      final bool showLabel = selectedBusLine != null || currentZoom >= 13;
+      final bool showLabel = selectedBusLine != null || currentZoom >= 15;
 
       final CachedPlaceIcon placeIcon = await PlaceIconCache.instance.getIcon(
         lineColor: lineColor,
@@ -553,8 +528,8 @@ class _HomeScreenState extends State<HomeScreen>
   void startVehicleTimer() {
     vehicleTimer?.cancel();
     vehicleTimer = Timer.periodic(
-      const Duration(seconds: 5),
-      (_) => searchNearBus(),
+      Duration(seconds: 5),
+      (_) => searchNearVehicles(),
     );
   }
 
@@ -571,7 +546,7 @@ class _HomeScreenState extends State<HomeScreen>
     skyMapTileProvider = SkyMapTileProvider(baseUrl: skymapUrl);
     loadMapSettings();
     vehicleTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      searchNearBus();
+      searchNearVehicles();
     });
     getListBusLine();
   }
@@ -595,7 +570,7 @@ class _HomeScreenState extends State<HomeScreen>
     switch (state) {
       case AppLifecycleState.resumed:
         startVehicleTimer();
-        searchNearBus();
+        searchNearVehicles();
         break;
 
       case AppLifecycleState.inactive:
@@ -656,7 +631,10 @@ class _HomeScreenState extends State<HomeScreen>
         onCameraIdle: () {
           rebuildPlaceMarkers();
           moveDebounce?.cancel();
-          moveDebounce = Timer(Duration(milliseconds: 1500), searchNearBus);
+          moveDebounce = Timer(
+            Duration(milliseconds: 1500),
+            searchNearVehicles,
+          );
         },
       ),
     );
@@ -819,7 +797,7 @@ class _HomeScreenState extends State<HomeScreen>
                       if (selectedBusLine!.placeMarks.isNotEmpty)
                         Container(
                           margin: const EdgeInsets.fromLTRB(16, 10, 16, 4),
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 12,
                           ),
@@ -904,7 +882,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: Text(
-                                "${moneyFormat.format(matrixPrice.price)},000đ",
+                                "${(matrixPrice.price * 1000).formatThousand()}đ",
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,

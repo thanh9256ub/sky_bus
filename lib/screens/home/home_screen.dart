@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong2/latlong.dart' as latlong;
 import 'package:skysoft_bus/screens/home/busline_list_screen.dart';
@@ -642,53 +642,100 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget searchBusLine() {
     return Positioned(
-      top: MediaQuery.of(context).size.height * 0.02,
+      top: MediaQuery.of(context).size.height * 0.01,
       left: 16,
       right: 16,
       child: SafeArea(
         child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(25),
+          color: Colors.white,
+          elevation: 9,
+          shadowColor: const Color(0x220E2A50),
+          borderRadius: BorderRadius.circular(20),
           child: InkWell(
+            borderRadius: BorderRadius.circular(20),
             onTap: openBusLineListScreen,
             child: Container(
-              height: 50,
+              constraints: BoxConstraints(minHeight: 62),
+              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 9),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(color: Colors.grey.shade400),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Color(0xFFE8EEF6)),
               ),
               child: Row(
                 children: [
-                  SizedBox(width: 16),
                   Container(
-                    padding: EdgeInsets.all(6),
+                    width: 42,
+                    height: 42,
                     decoration: BoxDecoration(
-                      color: secondaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(25),
+                      color: Color(0xFFEAF2FF),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Icon(Icons.search, color: secondaryColor),
+                    child: Icon(
+                      Icons.search_rounded,
+                      color: Colors.blue,
+                      size: 23,
+                    ),
                   ),
                   SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      selectedBusLine?.description ?? "Tìm kiếm tuyến xe",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.black,
-                        fontWeight: FontWeight.normal,
+                    child: AnimatedSwitcher(
+                      duration: Duration(milliseconds: 260),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) => FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: Offset(0, .12),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      ),
+                      child: Column(
+                        key: ValueKey(selectedBusLine?.lineID ?? 'search'),
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            selectedBusLine?.description ?? 'Bạn muốn đi đâu?',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            selectedBusLine == null
+                                ? 'Tìm tuyến xe buýt gần bạn'
+                                : 'Chạm để đổi tuyến xe',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                   if (selectedBusLine != null)
                     IconButton(
+                      tooltip: 'Bỏ chọn tuyến',
+                      visualDensity: VisualDensity.compact,
                       onPressed: clearSelectedBusLine,
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: Color(0xFF7B8798),
+                      ),
                     )
                   else
-                    const SizedBox(width: 16),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: Color(0xFF9AA7B8),
+                    ),
                 ],
               ),
             ),
@@ -700,7 +747,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget featureInMap() {
     return Positioned(
-      top: MediaQuery.of(context).size.height * 0.15,
+      top: MediaQuery.of(context).padding.top + 88,
       right: 16,
       child: Material(
         color: Colors.transparent,
@@ -711,29 +758,31 @@ class _HomeScreenState extends State<HomeScreen>
             SizedBox(height: 10),
             GestureDetector(
               onTapDown: (details) => showPopupMenu(context, details),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade400),
-                  borderRadius: BorderRadius.circular(25),
+              child: Material(
+                color: Colors.white,
+                elevation: 7,
+                shadowColor: Color(0x220E2A50),
+                borderRadius: BorderRadius.circular(16),
+                child: SizedBox(
+                  width: 46,
+                  height: 46,
+                  child: Icon(Icons.layers, color: Colors.blue, size: 24),
                 ),
-                child: Icon(Icons.layers, color: Colors.green, size: 20),
               ),
             ),
             SizedBox(height: 10),
             GestureDetector(
               onTap: getCurrentLocation,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade400),
-                  borderRadius: BorderRadius.circular(25),
+              child: Material(
+                color: Colors.white,
+                elevation: 7,
+                shadowColor: Color(0x220E2A50),
+                borderRadius: BorderRadius.circular(16),
+                child: SizedBox(
+                  width: 46,
+                  height: 46,
+                  child: Icon(Icons.my_location, color: Colors.blue, size: 24),
                 ),
-                child: Icon(Icons.my_location, color: Colors.blue, size: 20),
               ),
             ),
           ],

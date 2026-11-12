@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 
 import 'string_utils.dart';
@@ -203,4 +203,21 @@ extension TextTimeOnInt on int {
       return "${f.format(minute)}:${f.format(second)}";
     }
   }
+}
+
+String convertToInternationalPhoneNumber(
+  String phoneNumber, {
+  String defaultCountryCode = '+84',
+}) {
+  phoneNumber = phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+
+  if (phoneNumber.startsWith('+')) {
+    return phoneNumber;
+  }
+
+  if (phoneNumber.startsWith('0')) {
+    return defaultCountryCode + phoneNumber.substring(1);
+  }
+
+  return defaultCountryCode + phoneNumber;
 }

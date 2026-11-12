@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:gal/gal.dart';
 import 'package:intl/intl.dart';
@@ -27,7 +27,6 @@ final moneyFormat = NumberFormat("#,##0", "en_US");
 const Color LIGHT_GREY = Color.fromARGB(255, 228, 227, 227);
 
 void showToast(String msg, ToastificationType type) {
-  toastification.dismissAll();
   toastification.show(
     title: Text(msg),
     type: type,

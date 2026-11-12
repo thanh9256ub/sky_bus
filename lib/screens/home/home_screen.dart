@@ -1,8 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
-
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong2/latlong.dart' as latlong;
 import 'package:skysoft_bus/screens/home/busline_list_screen.dart';
@@ -16,6 +13,7 @@ import '../../utils/global.dart';
 import '../../utils/image_utils.dart';
 import '../../utils/map_helper.dart';
 import '../../utils/sky_map_provider.dart';
+import '../../utils/string_utils.dart';
 import '../widgets/ticket_buy_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -23,32 +21,6 @@ class HomeScreen extends StatefulWidget {
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _SkymapTileProvider implements TileProvider {
-  static const int width = 256;
-  static const int height = 256;
-  int? _activeZoom;
-
-  void setActiveZoom(int zoom) => _activeZoom = zoom;
-
-  @override
-  Future<Tile> getTile(int x, int y, int? zoom) async {
-    final requestedZoom = zoom;
-    String url = "$skymapUrl/web_tile.jsp?c=$x&r=$y&z=$zoom";
-    try {
-      Uint8List byteData = (await NetworkAssetBundle(
-        Uri.parse(url),
-      ).load(url)).buffer.asUint8List();
-
-      if (_activeZoom != null && requestedZoom != _activeZoom) {
-        return Tile(width, height, null);
-      }
-      return Tile(width, height, byteData);
-    } catch (e) {
-      return Tile(width, height, null);
-    }
-  }
 }
 
 class _HomeScreenState extends State<HomeScreen>
@@ -68,12 +40,12 @@ class _HomeScreenState extends State<HomeScreen>
   List<BusLine> busLines = [];
   List<Vehicle> nearVehicles = [];
   List<int> selectedPlaceIds = [];
+  bool nearBusError = false;
   bool enableTraffic = false;
   bool locationReady = false;
 
   Timer? vehicleTimer;
   Timer? moveDebounce;
-  bool skipNextPopClear = false;
 
   Set<Marker> placeMarkers = {};
   Set<Marker> vehicleMarkers = {};
@@ -103,7 +75,6 @@ class _HomeScreenState extends State<HomeScreen>
           busLines: busLines,
           selectedBusLine: selectedBusLine,
           onChanged: (value) {
-            skipNextPopClear = true;
             selectLine(value);
           },
         ),
@@ -226,10 +197,24 @@ class _HomeScreenState extends State<HomeScreen>
     mapController?.animateCamera(CameraUpdate.newLatLngZoom(target, 17));
   }
 
+  void switchMap(MapType value) {
+    setState(() {
+      if (mounted) {
+        _maptype = value;
+        saveData(F_MAP_TYPE, value.name);
+        if (value == MapType.none) {
+          addTileOverlay();
+        } else {
+          removeTileOverlay();
+        }
+      }
+    });
+  }
+
   void addTileOverlay() {
     final TileOverlay tileOverlay = TileOverlay(
       tileOverlayId: const TileOverlayId('skymap'),
-      tileProvider: _SkymapTileProvider(),
+      tileProvider: SkyMapTileProvider(baseUrl: skymapUrl),
       tileSize: 2048,
     );
     if (mounted) {
@@ -245,20 +230,6 @@ class _HomeScreenState extends State<HomeScreen>
         _tileOverlay = null;
       });
     }
-  }
-
-  void switchMap(MapType value) {
-    setState(() {
-      if (mounted) {
-        _maptype = value;
-        saveData(F_MAP_TYPE, value.name);
-        if (value == MapType.none) {
-          addTileOverlay();
-        } else {
-          removeTileOverlay();
-        }
-      }
-    });
   }
 
   void showPopupMenu(BuildContext context, TapDownDetails details) {
@@ -357,28 +328,36 @@ class _HomeScreenState extends State<HomeScreen>
     rebuildPlaceMarkers();
   }
 
-  void searchNearBus() async {
-    final BusService busService = BusService();
-    final GoogleMapController? controller = mapController;
+  void searchNearVehicles() async {
+    BusService busService = BusService();
+    GoogleMapController? controller = mapController;
     if (controller == null) return;
-    final LatLngBounds bounds = await controller.getVisibleRegion();
-    final LatLng center = LatLng(
+    LatLngBounds bounds = await controller.getVisibleRegion();
+    LatLng center = LatLng(
       (bounds.northeast.latitude + bounds.southwest.latitude) / 2,
       (bounds.northeast.longitude + bounds.southwest.longitude) / 2,
     );
     final response = await busService.searchNearVehicles(
       center.latitude,
       center.longitude,
+      lineID: selectedBusLine?.lineID,
     );
     if (response.errorMessage.isEmpty) {
+      nearBusError = false;
       if (mounted) {
-        log("vào dây");
-        nearVehicles = response.vehicles;
-        await rebuildVehicleMarkers();
+        setState(() {
+          nearVehicles = response.vehicles;
+        });
+        rebuildVehicleMarkers();
       }
     } else {
-      log(response.errorMessage);
-      showToast(response.errorMessage, ToastificationType.error);
+      if (!nearBusError) {
+        nearBusError = true;
+        showToast(
+          "Lỗi lấy vị trí các xe đang di chuyển",
+          ToastificationType.error,
+        );
+      }
     }
   }
 
@@ -463,11 +442,11 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> rebuildPlaceMarkers() async {
-    final List<BusLine> linesToShow = selectedBusLine != null
+    List<BusLine> linesToShow = selectedBusLine != null
         ? [selectedBusLine!]
         : busLines;
 
-    final List<({BusLine line, Place place})> candidates = [
+    List<({BusLine line, Place place})> candidates = [
       for (final line in linesToShow)
         for (final place in line.placeMarks) (line: line, place: place),
     ];
@@ -493,7 +472,7 @@ class _HomeScreenState extends State<HomeScreen>
       final bool selected = selectedPlaceIds.contains(place.placeID);
       final Color lineColor = Color(line.color.toUnsigned(32));
 
-      final bool showLabel = selectedBusLine != null || currentZoom >= 13;
+      final bool showLabel = selectedBusLine != null || currentZoom >= 15;
 
       final CachedPlaceIcon placeIcon = await PlaceIconCache.instance.getIcon(
         lineColor: lineColor,
@@ -547,15 +526,13 @@ class _HomeScreenState extends State<HomeScreen>
 
   void startVehicleTimer() {
     vehicleTimer?.cancel();
-    log("bật");
     vehicleTimer = Timer.periodic(
-      const Duration(seconds: 5),
-      (_) => searchNearBus(),
+      Duration(seconds: 5),
+      (_) => searchNearVehicles(),
     );
   }
 
   void stopVehicleTimer() {
-    log("tắt");
     vehicleTimer?.cancel();
     vehicleTimer = null;
   }
@@ -568,7 +545,7 @@ class _HomeScreenState extends State<HomeScreen>
     skyMapTileProvider = SkyMapTileProvider(baseUrl: skymapUrl);
     loadMapSettings();
     vehicleTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      searchNearBus();
+      searchNearVehicles();
     });
     getListBusLine();
   }
@@ -592,7 +569,7 @@ class _HomeScreenState extends State<HomeScreen>
     switch (state) {
       case AppLifecycleState.resumed:
         startVehicleTimer();
-        searchNearBus();
+        searchNearVehicles();
         break;
 
       case AppLifecycleState.inactive:
@@ -614,19 +591,17 @@ class _HomeScreenState extends State<HomeScreen>
       body: Stack(
         children: [
           mapWidget(overlays),
-          centerPointMap(),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Center(
+                child: Icon(Icons.add, color: Colors.red, size: 18),
+              ),
+            ),
+          ),
           searchBusLine(),
           featureInMap(),
           if (selectedBusLine != null) mainContent(),
         ],
-      ),
-    );
-  }
-
-  Widget centerPointMap() {
-    return const Positioned.fill(
-      child: IgnorePointer(
-        child: Center(child: Icon(Icons.add, color: Colors.red, size: 18)),
       ),
     );
   }
@@ -656,8 +631,8 @@ class _HomeScreenState extends State<HomeScreen>
           rebuildPlaceMarkers();
           moveDebounce?.cancel();
           moveDebounce = Timer(
-            const Duration(milliseconds: 1500),
-            searchNearBus,
+            Duration(milliseconds: 1500),
+            searchNearVehicles,
           );
         },
       ),
@@ -666,53 +641,100 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget searchBusLine() {
     return Positioned(
-      top: MediaQuery.of(context).size.height * 0.02,
+      top: MediaQuery.of(context).size.height * 0.01,
       left: 16,
       right: 16,
       child: SafeArea(
         child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(25),
+          color: Colors.white,
+          elevation: 9,
+          shadowColor: const Color(0x220E2A50),
+          borderRadius: BorderRadius.circular(20),
           child: InkWell(
+            borderRadius: BorderRadius.circular(20),
             onTap: openBusLineListScreen,
             child: Container(
-              height: 50,
+              constraints: BoxConstraints(minHeight: 62),
+              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 9),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(color: Colors.grey.shade400),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Color(0xFFE8EEF6)),
               ),
               child: Row(
                 children: [
-                  SizedBox(width: 16),
                   Container(
-                    padding: EdgeInsets.all(6),
+                    width: 42,
+                    height: 42,
                     decoration: BoxDecoration(
-                      color: secondaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(25),
+                      color: Color(0xFFEAF2FF),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Icon(Icons.search, color: secondaryColor),
+                    child: Icon(
+                      Icons.search_rounded,
+                      color: Colors.blue,
+                      size: 23,
+                    ),
                   ),
                   SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      selectedBusLine?.description ?? "Tìm kiếm tuyến xe",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.black,
-                        fontWeight: FontWeight.normal,
+                    child: AnimatedSwitcher(
+                      duration: Duration(milliseconds: 260),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) => FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: Offset(0, .12),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      ),
+                      child: Column(
+                        key: ValueKey(selectedBusLine?.lineID ?? 'search'),
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            selectedBusLine?.description ?? 'Bạn muốn đi đâu?',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            selectedBusLine == null
+                                ? 'Tìm tuyến xe buýt gần bạn'
+                                : 'Chạm để đổi tuyến xe',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                   if (selectedBusLine != null)
                     IconButton(
+                      tooltip: 'Bỏ chọn tuyến',
+                      visualDensity: VisualDensity.compact,
                       onPressed: clearSelectedBusLine,
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: Color(0xFF7B8798),
+                      ),
                     )
                   else
-                    const SizedBox(width: 16),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: Color(0xFF9AA7B8),
+                    ),
                 ],
               ),
             ),
@@ -724,7 +746,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget featureInMap() {
     return Positioned(
-      top: MediaQuery.of(context).size.height * 0.15,
+      top: MediaQuery.of(context).padding.top + 88,
       right: 16,
       child: Material(
         color: Colors.transparent,
@@ -735,29 +757,31 @@ class _HomeScreenState extends State<HomeScreen>
             SizedBox(height: 10),
             GestureDetector(
               onTapDown: (details) => showPopupMenu(context, details),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade400),
-                  borderRadius: BorderRadius.circular(25),
+              child: Material(
+                color: Colors.white,
+                elevation: 7,
+                shadowColor: Color(0x220E2A50),
+                borderRadius: BorderRadius.circular(16),
+                child: SizedBox(
+                  width: 46,
+                  height: 46,
+                  child: Icon(Icons.layers, color: Colors.blue, size: 24),
                 ),
-                child: Icon(Icons.layers, color: Colors.green, size: 20),
               ),
             ),
             SizedBox(height: 10),
             GestureDetector(
               onTap: getCurrentLocation,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade400),
-                  borderRadius: BorderRadius.circular(25),
+              child: Material(
+                color: Colors.white,
+                elevation: 7,
+                shadowColor: Color(0x220E2A50),
+                borderRadius: BorderRadius.circular(16),
+                child: SizedBox(
+                  width: 46,
+                  height: 46,
+                  child: Icon(Icons.my_location, color: Colors.blue, size: 24),
                 ),
-                child: Icon(Icons.my_location, color: Colors.blue, size: 20),
               ),
             ),
           ],
@@ -821,7 +845,7 @@ class _HomeScreenState extends State<HomeScreen>
                       if (selectedBusLine!.placeMarks.isNotEmpty)
                         Container(
                           margin: const EdgeInsets.fromLTRB(16, 10, 16, 4),
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 12,
                           ),
@@ -906,7 +930,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: Text(
-                                "${moneyFormat.format(matrixPrice.price)},000đ",
+                                "${(matrixPrice.price * 1000).formatThousand()}đ",
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,

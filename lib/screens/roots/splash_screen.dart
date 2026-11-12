@@ -7,7 +7,7 @@ import 'package:crypto/crypto.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../models/login_model.dart';
 import '../../service/admin_service.dart';
@@ -28,8 +28,8 @@ class _SplashScreenState extends State<SplashScreen> {
   final Connectivity _connectivity = Connectivity();
   StreamSubscription<List<ConnectivityResult>>? _connSub;
 
-  bool _hasError = false; // true khi mất mạng, hiện UI lỗi
-  bool _isRetrying = false;
+  bool hasError = false;
+  bool isRetry = false;
 
   @override
   void initState() {
@@ -128,19 +128,18 @@ class _SplashScreenState extends State<SplashScreen> {
     };
   }
 
-  /// Hàm riêng: kiểm tra thiết bị có đang kết nối mạng hay không.
-  Future<bool> _hasInternetConnection() async {
-    final result = await _connectivity.checkConnectivity();
-    return !result.contains(ConnectivityResult.none) && result.isNotEmpty;
+  void pushToMainScreen() {
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (context) => MainScreen()));
   }
 
-  /// Lắng nghe khi mạng có trở lại để tự động thử lại.
   void _listenForReconnect() {
     _connSub?.cancel();
     _connSub = _connectivity.onConnectivityChanged.listen((result) {
       final hasConnection =
           !result.contains(ConnectivityResult.none) && result.isNotEmpty;
-      if (hasConnection && _hasError && !_isRetrying) {
+      if (hasConnection && hasError && !isRetry) {
         _connSub?.cancel();
         startApp();
       }
@@ -148,14 +147,15 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> startApp() async {
+    final result = await _connectivity.checkConnectivity();
     if (!mounted) return;
     setState(() {
-      _isRetrying = true;
-      _hasError = false;
+      isRetry = true;
+      hasError = false;
     });
 
-    // Kiểm tra mạng TRƯỚC TIÊN, áp dụng cho cả trường hợp chưa từng đăng nhập
-    final hasNetwork = await _hasInternetConnection();
+    final hasNetwork =
+        !result.contains(ConnectivityResult.none) && result.isNotEmpty;
     if (!hasNetwork) {
       _handleConnectionError();
       return;
@@ -164,13 +164,11 @@ class _SplashScreenState extends State<SplashScreen> {
     final accountID = await readData(F_ACCOUNT_ID);
     if (nvl(accountID).isEmpty) {
       await Future.delayed(const Duration(seconds: 2));
-      if (!mounted) return;
-      _isRetrying = false;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
-      );
-      return;
+      if (mounted) {
+        isRetry = false;
+        pushToMainScreen();
+        return;
+      }
     }
 
     try {
@@ -185,29 +183,24 @@ class _SplashScreenState extends State<SplashScreen> {
 
       AdminService service = AdminService();
       final response = await service.login(loginRequest);
-      _isRetrying = false;
+      isRetry = false;
       await processLoginResult(response);
     } on SocketException {
       _handleConnectionError();
     } on TimeoutException {
       _handleConnectionError();
     } catch (e) {
-      _isRetrying = false;
+      isRetry = false;
       loginRequest.reconnect = false;
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
-        );
-      }
+      if (mounted) pushToMainScreen();
     }
   }
 
   void _handleConnectionError() {
-    _isRetrying = false;
+    isRetry = false;
     if (!mounted) return;
     setState(() {
-      _hasError = true;
+      hasError = true;
     });
     _listenForReconnect();
   }
@@ -215,27 +208,17 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> processLoginResult(LoginResponse value) async {
     if (value.errorMessage.isEmpty) {
       loginResponse = value;
-      await saveData(F_FIREBASE_TOKEN, nvl(signUpRequest.authenByFirebase));
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
-        );
-      }
+      if (mounted) pushToMainScreen();
     } else {
       loginRequest.reconnect = false;
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
-        );
-      }
+      if (mounted) pushToMainScreen();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -243,13 +226,13 @@ class _SplashScreenState extends State<SplashScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 50),
               child: Image.asset(
-                "assets/images/skysoft_logo_ok_h80.png",
+                "assets/images/logo_skybus.png",
                 fit: BoxFit.contain,
               ),
             ),
             const SizedBox(height: 30),
-            _hasError
-                ? const Padding(
+            hasError
+                ? Padding(
                     padding: EdgeInsets.symmetric(horizontal: 40),
                     child: Text(
                       "Lỗi kết nối mạng",
@@ -257,7 +240,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       style: TextStyle(fontSize: 15, color: Colors.black87),
                     ),
                   )
-                : const CircularProgressIndicator.adaptive(),
+                : CircularProgressIndicator(color: secondaryColor),
           ],
         ),
       ),

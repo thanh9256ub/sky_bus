@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
-
 import 'package:material_ui/material_ui.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong2/latlong.dart' as latlong;
@@ -61,7 +59,6 @@ class _HomeScreenState extends State<HomeScreen>
       return;
     }
     final newLocation = LatLng(location.latitude, location.longitude);
-    log(newLocation.toString());
     setState(() {
       currentLocation = newLocation;
       locationReady = true;

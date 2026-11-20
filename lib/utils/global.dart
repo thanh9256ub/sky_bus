@@ -53,9 +53,9 @@ Future<void> downloadQrCode(ScreenshotController screenshotController) async {
     if (image == null) {
       throw Exception("Không thể chụp màn hình");
     }
-    final hasAccess = await Gal.hasAccess();
+    final hasAccess = await Gal.hasPermission();
     if (!hasAccess) {
-      await Gal.requestAccess();
+      await Gal.requestPermission();
     }
     await Gal.putImageBytes(image, name: "payment_ticket");
 

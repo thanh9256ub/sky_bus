@@ -844,40 +844,35 @@ class _HomeScreenState extends State<HomeScreen>
                     children: [
                       if (selectedBusLine!.placeMarks.isNotEmpty)
                         Container(
-                          margin: const EdgeInsets.fromLTRB(16, 10, 16, 4),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 16,
+                          margin: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
                             vertical: 12,
                           ),
                           decoration: BoxDecoration(
-                            color: secondaryColor,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: secondaryColor.withValues(alpha: 0.35),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFE8EEF6)),
                           ),
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.alt_route_rounded,
-                                color: Colors.white,
-                                size: 20,
+                                color: secondaryColor,
+                                size: 21,
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   "${selectedBusLine!.placeMarks.first.description} → "
                                   "${selectedBusLine!.placeMarks.last.description}",
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13.5,
+                                    color: Colors.grey.shade800,
+                                    height: 1.4,
                                   ),
                                 ),
                               ),
@@ -996,16 +991,6 @@ class _HomeScreenState extends State<HomeScreen>
                           color: isSelected ? secondaryColor : Colors.white,
                           shape: BoxShape.circle,
                           border: Border.all(color: secondaryColor, width: 3),
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: secondaryColor.withValues(
-                                      alpha: 0.4,
-                                    ),
-                                    blurRadius: 6,
-                                  ),
-                                ]
-                              : null,
                         ),
                       ),
                     ],

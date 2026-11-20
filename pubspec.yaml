@@ -35,24 +35,24 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   intl: ^0.20.3
-  crypto: ^3.0.7
-  latlong2: ^0.9.1
+  crypto: ^3.0.8
+  latlong2: ^0.10.1
   http: ^1.6.0
-  geolocator: ^14.0.3
+  geolocator: ^14.1.2
   toastification: ^3.2.0
-  pinput: ^6.0.2
+  pinput: ^7.0.0
   qr_flutter: ^4.1.0
-  gal: ^2.3.2
+  gal: ^3.0.1
   foundation: ^0.0.5
   device_info_plus: ^13.2.0
   package_info_plus: ^10.2.1
-  flutter_secure_storage: ^11.0.0
+  flutter_secure_storage: ^11.2.0
   screenshot: ^3.0.0
-  url_launcher: ^6.3.2
-  flutter_nfc_kit: ^3.6.2
-  firebase_auth: ^6.6.1
-  firebase_core: ^4.14.0
-  google_maps_flutter: ^2.18.0 
+  url_launcher: ^6.3.3
+  flutter_nfc_kit: ^3.7.0
+  firebase_auth: ^7.1.0
+  firebase_core: ^5.2.0
+  google_maps_flutter: ^2.19.0 
   path_provider: ^2.1.6
   connectivity_plus: ^7.3.1
 

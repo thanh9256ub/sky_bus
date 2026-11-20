@@ -133,133 +133,141 @@ class _ConfirmPhoneLoginState extends State<ConfirmPhoneLogin> {
     return LoadingOverlay(
       visible: isLoading,
       child: Scaffold(
-        backgroundColor: Color(0xFFF4F6F9),
-        body: SafeArea(
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFFF4F6F9), Colors.white],
-                stops: [0.0, 0.35],
+        body: Material(
+          color: Color(0xFFF4F6F9),
+          child: SafeArea(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFF4F6F9), Colors.white],
+                  stops: [0.0, 0.35],
+                ),
               ),
-            ),
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Material(
-                      color: Colors.white,
-                      shape: CircleBorder(),
-                      elevation: 3,
-                      shadowColor: Colors.black.withValues(alpha: 0.15),
-                      child: InkWell(
-                        customBorder: CircleBorder(),
-                        onTap: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Padding(
-                          padding: EdgeInsets.all(10),
-                          child: Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            size: 18,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: Material(
+                        color: Colors.white,
+                        shape: CircleBorder(),
+                        elevation: 3,
+                        shadowColor: Colors.black.withValues(alpha: 0.15),
+                        child: InkWell(
+                          customBorder: CircleBorder(),
+                          onTap: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              size: 18,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: 24),
-                  Container(
-                    width: 84,
-                    height: 84,
-                    decoration: BoxDecoration(
-                      color: secondaryColor.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
+                    SizedBox(height: 24),
+                    Container(
+                      width: 84,
+                      height: 84,
+                      decoration: BoxDecoration(
+                        color: secondaryColor.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.sms_outlined,
+                        size: 38,
+                        color: secondaryColor,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.sms_outlined,
-                      size: 38,
-                      color: secondaryColor,
-                    ),
-                  ),
-                  SizedBox(height: 28),
-                  Text(
-                    "Xác thực số điện thoại",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF111827),
-                    ),
-                  ),
-                  SizedBox(height: 12),
-                  RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
+                    SizedBox(height: 28),
+                    Text(
+                      "Xác thực số điện thoại",
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 15,
-                        color: Color(0xFF6B7280),
-                        height: 1.4,
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF111827),
                       ),
-                      children: [
-                        TextSpan(
-                          text: "Hãy nhập mã gồm 6 số đã được gửi đến số\n",
+                    ),
+                    SizedBox(height: 12),
+                    RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Color(0xFF6B7280),
+                          height: 1.4,
                         ),
-                        TextSpan(
-                          text: signUpRequest.mobileNo,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF111827),
+                        children: [
+                          TextSpan(
+                            text: "Hãy nhập mã gồm 6 số đã được gửi đến số\n",
+                          ),
+                          TextSpan(
+                            text: signUpRequest.mobileNo,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF111827),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 36),
+                    Material(
+                      type: MaterialType.transparency,
+                      child: Pinput(
+                        length: 6,
+                        defaultPinTheme: defaultPinTheme,
+                        focusedPinTheme: focusedPinTheme,
+                        pinAnimationType: PinAnimationType.scale,
+                        hapticFeedbackType: HapticFeedbackType.lightImpact,
+                        errorTextStyle: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 13,
+                        ),
+                        validator: (value) {
+                          return validateMsg.isNotEmpty ? validateMsg : null;
+                        },
+                        onCompleted: verifyOTP,
+                        onChanged: (value) {
+                          smsCode = value;
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 28),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () => verifyOTP(smsCode),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: secondaryColor,
+                          elevation: 1,
+                          shape: RoundedRectangleBorder(
+                            side: BorderSide(color: Colors.blue),
+                            borderRadius: BorderRadius.circular(15),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 36),
-                  Pinput(
-                    length: 6,
-                    defaultPinTheme: defaultPinTheme,
-                    focusedPinTheme: focusedPinTheme,
-                    pinAnimationType: PinAnimationType.scale,
-                    hapticFeedbackType: HapticFeedbackType.lightImpact,
-                    errorTextStyle: TextStyle(color: Colors.red, fontSize: 13),
-                    validator: (value) {
-                      return validateMsg.isNotEmpty ? validateMsg : null;
-                    },
-                    onCompleted: verifyOTP,
-                    onChanged: (value) {
-                      smsCode = value;
-                    },
-                  ),
-                  SizedBox(height: 28),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () => verifyOTP(smsCode),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: secondaryColor,
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          side: BorderSide(color: Colors.blue),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                      child: Text(
-                        "Xác nhận",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                        child: Text(
+                          "Xác nhận",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: 28),
-                ],
+                    SizedBox(height: 28),
+                  ],
+                ),
               ),
             ),
           ),
